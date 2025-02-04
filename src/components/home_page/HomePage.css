@@ -1,0 +1,302 @@
+body {
+    background: #4A90E2;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.homepage-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    color: white;
+    padding: 25px 15px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 40px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    margin: 400px;
+    flex: 1;
+    position: relative; /* Allow nav links to be positioned independently */
+}
+
+.nav-links a {
+    color: black;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 16px;
+    padding: 8px 12px;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    background-color: #42A5F5;
+    transform: scale(1);
+    position: relative;
+    z-index: 1;
+}
+
+.nav-links a:hover {
+    background-color: #42A5F5;
+    color: white;
+    transform: scale(1.1);
+}
+
+.login-btn {
+    background: #42A5F5;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: auto;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transform: scale(1);
+}
+
+.login-btn:hover {
+    transform: scale(1.1);
+}
+
+.logo {
+    height: 50px;
+}
+
+.home-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60vh;
+    width: 100%;
+    flex-direction: column;
+}
+
+.login-buttons {
+    display: flex;
+    gap: 175px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    font-family: 'Oswald', sans-serif;
+}
+
+.DOCTOR {
+    width: 200px;
+    height: 300px;
+    padding: 20px;
+    border: 2px solid white;
+    background: white;
+    color: #4A4A4A;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: transform 0.6s ease, box-shadow 0.3s ease;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.DOCTOR .label {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.DOCTOR:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.DOCTOR:hover .label {
+    color: black;
+}
+
+.PATIENT {
+    width: 200px;
+    height: 300px;
+    padding: 20px;
+    border: 2px solid white;
+    background: white;
+    color: #4A4A4A;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: transform 0.6s ease, box-shadow 0.3s ease;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.PATIENT .label {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.PATIENT:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.PATIENT:hover .label {
+    color: black;
+}
+
+.STAFF {
+    width: 200px;
+    height: 300px;
+    padding: 20px;
+    border: 2px solid white;
+    background: white;
+    color: #4A4A4A;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: transform 0.6s ease, box-shadow 0.3s ease;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.STAFF .label {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.STAFF:hover {
+    transform: scale(1.1);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.STAFF:hover .label {
+    color: black;
+}
+
+.DOCTOR .card-image {
+    width: 200px; 
+    height: 250px;
+    object-fit: contain;
+    margin-bottom: auto;
+}
+
+.STAFF .card-image {
+    width: 200px;
+    height: 300px;
+    object-fit: contain;
+    margin-bottom: auto;
+}
+
+.PATIENT .card-image {
+    width: 200px;
+    height: 300px;
+    object-fit: contain;
+    margin-bottom: auto;
+}
+
+.footer {
+    font-size: 20px;
+    text-align: center;
+    padding: 10px;
+    background-color: white;
+    color: #4A4A4A;
+    position: fixed;
+    width: 100%;
+    height: 40px; /* Set static height */
+    bottom: 0;
+    left: 0;
+    overflow-y: auto; /* Allow scrolling if content exceeds height */
+}
+
+.footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: -10px;
+}
+
+.social-icons a {
+    color: white;
+    margin: 0 10px;
+    font-size: 18px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 16px;
+}
+
+.login-btn {
+    background: #42A5F5;
+    border: none;
+    padding: 10px 15px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Hero Section */
+.hero-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 10vh;
+    background: url('/path/to/hero-image.jpg') no-repeat center center/cover;
+    color: white;
+    text-align: center;
+    margin-top: 70px;
+}
+
+.hero-text h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.hero-buttons .secondary-btn {
+    padding: 12px 20px;
+    border: none;
+    margin: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.secondary-btn {
+    background: white;
+    color: #1E88E5;
+}
