@@ -64,12 +64,40 @@ const HomePage = () => {
                         <i className="fa-solid fa-heart heart-icon"></i>
                         <h1>Your Health, Our Priority</h1><br />
                         <p>Providing world-class healthcare services at your fingertips.</p><br />
+                        
+                        <div className="info-cards-container">
+                            <div className="cards-column left-column">
+                                <div className="info-card">
+                                    <h3>Overview of the Hospital Management System</h3>
+                                </div>
+                                <div className="info-card">
+                                    <h3>Key Features & Functionalities</h3>
+                                </div>
+                                <div className="info-card">
+                                    <h3>User Roles & Access Control</h3>
+                                </div>
+                                <div className="info-card">
+                                    <h3>Benefits for Hospitals & Clinics</h3>
+                                </div>
+                            </div>
+                            
+                            <div className="cards-column right-column">
+                                <div className="info-card">
+                                    <h3>How Our System Works</h3>
+                                </div>
+                                <div className="info-card">
+                                    <h3>Security & Compliance Measures</h3>
+                                </div>
+                                <div className="info-card">
+                                    <h3>Success Stories & Testimonials</h3>
+                                </div>
+                                <div className="info-card">
+                                    <h3>Get in Touch with Us</h3>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
-
-                <div className="home-container">
-                    
-                </div>
             </div>
         </>
     );

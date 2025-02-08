@@ -10,6 +10,8 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 900px;
 }
 
 .initial-loader {
@@ -175,7 +177,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border: 3px solid black;
+  box-shadow: 4px 4px 0 0 black;
   transition: all 0.8s ease;
   position: relative;
   cursor: pointer;
@@ -234,8 +237,8 @@ body {
 
 /* Hover Effects */
 .DOCTOR:hover, .PATIENT:hover, .STAFF:hover {
-  transform: translateY(-5px) scale(1.05);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 black;
 }
 
 /* Home Container */
@@ -439,4 +442,87 @@ body {
   cursor: pointer;
   animation: none;
   transform: scale(1.2);
+}
+
+.info-cards-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.homepage-wrapper.scrolled .info-cards-container {
+    opacity: 1;
+}
+
+.cards-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.info-card {
+    background: white;
+    border: 3px solid black;
+    border-radius: 6px;
+    padding: 25px;
+    box-shadow: 4px 4px 0 0 black;
+    opacity: 0;
+    transition: all 0.3s ease;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.left-column .info-card {
+    transform: translateX(-100px);
+}
+
+.right-column .info-card {
+    transform: translateX(100px);
+}
+
+.homepage-wrapper.scrolled .info-card {
+    opacity: 1;
+    transform: translateX(0);
+    transition-delay: 0.4s;
+}
+
+.info-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 black;
+}
+
+.info-card h3 {
+    color: black;
+    font-size: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .info-cards-container {
+        flex-direction: column;
+    }
+    
+    .left-column .info-card,
+    .right-column .info-card {
+        transform: translateY(50px);
+    }
+    
+    .info-card.visible {
+        transform: translateY(0);
+    }
+    
+    .info-card.visible:hover {
+        transform: translate(-2px, -2px);
+    }
 }
