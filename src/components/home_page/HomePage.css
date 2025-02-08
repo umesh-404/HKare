@@ -566,19 +566,37 @@ body {
     border: 3px solid black;
 }
 
-.popup-content h2 {
+.popup-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.popup-header .popup-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
     color: #4A90E2;
-    margin-bottom: 20px;
-    padding-right: 40px;
+}
+
+.popup-title {
+    margin: 0;
+    color: #4A90E2;
     font-size: 24px;
     font-weight: 600;
+    text-align: center;
+    width: 100%;
 }
 
 .popup-content p {
     color: #333;
     line-height: 1.8;
     font-size: 16px;
-    padding-left: 40px;
+    text-align: justify;
+    padding: 0 20px;
 }
 
 @keyframes fadeIn {
@@ -621,5 +639,110 @@ body {
         font-size: 20px;
         width: 25px;
         height: 25px;
+    }
+}
+
+/* Update the footer styles */
+.footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 40px 0 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.footer-content {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 0 20px;
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 250px;
+    margin: 20px;
+    color: white;
+}
+
+.footer-section h4 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.footer-section p {
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin: 10px 0;
+}
+
+.footer-section a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+    color: #4A90E2;
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+}
+
+.social-links a {
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.social-links a:hover {
+    transform: translateY(-3px);
+}
+
+.footer-bottom {
+    width: 100%;
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.footer i {
+    margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer-section {
+        margin: 10px 0;
+    }
+
+    .social-links {
+        justify-content: center;
     }
 }
