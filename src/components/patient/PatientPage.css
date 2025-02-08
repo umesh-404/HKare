@@ -1,0 +1,189 @@
+/* Global Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f8ff;
+    color: #333;
+  }
+  
+  .app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  /* Header Styles */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0056e0;
+    color: white;
+    padding: 1rem;
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+  }
+  
+  .patient-name {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    right: 0%;
+  }
+  
+  .logout-button {
+    background-color: #003786;
+    color: white;
+    left: 0%;
+    align-items: right;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+  }
+  
+  .logout-button:hover {
+    background-color: #002859;
+  }
+  
+  .hospital-logo {
+    height: 40px;
+    width: 40px;
+    align-content: left;
+  }
+  
+  /* Main Container Styles */
+  .main-container {
+    display: flex;
+    flex: 1;
+  }
+  
+  /* Sidebar Styles */
+  /* Sidebar Styles */
+.sidebar {
+    width: 250px;
+    background-color: #b3d1ff;
+    padding: 1rem;
+    position: fixed; /* Fix it to the left */
+    left: 0; /* Align to the leftmost edge */
+    top: 60px; /* Adjust based on header height */
+    height: calc(100vh - 60px); /* Fill remaining height */
+    overflow-y: auto; /* Enable scrolling if needed */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* Adjust margin between buttons */
+  }
+  
+  /* Sidebar Button Styles */
+  .sidebar-button {
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .sidebar-button:hover {
+    background-color: #80b3ff;
+  }
+  
+  .sidebar-button.active {
+    background-color: #0056e0;
+    color: white;
+  }
+  
+  /* Main Content Styles */
+  .main-content {
+    flex: 1;
+    padding: 2rem;
+    background-color: white;
+  }
+  
+  .section-title {
+    color: #0056e0;
+    margin-bottom: 1rem;
+    text-transform: capitalize;
+  }
+  
+  /* Section Styles */
+  .section {
+    background-color: #f0f8ff;
+    padding: 1rem;
+    border-radius: 4px;
+  }
+  
+  .list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .list-item {
+    background-color: white;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .submit-button {
+    background-color: #0056e0;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .submit-button:hover {
+    background-color: #003786;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table th,
+  .table td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: left;
+  }
+  
+  .table th {
+    background-color: #b3d1ff;
+  }
+  
+  .text-muted {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  
