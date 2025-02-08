@@ -27,11 +27,13 @@ const PatientPortal = () => {
     <div className="container">
       {/* Header */}
       <header className="header">
-        <div className="header-left">
-          <span className="patient-name">John Doe</span>
-          <button className="logout-button">Logout</button>
+        <img src="/logooh.jpg" alt="Hospital Logo" className="hospital-logo" />
+        <div className="header-right">
+          <div className="patient-info" style={{display: "flex", alignItems: "center", gap: "10px"}}>
+            <img src="/kiopatient.jpg" alt="Patient" className="patient-avatar" style={{width: "30px", height: "30px", borderRadius: "50%"}} />
+            <span className="patient-name">John Doe</span>
+          </div>
         </div>
-        <img src="/placeholder.svg" alt="Hospital Logo" className="hospital-logo" />
       </header>
 
       <div className="main-layout">
@@ -50,6 +52,13 @@ const PatientPortal = () => {
               </button>
             )
           )}
+          <button 
+            className="sidebar-button"
+            style={{marginTop: "auto"}}
+            onClick={() => {/* Add logout logic here */}}
+          >
+            Logout
+          </button>
         </nav>
 
         {/* Main Content */}
