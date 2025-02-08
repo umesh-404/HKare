@@ -71,7 +71,9 @@ body {
   right: 0;
   background: white;
   z-index: 1000;
-  height: 60vh;
+  height: 35vh;
+  min-height: 380px;
+  max-height: 480px;
   transition: all 0.8s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   will-change: height, transform;
@@ -81,7 +83,9 @@ body {
 }
 
 .header-scrolled {
-  height: 180px;
+  height: 160px;
+  min-height: 160px;
+  max-height: 160px;
 }
 
 .header-content {
@@ -142,7 +146,7 @@ body {
   justify-content: center;
   transition: all 0.8s ease;
   position: absolute;
-  top: 55%;
+  top: calc(50% + 10px);
   left: 50%;
   transform: translate(-50%, -50%);
   will-change: transform;
@@ -316,7 +320,7 @@ body {
 .homepage-wrapper.scrolled .hero-section-div2 {
   background: rgba(255, 255, 255, 0.1);
   color: white;
-  transform: translateY(calc(-70vh + 180px));
+  transform: translateY(-40vh);
   transition: background 0.8s ease,
               color 0.8s ease,
               transform 0.8s ease;
