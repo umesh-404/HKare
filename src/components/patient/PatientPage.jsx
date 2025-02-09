@@ -12,7 +12,7 @@ const PatientPortal = () => {
     setTimeout(() => {
       setShowLogoutPopup(false);
       navigate("/patient-login");
-    }, 1000);
+    }, 1500);
   };
 
   const renderContent = () => {
@@ -48,7 +48,7 @@ const PatientPortal = () => {
         <div className="header-right">
           <div className="user-info">
             <i className="fas fa-user user-icon"></i>
-            <span className="user-name">John Doe</span>
+            <span className="user-name">Rajesh Kumar</span>
             <button className="logout-button" onClick={handleLogout}>
               <i className="fas fa-sign-out-alt"></i> Logout
             </button>
@@ -58,9 +58,11 @@ const PatientPortal = () => {
 
       {/* Logout Popup */}
       {showLogoutPopup && (
-        <div className="logout-popup">
-          <i className="fas fa-spinner fa-spin"></i>
-          Logging out...
+        <div className="overlay">
+          <div className="loading-text">
+            <div className="spinner"></div>
+            Logging You Out...
+          </div>
         </div>
       )}
 
@@ -122,7 +124,7 @@ const Consultations = () => (
         </div>
         <div className="consultation-card-body">
           <div className="consultation-entry">
-            <p className="consultation-doctor">Dr. Smith - Cardiology</p>
+            <p className="consultation-doctor">Dr. Patel - Cardiology</p>
             <p className="consultation-datetime">
               <i className="far fa-clock"></i> Today, 10:00 AM
             </p>
@@ -145,7 +147,7 @@ const Consultations = () => (
         </div>
         <div className="consultation-card-body">
           <div className="consultation-entry">
-            <p className="consultation-doctor">Dr. Williams - Cardiology</p>
+            <p className="consultation-doctor">Dr. Sharma - Cardiology</p>
             <p className="consultation-datetime">
               <i className="far fa-calendar-alt"></i> August 20, 2023
             </p>
@@ -268,7 +270,7 @@ const Prescriptions = () => (
               <p><i className="fas fa-pills"></i> Dosage: 500mg</p>
               <p><i className="fas fa-clock"></i> Frequency: 3 times a day</p>
               <p><i className="fas fa-calendar"></i> Duration: 7 days</p>
-              <p><i className="fas fa-user-md"></i> Dr. Williams - Cardiology</p>
+              <p><i className="fas fa-user-md"></i> Dr. Sharma - Cardiology</p>
             </div>
             <div className="prescription-actions">
               <button className="prescription-btn primary">
@@ -296,7 +298,7 @@ const Prescriptions = () => (
               <p><i className="fas fa-pills"></i> Dosage: 10mg</p>
               <p><i className="fas fa-clock"></i> Frequency: Once daily</p>
               <p><i className="fas fa-calendar"></i> Duration: 30 days</p>
-              <p><i className="fas fa-user-md"></i> Dr. Brown - Internal Medicine</p>
+              <p><i className="fas fa-user-md"></i> Dr. Gupta - Internal Medicine</p>
             </div>
             <div className="prescription-actions">
               <button className="prescription-btn link">View Details</button>
@@ -332,7 +334,7 @@ const Payments = () => (
               <tbody>
                 <tr>
                   <td>2023-08-01</td>
-                  <td>Consultation - Dr. Smith</td>
+                  <td>Consultation - Dr. Patel</td>
                   <td>$150</td>
                   <td><span className="payment-status paid">Paid</span></td>
                 </tr>
@@ -399,13 +401,13 @@ const Communication = () => (
               <div className="message-header">
                 <div className="message-sender">
                   <i className="fas fa-user-md"></i>
-                  <span>Dr. Smith - Cardiology</span>
+                  <span>Dr. Patel - Cardiology</span>
                 </div>
                 <span className="message-date">Today, 10:30 AM</span>
               </div>
               <div className="message-content">
                 <h4 className="message-subject">Follow-up on your last visit</h4>
-                <p className="message-preview">Hello Mr. Doe, I hope you're doing well. Regarding your last visit...</p>
+                <p className="message-preview">Hello Mr. Kumar, I hope you're doing well. Regarding your last visit...</p>
               </div>
               <div className="message-actions">
                 <button className="message-btn primary">Read Message</button>
@@ -417,7 +419,7 @@ const Communication = () => (
               <div className="message-header">
                 <div className="message-sender">
                   <i className="fas fa-user-nurse"></i>
-                  <span>Nurse Johnson</span>
+                  <span>Nurse Mehra</span>
                 </div>
                 <span className="message-date">Yesterday</span>
               </div>
@@ -448,8 +450,8 @@ const Communication = () => (
               </label>
               <select className="form-input">
                 <option value="">Select Recipient</option>
-                <option value="dr-smith">Dr. Smith - Cardiology</option>
-                <option value="dr-johnson">Dr. Johnson - Neurology</option>
+                <option value="dr-patel">Dr. Patel - Cardiology</option>
+                <option value="dr-verma">Dr. Verma - Neurology</option>
                 <option value="nurse">Nurse Station</option>
               </select>
             </div>
@@ -560,4 +562,3 @@ const Support = () => (
 );
 
 export default PatientPortal;
-
