@@ -21,6 +21,7 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 2rem;
+  padding-top: 80px;
 }
 
 .login-section {
@@ -216,4 +217,65 @@ body {
     border-bottom: none;
     border-top: none;
   }
+}
+
+/* Add styles for the links container */
+.form-links {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.form-links a {
+    color: #2171CD;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease-in-out;
+}
+
+.form-links a:hover {
+    color: #4A90E2;
+    text-decoration: underline;
+}
+
+/* Add header styles */
+.login-header {
+    width: 100%;
+    background: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.header-logo {
+    height: 40px;
+}
+
+.home-link {
+    color: #2171CD;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.home-link i {
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.home-link:hover i {
+    transform: translateX(3px);
 }

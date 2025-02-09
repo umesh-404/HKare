@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
 
 const HomePage = () => {
+    const navigate = useNavigate();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedCard, setSelectedCard] = useState(null);
+    const [isRedirecting, setIsRedirecting] = useState(false);
+    const [redirectTarget, setRedirectTarget] = useState('');
 
     // Updated cardContent with specific icons for each card
     const cardContent = {
@@ -73,8 +77,39 @@ const HomePage = () => {
         setSelectedCard(title);
     };
 
+    const handleDoctorLogin = () => {
+        setIsRedirecting(true);
+        setRedirectTarget('doctor');
+        setTimeout(() => {
+            navigate('/doctor-login');
+        }, 1500);
+    };
+
+    const handlePatientLogin = () => {
+        setIsRedirecting(true);
+        setRedirectTarget('patient');
+        setTimeout(() => {
+            navigate('/patient-login');
+        }, 1500);
+    };
+
+    const handleStaffLogin = () => {
+        setIsRedirecting(true);
+        setRedirectTarget('staff');
+        setTimeout(() => {
+            navigate('/staff-login');
+        }, 1500);
+    };
+
     return (
         <>
+            {isRedirecting && (
+                <div className="redirect-overlay">
+                    <div className="loading-spinner"></div>
+                    <p>Redirecting to {redirectTarget} login...</p>
+                </div>
+            )}
+
             <div className={`initial-loader ${!isLoading ? 'fade-out' : ''}`}>
                 <img src="vite.svg" alt="Hospital Logo" className="logo" />
             </div>
@@ -84,17 +119,17 @@ const HomePage = () => {
                     <div className="header-content">
                         <img src="vite.svg" alt="Hospital Logo" className="logo" />
                         <div className="login-buttons">
-                            <div className="DOCTOR">
+                            <div className="DOCTOR" onClick={handleDoctorLogin}>
                                 <img src="doctor-image.svg" alt="Doctor" className="card-image" />
                                 <div className="label">DOCTOR</div>
                             </div>
 
-                            <div className="PATIENT">
+                            <div className="PATIENT" onClick={handlePatientLogin}>
                                 <img src="patient-image.svg" alt="Patient" className="card-image" />
                                 <div className="label">PATIENT</div>
                             </div>
 
-                            <div className="STAFF">
+                            <div className="STAFF" onClick={handleStaffLogin}>
                                 <img src="staff-image.svg" alt="Staff" className="card-image" />
                                 <div className="label">STAFF</div>
                             </div>
