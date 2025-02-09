@@ -8,6 +8,7 @@ const DoctorLogin = () => {
         doctorId: '',
         password: ''
     });
+    const [showLoginOverlay, setShowLoginOverlay] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -18,9 +19,11 @@ const DoctorLogin = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Add your authentication logic here
-        // For now, we'll just redirect
-        navigate('/doctor-dashboard');
+        setShowLoginOverlay(true);
+        setTimeout(() => {
+            setShowLoginOverlay(false);
+            navigate('/doctor-dashboard');
+        }, 1500);
     };
 
     const handleNewUser = (e) => {
@@ -37,6 +40,14 @@ const DoctorLogin = () => {
                     <i className="fa-solid fa-right-from-bracket"></i>
                 </a>
             </header>
+
+            {/* Login Overlay */}
+            {showLoginOverlay && (
+                <div className="login-overlay">
+                    <div className="loading-spinner"></div>
+                    <p>Logging you in...</p>
+                </div>
+            )}
 
             <div className="login-container">
                 <div className="login-section">

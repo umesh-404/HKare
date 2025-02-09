@@ -1,6 +1,7 @@
 import './StaffLogin.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import viteLogo from '/vite.svg'
 
 const StaffLogin = () => {
   const navigate = useNavigate();
@@ -8,6 +9,7 @@ const StaffLogin = () => {
     staffId: '',
     password: ''
   });
+  const [showLoginOverlay, setShowLoginOverlay] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -18,9 +20,11 @@ const StaffLogin = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add your authentication logic here
-    // For now, we'll just redirect
-    navigate('/staff-dashboard');
+    setShowLoginOverlay(true);
+    setTimeout(() => {
+      setShowLoginOverlay(false);
+      navigate('/staff-dashboard');
+    }, 1500);
   };
 
   const handleNewUser = (e) => {
@@ -31,12 +35,20 @@ const StaffLogin = () => {
   return (
     <>
       <header className="login-header">
-        <img src="vite.svg" alt="Hospital Logo" className="header-logo" />
+        <img src={viteLogo} alt="Hospital Logo" className="header-logo" />
         <a href="#" onClick={() => navigate('/')} className="home-link">
           Go Back to Home
           <i className="fa-solid fa-right-from-bracket"></i>
         </a>
       </header>
+
+      {/* Login Overlay */}
+      {showLoginOverlay && (
+        <div className="login-overlay">
+          <div className="loading-spinner"></div>
+          <p>Logging you in...</p>
+        </div>
+      )}
 
       <div className="login-container">
         <div className="login-section">

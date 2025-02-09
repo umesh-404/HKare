@@ -8,6 +8,7 @@ const PatientLogin = () => {
     patientId: '',
     password: ''
   });
+  const [showLoginOverlay, setShowLoginOverlay] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -18,9 +19,12 @@ const PatientLogin = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add your authentication logic here
-    // For now, we'll just redirect
-    navigate('/patient-dashboard');
+    setShowLoginOverlay(true);
+    // Simulate login delay
+    setTimeout(() => {
+      setShowLoginOverlay(false);
+      navigate('/patient-dashboard');
+    }, 1500);
   };
 
   const handleNewUser = (e) => {
@@ -31,12 +35,20 @@ const PatientLogin = () => {
   return (
     <>
       <header className="login-header">
-        <img src="vite.svg" alt="Hospital Logo" className="header-logo" />
+        <img src="/vite.svg" alt="Hospital Logo" className="header-logo" />
         <a href="#" onClick={() => navigate('/')} className="home-link">
           Go Back to Home
           <i className="fa-solid fa-right-from-bracket"></i>
         </a>
       </header>
+
+      {/* Login Overlay */}
+      {showLoginOverlay && (
+        <div className="login-overlay">
+          <div className="loading-spinner"></div>
+          <p>Logging you in...</p>
+        </div>
+      )}
 
       <div className="login-container">
         <div className="login-section">
