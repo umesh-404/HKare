@@ -1,8 +1,27 @@
 import './PatientLogin.css';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const PatientLogin = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    patientId: '',
+    password: ''
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Add your authentication logic here
+    // For now, we'll just redirect
+    navigate('/patient-dashboard');
+  };
 
   const handleNewUser = (e) => {
     e.preventDefault();
@@ -62,7 +81,7 @@ const PatientLogin = () => {
           <div className="login-card">
             <h2 className="login-title">Patient Login</h2>
             <p className="login-subtitle">Please enter your details to login</p>
-            <form className="login-form">
+            <form onSubmit={handleSubmit} className="login-form">
               <div className="form-group">
                 <label htmlFor="patientId">Patient ID</label>
                 <input 
@@ -71,6 +90,8 @@ const PatientLogin = () => {
                   name="patientId" 
                   placeholder="Enter your Patient ID" 
                   required 
+                  value={formData.patientId}
+                  onChange={handleChange}
                 />
               </div>
 
@@ -82,6 +103,8 @@ const PatientLogin = () => {
                   name="password" 
                   placeholder="Enter your password" 
                   required 
+                  value={formData.password}
+                  onChange={handleChange}
                 />
               </div>
 

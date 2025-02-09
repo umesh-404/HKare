@@ -1,8 +1,27 @@
 import './StaffLogin.css';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const StaffLogin = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    staffId: '',
+    password: ''
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Add your authentication logic here
+    // For now, we'll just redirect
+    navigate('/staff-dashboard');
+  };
 
   const handleNewUser = (e) => {
     e.preventDefault();
@@ -62,7 +81,7 @@ const StaffLogin = () => {
           <div className="login-card">
             <h2 className="login-title">Staff Login</h2>
             <p className="login-subtitle">Please enter your details to login</p>
-            <form className="login-form">
+            <form onSubmit={handleSubmit} className="login-form">
               <div className="form-group">
                 <label htmlFor="staffId">Staff ID</label>
                 <input 
@@ -71,6 +90,8 @@ const StaffLogin = () => {
                   name="staffId" 
                   placeholder="Enter your Staff ID" 
                   required 
+                  value={formData.staffId}
+                  onChange={handleChange}
                 />
               </div>
 
@@ -82,6 +103,8 @@ const StaffLogin = () => {
                   name="password" 
                   placeholder="Enter your password" 
                   required 
+                  value={formData.password}
+                  onChange={handleChange}
                 />
               </div>
 

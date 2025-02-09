@@ -1,8 +1,27 @@
 import './DoctorLogin.css';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const DoctorLogin = () => {
     const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        doctorId: '',
+        password: ''
+    });
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        // Add your authentication logic here
+        // For now, we'll just redirect
+        navigate('/doctor-dashboard');
+    };
 
     const handleNewUser = (e) => {
         e.preventDefault();
@@ -62,13 +81,15 @@ const DoctorLogin = () => {
                     <div className="login-card">
                         <h2 className="login-title">Doctor Login</h2>
                         <p className="login-subtitle">Please enter your details to login</p>
-                        <form className="login-form">
+                        <form onSubmit={handleSubmit} className="login-form">
                             <div className="form-group">
                                 <label htmlFor="doctorId">Doctor ID</label>
                                 <input 
                                     type="text" 
                                     id="doctorId" 
                                     name="doctorId" 
+                                    value={formData.doctorId}
+                                    onChange={handleChange}
                                     placeholder="Enter your Doctor ID" 
                                     required 
                                 />
@@ -80,6 +101,8 @@ const DoctorLogin = () => {
                                     type="password" 
                                     id="password" 
                                     name="password" 
+                                    value={formData.password}
+                                    onChange={handleChange}
                                     placeholder="Enter your password" 
                                     required 
                                 />

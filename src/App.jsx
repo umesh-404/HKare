@@ -4,6 +4,9 @@ import HomePage from './components/home_page/HomePage'
 import DoctorLogin from './components/login_pages/DoctorLogin'
 import PatientLogin from './components/login_pages/PatientLogin'
 import StaffLogin from './components/login_pages/StaffLogin'
+import DoctorPage from './components/doctor/DoctorPage'
+import PatientPage from './components/patient/PatientPage'
+import StaffPage from './components/staff/StaffPage'
 
 function App() {
   return (
@@ -13,6 +16,9 @@ function App() {
         <Route path="/doctor-login" element={<DoctorLogin />} />
         <Route path="/patient-login" element={<PatientLogin />} />
         <Route path="/staff-login" element={<StaffLogin />} />
+        <Route path="/doctor-dashboard" element={<DoctorPage />} />
+        <Route path="/patient-dashboard" element={<PatientPage />} />
+        <Route path="/staff-dashboard" element={<StaffPage />} />
       </Routes>
     </Router>
   );
