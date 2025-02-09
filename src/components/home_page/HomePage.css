@@ -417,10 +417,10 @@ body {
 
 .info-card {
     background: white;
-    border: 3px solid black;
+    border: 3px solid black !important;
     border-radius: 6px;
     padding: 25px;
-    box-shadow: 4px 4px 0 0 black;
+    box-shadow: 4px 4px 0 0 black !important;
     opacity: 0;
     transition: all 0.3s ease;
     min-height: 100px;
@@ -447,7 +447,7 @@ body {
 
 .info-card:hover {
     transform: translate(-2px, -2px) scale(1.05) !important;
-    box-shadow: 6px 6px 0 0 black;
+    box-shadow: 6px 6px 0 0 black !important;
 }
 
 .info-card h3 {
