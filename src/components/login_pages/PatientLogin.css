@@ -19,21 +19,83 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 70px);
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.login-section {
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 8px 8px 0 0 #2171CD;
+  width: 100%;
+  max-width: 1000px;
+  overflow: hidden;
 }
 
 .login-card {
-  background: white;
+  flex: 1;
   padding: 3rem;
-  border-radius: 12px;
-  border: 3px solid #2171CD;
-  box-shadow: 8px 8px 0 0 #2171CD;
-  width: 100%;
-  max-width: 450px;
-  text-align: center;
-  transition: transform 0.2s ease-in-out;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  max-width: none;
+  border-left: 4px solid #2171CD;
 }
 
+.features-section {
+  flex: 1;
+  background: #f5f8ff;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.features-title {
+  font-size: 1.8rem;
+  color: #2171CD;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #2171CD;
+  box-shadow: 4px 4px 0 0 #2171CD;
+  transition: transform 0.2s ease;
+}
+
+.feature-item:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 0 #2171CD;
+}
+
+.feature-icon {
+  color: #2171CD;
+  font-size: 1.5rem;
+}
+
+.feature-text {
+  flex: 1;
+}
+
+.feature-text h4 {
+  color: #2171CD;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.feature-text p {
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
 
 .login-title {
   font-size: 2.5rem;
@@ -135,4 +197,22 @@ body {
 .login-button:active {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 0 #185AA3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-section {
+    flex-direction: column-reverse;
+  }
+  
+  .login-card {
+    border-left: none;
+    border-top: 2px solid #e0e0e0;
+  }
+  
+  .features-section {
+    border-left: none;
+    border-bottom: none;
+    border-top: none;
+  }
 }
