@@ -1551,3 +1551,147 @@ body {
         width: 100%;
     }
 }
+
+/* Patients Grid Layout */
+.patients-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: #f0f8ff; /* Light background for contrast */
+}
+
+/* Patient Card Styles */
+.patient-card {
+    background: white;
+    border: 2px solid #e0e0e0; /* Softer border color */
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: transform 0.3s; /* Smooth hover effect */
+}
+
+.patient-card:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+}
+
+/* Card Header */
+.patient-card .card-header {
+    padding: 1.5rem;
+    border-bottom: 2px solid #e0e0e0; /* Softer border color */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background: #0066ff; /* Blue background for header */
+    color: white; /* White text for contrast */
+}
+
+.patient-card .card-header i {
+    font-size: 1.5rem; /* Slightly larger icon */
+}
+
+.patient-card .card-header h3 {
+    margin: 0;
+    font-size: 1.5rem; /* Larger font size for emphasis */
+    font-weight: 600;
+}
+
+/* Patient Entry */
+.patient-entry {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+}
+
+.patient-name {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #000;
+    margin: 0;
+}
+
+.patient-info,
+.patient-condition,
+.request-reason {
+    font-size: 1.1rem;
+    color: #555; /* Darker gray for better readability */
+    margin: 0;
+}
+
+.last-visit,
+.preferred-time {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #666; /* Softer color for less emphasis */
+    font-size: 1rem;
+}
+
+.last-visit i,
+.preferred-time i {
+    color: #0066ff; /* Blue icon for consistency */
+}
+
+/* Button Styles */
+.patient-actions,
+.request-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.view-history-btn,
+.schedule-btn,
+.accept-btn,
+.reject-btn {
+    background: #0066ff; /* Blue background for buttons */
+    color: white; /* White text for contrast */
+    border: none; /* No border */
+    border-radius: 12px;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 130px; /* Consistent button width */
+}
+
+.view-history-btn:hover,
+.schedule-btn:hover,
+.accept-btn:hover,
+.reject-btn:hover {
+    background: #0052cc; /* Darker blue on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .patients-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+    
+    .patient-actions,
+    .request-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .view-history-btn,
+    .schedule-btn,
+    .accept-btn,
+    .reject-btn {
+        width: 100%;
+    }
+    
+    .patient-name {
+        font-size: 1.5rem;
+    }
+}
