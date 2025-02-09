@@ -5,7 +5,6 @@ import "./HomePage.css";
 const HomePage = () => {
     const navigate = useNavigate();
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
     const [selectedCard, setSelectedCard] = useState(null);
     const [isRedirecting, setIsRedirecting] = useState(false);
     const [redirectTarget, setRedirectTarget] = useState('');
@@ -54,11 +53,6 @@ const HomePage = () => {
     };
 
     useEffect(() => {
-        // Initial loading animation
-        setTimeout(() => {
-            setIsLoading(false);
-        }, 100); // Small delay to ensure everything is ready
-
         const handleScroll = () => {
             if (window.scrollY > 1) {
                 setIsScrolled(true);
@@ -110,11 +104,8 @@ const HomePage = () => {
                 </div>
             )}
 
-            <div className={`initial-loader ${!isLoading ? 'fade-out' : ''}`}>
-                <img src="vite.svg" alt="Hospital Logo" className="logo" />
-            </div>
 
-            <div className={`homepage-wrapper ${isScrolled ? 'scrolled' : ''} ${!isLoading ? 'loaded' : ''}`}>
+            <div className={`homepage-wrapper ${isScrolled ? 'scrolled' : ''}`}>
                 <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
                     <div className="header-content">
                         <img src="vite.svg" alt="Hospital Logo" className="logo" />
