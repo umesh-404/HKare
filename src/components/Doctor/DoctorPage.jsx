@@ -12,7 +12,7 @@ const DoctorPage = () => {
     setTimeout(() => {
       setShowLogoutPopup(false);
       navigate("/doctor-login");
-    }, 1000);
+    }, 1500);
   };
 
   const renderContent = () => {
@@ -48,7 +48,7 @@ const DoctorPage = () => {
         <div className="header-right">
           <div className="user-info">
             <i className="fas fa-user-md user-icon"></i>
-            <span className="user-name">Dr. John Smith</span>
+            <span className="user-name">Dr. Rajesh Kumar</span>
             <button className="logout-button" onClick={handleLogout}>
               <i className="fas fa-sign-out-alt"></i> Logout
             </button>
@@ -58,9 +58,11 @@ const DoctorPage = () => {
 
       {/* Logout Popup */}
       {showLogoutPopup && (
-        <div className="logout-popup">
-          <i className="fas fa-spinner fa-spin"></i>
-          Logging out...
+        <div className="overlay">
+          <div className="loading-text">
+            <div className="spinner"></div>
+            Logging You Out...
+          </div>
         </div>
       )}
 
@@ -128,7 +130,7 @@ const Consultations = () => (
         <div className="card-content">
           <div className="consultation-entry active">
             <div className="patient-status online"></div>
-            <h3 className="patient-name">John Doe</h3>
+            <h3 className="patient-name">Arun Patel</h3>
             <p className="consultation-type">Heart Checkup</p>
             <p className="consultation-time">
               <i className="far fa-clock"></i> In Progress (Started 10 mins ago)
@@ -161,7 +163,7 @@ const Consultations = () => (
         <div className="card-content">
           {[1, 2, 3].map((_, index) => (
             <div key={index} className="consultation-entry">
-              <h3 className="patient-name">Emma Thompson</h3>
+              <h3 className="patient-name">Priya Sharma</h3>
               <p className="consultation-type">First Consultation</p>
               <div className="time-slot">
                 <i className="far fa-calendar"></i>
@@ -187,7 +189,7 @@ const Patients = () => (
       </div>
       <div className="card-content">
         <div className="patient-entry">
-          <h3 className="patient-name">Sarah Parker</h3>
+          <h3 className="patient-name">Meera Kapoor</h3>
           <p className="patient-info">Age: 28 | Female</p>
           <p className="patient-condition">Chronic Migraine</p>
           <div className="last-visit">
@@ -210,7 +212,7 @@ const Patients = () => (
       </div>
       <div className="card-content">
         <div className="patient-entry">
-          <h3 className="patient-name">Emma Thompson</h3>
+          <h3 className="patient-name">Anjali Gupta</h3>
           <p className="patient-info">Age: 35 | Female</p>
           <p className="request-reason">Reason: Initial Consultation</p>
           <div className="preferred-time">
@@ -237,7 +239,7 @@ const Appointments = () => (
       </div>
       <div className="card-content">
         <div className="appointment-entry">
-          <h3 className="patient-name">Sarah Parker</h3>
+          <h3 className="patient-name">Meera Kapoor</h3>
           <p className="appointment-type">Follow-up</p>
           <div className="time-slot">
             <i className="far fa-clock"></i>
@@ -256,7 +258,7 @@ const Appointments = () => (
       </div>
       <div className="card-content">
         <div className="appointment-entry">
-          <h3 className="patient-name">Emma Thompson</h3>
+          <h3 className="patient-name">Anjali Gupta</h3>
           <p className="appointment-type">First Consultation</p>
           <div className="time-slot">
             <i className="far fa-clock"></i>
@@ -282,7 +284,7 @@ const Prescriptions = () => (
       </div>
       <div className="card-content">
         <div className="prescription-entry">
-          <h3 className="patient-name">Sarah Parker</h3>
+          <h3 className="patient-name">Meera Kapoor</h3>
           <p className="medication-name">Amoxicillin 500mg</p>
           <div className="prescription-details">
             <div className="dosage">
@@ -310,7 +312,7 @@ const Prescriptions = () => (
       </div>
       <div className="card-content">
         <div className="prescription-entry">
-          <h3 className="patient-name">Emma Thompson</h3>
+          <h3 className="patient-name">Anjali Gupta</h3>
           <p className="medication-name">Lisinopril 10mg</p>
           <div className="request-info">
             <i className="far fa-clock"></i>
@@ -337,7 +339,7 @@ const Communications = () => (
       <div className="card-content">
         <div className="message-entry">
           <div className="message-header">
-            <h3 className="sender-name">Sarah Parker</h3>
+            <h3 className="sender-name">Meera Kapoor</h3>
             <span className="message-time">Today, 10:30 AM</span>
           </div>
           <p className="message-preview">Question about medication side effects...</p>
@@ -352,7 +354,7 @@ const Communications = () => (
         </div>
         <div className="message-entry">
           <div className="message-header">
-            <h3 className="sender-name">Emma Thompson</h3>
+            <h3 className="sender-name">Anjali Gupta</h3>
             <span className="message-time">Yesterday, 3:45 PM</span>
           </div>
           <p className="message-preview">Follow-up appointment request...</p>

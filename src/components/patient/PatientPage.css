@@ -5,8 +5,8 @@ body {
     font-family: 'Outfit', sans-serif;
     background: #4A90E2;
     min-height: 100vh;
-}
-
+  }
+  
 /* Main page container */
 .patient-page {
     min-height: 100vh;
@@ -30,12 +30,12 @@ body {
     z-index: 1000;
     border-bottom: 2px solid black;
     box-shadow: 0 3px 0 0 black;
-}
-
-.header-left {
+  }
+  
+  .header-left {
     display: flex;
     align-items: center;
-}
+  }
 
 .logo {
     height: 30px;
@@ -89,8 +89,8 @@ body {
     display: flex;
     margin-top: 60px;
     flex: 1;
-}
-
+  }
+  
 /* Sidebar styles */
 .sidebar {
     width: 250px;
@@ -103,9 +103,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    border-right: 1px solid rgba(0, 0, 0, 0.1);
-}
-
+  }
+  
 .nav-button {
     width: 100%;
     padding: 1rem;
@@ -117,8 +116,8 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     color: black;
-}
-
+  }
+  
 .nav-button:hover:not(.logout) {
     background-color: #80b3ff;
     color: white;
@@ -134,7 +133,7 @@ body {
     border: 3px solid black;
     box-shadow: 4px 4px 0 0 black;
     transform: translate(-2px, -2px);
-}
+  }
 
 /* Content area */
 .content {
@@ -157,8 +156,8 @@ body {
     margin-bottom: 2rem;
     font-size: 1.5rem;
     text-transform: capitalize;
-}
-
+  }
+  
 /* Common section styles */
 .consultations-section,
 .appointment-section,
@@ -437,7 +436,7 @@ body {
     align-items: center;
     gap: 1rem;
     margin-bottom: 2rem;
-}
+  }
 
 .page-title i {
     color: #0056e0;
@@ -485,8 +484,8 @@ body {
     flex-direction: column;
     gap: 0.5rem;
 }
-
-.form-group label {
+  
+  .form-group label {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -787,22 +786,22 @@ table td,
 }
 
 /* Table styles */
-.table {
+  .table {
     background: white;
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
-}
-
-.table th,
-.table td {
+  }
+  
+  .table th,
+  .table td {
     border: 1px solid #ddd;
     padding: 0.8rem;
     text-align: left;
     color: black;
-}
-
-.table th {
+  }
+  
+  .table th {
     background-color: #f8f9fa;
     font-weight: 600;
 }
@@ -819,9 +818,9 @@ table td,
 .list-item p {
     margin: 0.5rem 0;
     color: black;
-}
-
-.text-muted {
+  }
+  
+  .text-muted {
     color: #666;
 }
 
@@ -1454,7 +1453,7 @@ textarea.form-input {
 .message-date {
     color: #666;
     font-size: 0.9rem;
-}
+  }  
 
 .message-content {
     margin-bottom: 15px;
