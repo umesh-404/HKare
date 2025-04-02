@@ -28,8 +28,7 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
-    border-bottom: 2px solid black;
-    box-shadow: 0 3px 0 0 black;
+    border-bottom: 3.5px solid black;
 }
 
 .header-left {
