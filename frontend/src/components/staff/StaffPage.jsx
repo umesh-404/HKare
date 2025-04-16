@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './StaffPage.css';
 import { Line } from 'react-chartjs-2';
 import {
@@ -12,6 +12,7 @@ import {
     Legend
 } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 // Register ChartJS components
 ChartJS.register(
@@ -28,10 +29,23 @@ const StaffPage = () => {
     const [activeSection, setActiveSection] = useState("dashboard");
     const navigate = useNavigate();
     const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+    const [userData, setUserData] = useState(null);
+
+    useEffect(() => {
+        // Get user data from localStorage
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            // Redirect to login if no user data found
+            navigate('/staff-login');
+            return;
+        }
+        setUserData(user);
+    }, [navigate]);
 
     const handleLogout = () => {
         setShowLogoutPopup(true);
         setTimeout(() => {
+            localStorage.removeItem('user'); // Clear user data
             setShowLogoutPopup(false);
             navigate('/staff-login');
         }, 1500);
@@ -53,6 +67,8 @@ const StaffPage = () => {
                 return <Messages />;
             case "settings":
                 return <Settings />;
+            case "profile":
+                return <Profile userData={userData} />;
             default:
                 return <div>Select a section from the sidebar</div>;
         }
@@ -68,7 +84,7 @@ const StaffPage = () => {
                 <div className="header-right">
                     <div className="user-info">
                         <i className="fas fa-user user-icon"></i>
-                        <span className="user-name">Staff Member</span>
+                        <span className="user-name">{userData ? `${userData.firstName} ${userData.lastName}` : 'Staff Member'}</span>
                         <button 
                             className="logout-button" 
                             onClick={handleLogout}
@@ -93,7 +109,7 @@ const StaffPage = () => {
             <div className="main-area">
                 {/* Sidebar */}
                 <aside className="sidebar">
-                    {["Dashboard", "Appointments", "Patients", "Prescriptions", "Payments", "Messages", "Settings"].map(
+                    {["Dashboard", "Appointments", "Patients", "Prescriptions", "Payments", "Messages", "Settings", "Profile"].map(
                         (item) => (
                             <button
                                 key={item}
@@ -129,7 +145,8 @@ const getIconForSection = (section) => {
         'prescriptions': 'fa-prescription-bottle',
         'payments': 'fa-credit-card',
         'messages': 'fa-envelope',
-        'settings': 'fa-cog'
+        'settings': 'fa-cog',
+        'profile': 'fa-user-circle'
     };
     return icons[section] || 'fa-circle';
 };
@@ -809,6 +826,359 @@ const Settings = () => {
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Profile Section
+const Profile = ({ userData }) => {
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phoneNumber: '',
+        address: '',
+        dateOfBirth: '',
+        gender: '',
+        position: '',
+        hireDate: '',
+        departmentId: ''
+    });
+    const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [departments, setDepartments] = useState([]);
+
+    useEffect(() => {
+        // Fetch departments for dropdown
+        const fetchDepartments = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/api/departments');
+                setDepartments(response.data);
+            } catch (err) {
+                console.error('Error fetching departments:', err);
+            }
+        };
+        
+        fetchDepartments();
+    }, []);
+
+    useEffect(() => {
+        if (userData) {
+            // Fetch detailed staff profile
+            const fetchStaffDetails = async () => {
+                try {
+                    const response = await axios.get(`http://localhost:8080/api/staff/${userData.roleId}`);
+                    const staffData = response.data;
+                    
+                    // Format date of birth if exists
+                    let formattedDob = '';
+                    if (staffData.user?.dateOfBirth) {
+                        const dob = new Date(staffData.user.dateOfBirth);
+                        formattedDob = dob.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                    }
+                    
+                    // Format hire date if exists
+                    let formattedHireDate = '';
+                    if (staffData.hireDate) {
+                        const hireDate = new Date(staffData.hireDate);
+                        formattedHireDate = hireDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                    }
+                    
+                    setFormData({
+                        firstName: staffData.firstName || '',
+                        lastName: staffData.lastName || '',
+                        email: staffData.user?.email || '',
+                        phoneNumber: staffData.user?.phoneNumber || '',
+                        address: staffData.user?.address || '',
+                        dateOfBirth: formattedDob,
+                        gender: staffData.user?.gender || '',
+                        position: staffData.position || '',
+                        hireDate: formattedHireDate,
+                        departmentId: staffData.department?.departmentId?.toString() || ''
+                    });
+                } catch (err) {
+                    console.error('Error fetching staff details:', err);
+                    setError('Failed to load profile information. Please try again later.');
+                    
+                    // Fall back to basic user data if available
+                    if (userData) {
+                        setFormData(prevData => ({
+                            ...prevData,
+                            firstName: userData.firstName || '',
+                            lastName: userData.lastName || '',
+                            email: userData.email || ''
+                        }));
+                    }
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            
+            fetchStaffDetails();
+        }
+    }, [userData]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevData => ({
+            ...prevData,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setSuccessMessage('');
+        setIsLoading(true);
+        
+        try {
+            // Prepare data for API
+            const updateData = {
+                ...formData,
+                departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
+                dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null,
+                hireDate: formData.hireDate ? new Date(formData.hireDate).toISOString() : null
+            };
+            
+            // Send update request
+            await axios.put(`http://localhost:8080/api/staff/${userData.roleId}`, updateData);
+            
+            setSuccessMessage('Profile updated successfully!');
+            setIsEditing(false);
+        } catch (err) {
+            console.error('Error updating profile:', err);
+            setError(err.response?.data?.message || 'Failed to update profile. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isLoading && !formData.firstName) {
+        return (
+            <div className="profile-loading">
+                <div className="spinner"></div>
+                <p>Loading profile information...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="profile-wrapper">
+            <div className="profile-card">
+                <div className="profile-card-header">
+                    <div className="profile-header-left">
+                        <i className="fas fa-id-card"></i>
+                        <h3>{userData?.userType === 'ADMIN' ? 'Admin' : 'Staff'} Profile</h3>
+                    </div>
+                    <div className="profile-header-right">
+                        <button 
+                            className={`profile-edit-btn ${isEditing ? 'cancel' : ''}`}
+                            onClick={() => setIsEditing(!isEditing)}
+                        >
+                            {isEditing ? (
+                                <>
+                                    <i className="fas fa-times"></i> Cancel
+                                </>
+                            ) : (
+                                <>
+                                    <i className="fas fa-edit"></i> Edit Profile
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+                
+                {error && (
+                    <div className="profile-message error">
+                        <i className="fas fa-exclamation-circle"></i> {error}
+                    </div>
+                )}
+                
+                {successMessage && (
+                    <div className="profile-message success">
+                        <i className="fas fa-check-circle"></i> {successMessage}
+                    </div>
+                )}
+                
+                <div className="profile-card-body">
+                    <form onSubmit={handleSubmit} className="profile-form">
+                        <div className="profile-section">
+                            <h4 className="profile-section-title">Basic Information</h4>
+                            <div className="profile-form-row">
+                                <div className="profile-form-group">
+                                    <label>Staff ID</label>
+                                    <input 
+                                        type="text" 
+                                        value={userData?.roleId || ''} 
+                                        disabled 
+                                        className="profile-form-field" 
+                                    />
+                                </div>
+                                <div className="profile-form-group">
+                                    <label>Email</label>
+                                    <input 
+                                        type="email" 
+                                        name="email" 
+                                        value={formData.email} 
+                                        onChange={handleChange}
+                                        disabled={true} // Email cannot be changed
+                                        className="profile-form-field" 
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="profile-form-row">
+                                <div className="profile-form-group">
+                                    <label>First Name</label>
+                                    <input 
+                                        type="text" 
+                                        name="firstName" 
+                                        value={formData.firstName} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field" 
+                                        required
+                                    />
+                                </div>
+                                <div className="profile-form-group">
+                                    <label>Last Name</label>
+                                    <input 
+                                        type="text" 
+                                        name="lastName" 
+                                        value={formData.lastName} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field" 
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="profile-form-row">
+                                <div className="profile-form-group">
+                                    <label>Phone Number</label>
+                                    <input 
+                                        type="tel" 
+                                        name="phoneNumber" 
+                                        value={formData.phoneNumber} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field" 
+                                    />
+                                </div>
+                                <div className="profile-form-group">
+                                    <label>Date of Birth</label>
+                                    <input 
+                                        type="date" 
+                                        name="dateOfBirth" 
+                                        value={formData.dateOfBirth} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field" 
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="profile-form-row">
+                                <div className="profile-form-group">
+                                    <label>Gender</label>
+                                    <select 
+                                        name="gender" 
+                                        value={formData.gender} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field"
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="MALE">Male</option>
+                                        <option value="FEMALE">Female</option>
+                                        <option value="OTHER">Other</option>
+                                    </select>
+                                </div>
+                                <div className="profile-form-group wide">
+                                    <label>Address</label>
+                                    <textarea 
+                                        name="address" 
+                                        value={formData.address} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field" 
+                                        rows="2"
+                                    ></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="profile-section">
+                            <h4 className="profile-section-title">Employment Information</h4>
+                            <div className="profile-form-row">
+                                <div className="profile-form-group">
+                                    <label>Position</label>
+                                    <input 
+                                        type="text" 
+                                        name="position" 
+                                        value={formData.position} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field" 
+                                    />
+                                </div>
+                                <div className="profile-form-group">
+                                    <label>Hire Date</label>
+                                    <input 
+                                        type="date" 
+                                        name="hireDate" 
+                                        value={formData.hireDate} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field" 
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="profile-form-row">
+                                <div className="profile-form-group">
+                                    <label>Department</label>
+                                    <select 
+                                        name="departmentId" 
+                                        value={formData.departmentId} 
+                                        onChange={handleChange}
+                                        disabled={!isEditing}
+                                        className="profile-form-field"
+                                    >
+                                        <option value="">Select Department</option>
+                                        {departments.map(dept => (
+                                            <option key={dept.departmentId} value={dept.departmentId}>
+                                                {dept.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="profile-form-group">
+                                    <label>Role Type</label>
+                                    <input 
+                                        type="text" 
+                                        value={userData?.userType === 'ADMIN' ? 'Administrator' : 'Staff Member'} 
+                                        disabled 
+                                        className="profile-form-field" 
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {isEditing && (
+                            <div className="profile-actions">
+                                <button type="submit" className="profile-save-btn">
+                                    <i className="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+                        )}
+                    </form>
                 </div>
             </div>
         </div>

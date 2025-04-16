@@ -118,16 +118,25 @@ body {
 }
 
 .form-group {
-  text-align: left;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
 .form-group label {
-  font-weight: 600;
   display: block;
-  margin-bottom: 8px;
-  color: black;
-  font-size: 0.95rem;
-  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #444;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+}
+
+.form-row .form-group {
+  flex: 1;
 }
 
 .form-group input {
@@ -247,29 +256,79 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
-    animation: fadeIn 1.5s ease;
+    z-index: 1000;
+    color: white;
 }
 
 .login-overlay p {
-    color: #1e88e5;
-    font-size: 1.25rem;
-    margin-top: 22px;
-    font-weight: 500;
-    text-transform: capitalize;
-    letter-spacing: 0.3px;
+    font-size: 18px;
+    margin-top: 10px;
 }
 
 .loading-spinner {
-    width: 52px;
-    height: 52px;
-    border: 4px solid #e3f2fd;
-    border-top: 4px solid #1e88e5;
+    border: 5px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    animation: spin 0.9s linear infinite;
+    border-top: 5px solid white;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Add styles for the gender select and improved form layout */
+.gender-select {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #f9f1ff;
+    color: #333;
+    font-size: 16px;
+    margin-top: 5px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    appearance: menulist; /* Show the dropdown arrow */
+    cursor: pointer;
+}
+
+.gender-select:focus {
+    border-color: #7c4dff;
+    box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.25);
+}
+
+.gender-select option {
+    background-color: white;
+    color: #333;
+    padding: 10px;
+}
+
+/* Error and success messages */
+.error-message {
+    background-color: rgba(255, 87, 87, 0.1);
+    border-left: 4px solid #ff5757;
+    color: #d32f2f;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.success-message {
+    background-color: rgba(76, 175, 80, 0.1);
+    border-left: 4px solid #4caf50;
+    color: #388e3c;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-size: 14px;
 }
