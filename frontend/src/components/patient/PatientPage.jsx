@@ -20,6 +20,16 @@ const PatientPortal = () => {
     setUserData(user);
   }, [navigate]);
 
+  useEffect(() => {
+    // Apply specific body class for this page
+    document.body.classList.add('patient-page-body');
+    
+    // Cleanup function to remove the class when component unmounts
+    return () => {
+      document.body.classList.remove('patient-page-body');
+    };
+  }, []);
+
   const handleLogout = () => {
     setShowLogoutPopup(true);
     setTimeout(() => {
@@ -62,13 +72,16 @@ const PatientPortal = () => {
           />
         </div>
         <div className="header-right">
-          <div className="user-info">
+          <div className="user-info" onClick={() => setActiveSection("profile")} style={{ cursor: 'pointer' }}>
             <i className="fas fa-user user-icon"></i>
             <span className="user-name">{userData ? `${userData.firstName} ${userData.lastName}` : 'Patient'}</span>
-            <button className="logout-button" onClick={handleLogout}>
-              <i className="fas fa-sign-out-alt"></i> Logout
-            </button>
           </div>
+          <button 
+            className="logout-button" 
+            onClick={handleLogout}
+          >
+            <i className="fas fa-sign-out-alt"></i> Logout
+          </button>
         </div>
       </header>
 
@@ -80,36 +93,39 @@ const PatientPortal = () => {
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div className="main-area">
-        {/* Sidebar */}
-        <aside className="sidebar">
-          {["Consultations", "Book Appointment", "Prescriptions", "Payments", "Communication", "Support", "Profile"].map(
-            (item) => (
-              <button
-                key={item}
-                className={`nav-button ${
-                  activeSection === item.toLowerCase().replace(" ", "-") ? "active" : ""
-                }`}
-                onClick={() => setActiveSection(item.toLowerCase().replace(" ", "-"))}
-              >
-                {item}
-              </button>
-            )
-          )}
-        </aside>
+      {/* Sidebar */}
+      <aside className="sidebar">
+        {[
+          "Consultations",
+          "Book Appointment",
+          "Prescriptions",
+          "Payments",
+          "Communication",
+          "Support",
+          "Profile"
+        ].map((item) => (
+          <button
+            key={item}
+            className={`nav-button ${
+              activeSection === item.toLowerCase().replace(" ", "-") ? "active" : ""
+            }`}
+            onClick={() => setActiveSection(item.toLowerCase().replace(" ", "-"))}
+          >
+            {item}
+          </button>
+        ))}
+      </aside>
 
-        {/* Content */}
-        <main className="content">
-          <div className="content-container">
-            <h2 className="page-title">
-              <i className={`fas ${getIconForSection(activeSection)}`}></i>
-              {activeSection.replace("-", " ")}
-            </h2>
-            {renderContent()}
-          </div>
-        </main>
-      </div>
+      {/* Content */}
+      <main className="content">
+        <div className="content-container">
+          <h2 className="page-title">
+            <i className={`fas ${getIconForSection(activeSection)}`}></i>
+            {activeSection.replace("-", " ")}
+          </h2>
+          {renderContent()}
+        </div>
+      </main>
     </div>
   );
 };

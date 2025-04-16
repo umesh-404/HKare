@@ -27,6 +27,21 @@ const PatientLogin = () => {
   const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
+    // Check if user is already logged in
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      // Redirect to appropriate dashboard based on role
+      if (user.role === 'DOCTOR') {
+        navigate('/doctor-dashboard');
+      } else if (user.role === 'PATIENT') {
+        navigate('/patient-dashboard');
+      } else if (user.role === 'STAFF') {
+        navigate('/staff-dashboard');
+      }
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     // Check if there's a success message from registration
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
@@ -75,16 +90,18 @@ const PatientLogin = () => {
         // Store user data in localStorage for session management
         const userData = {
           ...response.data,
-          role: 'PATIENT'
+          role: 'PATIENT',
+          loginTime: new Date().getTime()
         };
         console.log('Setting user data in localStorage:', userData);
         localStorage.setItem('user', JSON.stringify(userData));
         
         console.log('Navigating to /patient-dashboard');
         setOverlayMessage('Login successful! Redirecting...');
-        // Try direct navigation
+        
+        // Use React Router navigate instead of direct location change
         setTimeout(() => {
-          window.location.href = '/patient-dashboard';
+          navigate('/patient-dashboard');
         }, 1500);
       } else {
         console.log('Authentication failed:', response.data.message);

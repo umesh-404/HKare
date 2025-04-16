@@ -32,6 +32,16 @@ const StaffPage = () => {
     const [userData, setUserData] = useState(null);
 
     useEffect(() => {
+        // Apply specific body class for this page
+        document.body.classList.add('staff-page-body');
+        
+        // Cleanup function to remove the class when component unmounts
+        return () => {
+            document.body.classList.remove('staff-page-body');
+        };
+    }, []);
+
+    useEffect(() => {
         // Get user data from localStorage
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user) {
@@ -69,9 +79,25 @@ const StaffPage = () => {
                 return <Settings />;
             case "profile":
                 return <Profile userData={userData} />;
+            case "departments":
+                return <DepartmentManagement />;
+            case "staff-management":
+                return <StaffManagement />;
             default:
                 return <div>Select a section from the sidebar</div>;
         }
+    };
+
+    // Get nav items based on user type
+    const getNavItems = () => {
+        const baseItems = ["Dashboard", "Appointments", "Patients", "Prescriptions", "Payments", "Messages", "Settings", "Profile"];
+        
+        // Add admin-only items for users with ADMIN type
+        if (userData?.userType === 'STAFF') {
+            return [...baseItems, "Departments", "Staff Management"];
+        }
+        
+        return baseItems;
     };
 
     return (
@@ -82,16 +108,16 @@ const StaffPage = () => {
                     <img src="/vite.svg" alt="Hospital Logo" className="header-logo" />
                 </div>
                 <div className="header-right">
-                    <div className="user-info">
+                    <div className="user-info" onClick={() => setActiveSection("profile")} style={{ cursor: 'pointer' }}>
                         <i className="fas fa-user user-icon"></i>
                         <span className="user-name">{userData ? `${userData.firstName} ${userData.lastName}` : 'Staff Member'}</span>
-                        <button 
-                            className="logout-button" 
-                            onClick={handleLogout}
-                        >
-                            <i className="fas fa-sign-out-alt"></i> Logout
-                        </button>
                     </div>
+                    <button 
+                        className="logout-button" 
+                        onClick={handleLogout}
+                    >
+                        <i className="fas fa-sign-out-alt"></i> Logout
+                    </button>
                 </div>
             </header>
 
@@ -105,34 +131,31 @@ const StaffPage = () => {
                 </div>
             )}
 
-            {/* Main Content Area */}
-            <div className="main-area">
-                {/* Sidebar */}
-                <aside className="sidebar">
-                    {["Dashboard", "Appointments", "Patients", "Prescriptions", "Payments", "Messages", "Settings", "Profile"].map(
-                        (item) => (
-                            <button
-                                key={item}
-                                className={`nav-button ${activeSection === item.toLowerCase() ? "active" : ""}`}
-                                onClick={() => setActiveSection(item.toLowerCase())}
-                            >
-                                {item}
-                            </button>
-                        )
-                    )}
-                </aside>
+            {/* Sidebar */}
+            <aside className="sidebar">
+                {getNavItems().map(
+                    (item) => (
+                        <button
+                            key={item}
+                            className={`nav-button ${activeSection === item.toLowerCase().replace(' ', '-') ? "active" : ""}`}
+                            onClick={() => setActiveSection(item.toLowerCase().replace(' ', '-'))}
+                        >
+                            {item}
+                        </button>
+                    )
+                )}
+            </aside>
 
-                {/* Content */}
-                <main className="content">
-                    <div className="content-container">
-                        <h2 className="page-title">
-                            <i className={`fas ${getIconForSection(activeSection)}`}></i>
-                            {activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}
-                        </h2>
-                        {renderContent()}
-                    </div>
-                </main>
-            </div>
+            {/* Content */}
+            <main className="content">
+                <div className="content-container">
+                    <h2 className="page-title">
+                        <i className={`fas ${getIconForSection(activeSection)}`}></i>
+                        {activeSection.charAt(0).toUpperCase() + activeSection.slice(1).replace('-', ' ')}
+                    </h2>
+                    {renderContent()}
+                </div>
+            </main>
         </div>
     );
 };
@@ -146,7 +169,9 @@ const getIconForSection = (section) => {
         'payments': 'fa-credit-card',
         'messages': 'fa-envelope',
         'settings': 'fa-cog',
-        'profile': 'fa-user-circle'
+        'profile': 'fa-user-circle',
+        'departments': 'fa-hospital',
+        'staff-management': 'fa-user-md'
     };
     return icons[section] || 'fa-circle';
 };
@@ -1181,6 +1206,629 @@ const Profile = ({ userData }) => {
                     </form>
                 </div>
             </div>
+        </div>
+    );
+};
+
+// Department Management Section
+const DepartmentManagement = () => {
+    const [departments, setDepartments] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [currentDepartment, setCurrentDepartment] = useState(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        headDoctorId: ''
+    });
+    const [doctors, setDoctors] = useState([]);
+
+    useEffect(() => {
+        fetchDepartments();
+        fetchDoctors();
+    }, []);
+
+    const fetchDepartments = async () => {
+        setIsLoading(true);
+        try {
+            const response = await axios.get('http://localhost:8080/api/departments');
+            setDepartments(response.data);
+        } catch (err) {
+            console.error('Error fetching departments:', err);
+            setError('Failed to load departments. Please try again later.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchDoctors = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/api/doctors');
+            setDoctors(response.data);
+        } catch (err) {
+            console.error('Error fetching doctors:', err);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const openAddModal = () => {
+        setFormData({
+            name: '',
+            description: '',
+            headDoctorId: ''
+        });
+        setShowAddModal(true);
+    };
+
+    const openEditModal = (department) => {
+        setCurrentDepartment(department);
+        setFormData({
+            name: department.name,
+            description: department.description,
+            headDoctorId: department.headDoctor?.doctorId || ''
+        });
+        setShowEditModal(true);
+    };
+
+    const handleAddDepartment = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post('http://localhost:8080/api/departments', formData);
+            setShowAddModal(false);
+            fetchDepartments(); // Refresh the list
+        } catch (err) {
+            console.error('Error adding department:', err);
+            setError('Failed to add department. Please try again.');
+        }
+    };
+
+    const handleUpdateDepartment = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.put(`http://localhost:8080/api/departments/${currentDepartment.departmentId}`, formData);
+            setShowEditModal(false);
+            fetchDepartments(); // Refresh the list
+        } catch (err) {
+            console.error('Error updating department:', err);
+            setError('Failed to update department. Please try again.');
+        }
+    };
+
+    const handleDeleteDepartment = async (departmentId) => {
+        if (window.confirm('Are you sure you want to delete this department?')) {
+            try {
+                await axios.delete(`http://localhost:8080/api/departments/${departmentId}`);
+                fetchDepartments(); // Refresh the list
+            } catch (err) {
+                console.error('Error deleting department:', err);
+                setError('Failed to delete department. Please try again.');
+            }
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Loading departments...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="department-management">
+            {error && <div className="error-message">{error}</div>}
+            
+            <div className="departments-header">
+                <button className="add-btn" onClick={openAddModal}>
+                    <i className="fas fa-plus"></i> Add Department
+                </button>
+            </div>
+            
+            <div className="departments-list">
+                <table className="departments-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Head Doctor</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {departments.map(dept => (
+                            <tr key={dept.departmentId}>
+                                <td>{dept.departmentId}</td>
+                                <td>{dept.name}</td>
+                                <td>{dept.description}</td>
+                                <td>{dept.headDoctor ? `Dr. ${dept.headDoctor.firstName} ${dept.headDoctor.lastName}` : 'Not assigned'}</td>
+                                <td className="actions-cell">
+                                    <button className="action-btn edit" onClick={() => openEditModal(dept)}>
+                                        <i className="fas fa-edit"></i>
+                                    </button>
+                                    <button className="action-btn delete" onClick={() => handleDeleteDepartment(dept.departmentId)}>
+                                        <i className="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {departments.length === 0 && (
+                            <tr>
+                                <td colSpan="5" className="no-data">No departments found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            
+            {/* Add Department Modal */}
+            {showAddModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3>Add New Department</h3>
+                            <button className="close-btn" onClick={() => setShowAddModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddDepartment}>
+                            <div className="form-group">
+                                <label>Department Name</label>
+                                <input 
+                                    type="text" 
+                                    name="name" 
+                                    value={formData.name} 
+                                    onChange={handleInputChange} 
+                                    required 
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Description</label>
+                                <textarea 
+                                    name="description" 
+                                    value={formData.description} 
+                                    onChange={handleInputChange} 
+                                    rows="3"
+                                ></textarea>
+                            </div>
+                            <div className="form-group">
+                                <label>Head Doctor</label>
+                                <select 
+                                    name="headDoctorId" 
+                                    value={formData.headDoctorId} 
+                                    onChange={handleInputChange}
+                                >
+                                    <option value="">Select Head Doctor</option>
+                                    {doctors.map(doctor => (
+                                        <option key={doctor.doctorId} value={doctor.doctorId}>
+                                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.specialization})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="cancel-btn" onClick={() => setShowAddModal(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="save-btn">
+                                    <i className="fas fa-save"></i> Add Department
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            
+            {/* Edit Department Modal */}
+            {showEditModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3>Edit Department: {currentDepartment.name}</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateDepartment}>
+                            <div className="form-group">
+                                <label>Department Name</label>
+                                <input 
+                                    type="text" 
+                                    name="name" 
+                                    value={formData.name} 
+                                    onChange={handleInputChange} 
+                                    required 
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Description</label>
+                                <textarea 
+                                    name="description" 
+                                    value={formData.description} 
+                                    onChange={handleInputChange} 
+                                    rows="3"
+                                ></textarea>
+                            </div>
+                            <div className="form-group">
+                                <label>Head Doctor</label>
+                                <select 
+                                    name="headDoctorId" 
+                                    value={formData.headDoctorId} 
+                                    onChange={handleInputChange}
+                                >
+                                    <option value="">Select Head Doctor</option>
+                                    {doctors.map(doctor => (
+                                        <option key={doctor.doctorId} value={doctor.doctorId}>
+                                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.specialization})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="cancel-btn" onClick={() => setShowEditModal(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="save-btn">
+                                    <i className="fas fa-save"></i> Update Department
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Staff Management Section
+const StaffManagement = () => {
+    const [staff, setStaff] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [departments, setDepartments] = useState([]);
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        address: '',
+        gender: '',
+        departmentId: '',
+        position: '',
+        hireDate: '',
+        isAdmin: false
+    });
+
+    useEffect(() => {
+        fetchStaff();
+        fetchDepartments();
+    }, []);
+
+    const fetchStaff = async () => {
+        setIsLoading(true);
+        try {
+            const response = await axios.get('http://localhost:8080/api/staff');
+            setStaff(response.data);
+        } catch (err) {
+            console.error('Error fetching staff:', err);
+            setError('Failed to load staff members. Please try again later.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchDepartments = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/api/departments');
+            setDepartments(response.data);
+        } catch (err) {
+            console.error('Error fetching departments:', err);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const openAddModal = () => {
+        setFormData({
+            email: '',
+            password: '',
+            firstName: '',
+            lastName: '',
+            phoneNumber: '',
+            address: '',
+            gender: '',
+            departmentId: '',
+            position: '',
+            hireDate: '',
+            isAdmin: false
+        });
+        setShowAddModal(true);
+    };
+
+    const handleAddStaff = async (e) => {
+        e.preventDefault();
+        try {
+            // Convert date string to ISO format for backend
+            const dateOfBirth = formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null;
+            const hireDate = formData.hireDate ? new Date(formData.hireDate).toISOString() : null;
+            
+            const staffData = {
+                ...formData,
+                dateOfBirth,
+                hireDate,
+                departmentId: formData.departmentId ? Number(formData.departmentId) : null
+            };
+            
+            await axios.post('http://localhost:8080/api/staff', staffData);
+            setShowAddModal(false);
+            fetchStaff(); // Refresh the list
+        } catch (err) {
+            console.error('Error adding staff member:', err);
+            setError('Failed to add staff member. Please try again.');
+        }
+    };
+
+    const handleDeleteStaff = async (staffId) => {
+        if (window.confirm('Are you sure you want to delete this staff member?')) {
+            try {
+                await axios.delete(`http://localhost:8080/api/staff/${staffId}`);
+                fetchStaff(); // Refresh the list
+            } catch (err) {
+                console.error('Error deleting staff member:', err);
+                setError('Failed to delete staff member. Please try again.');
+            }
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Loading staff members...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="staff-management">
+            {error && <div className="error-message">{error}</div>}
+            
+            <div className="staff-header">
+                <button className="add-btn" onClick={openAddModal}>
+                    <i className="fas fa-plus"></i> Add Staff Member
+                </button>
+            </div>
+            
+            <div className="staff-list">
+                <table className="staff-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Position</th>
+                            <th>Department</th>
+                            <th>User Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {staff.map(member => (
+                            <tr key={member.staffId}>
+                                <td>{member.staffId}</td>
+                                <td>{member.firstName} {member.lastName}</td>
+                                <td>{member.email}</td>
+                                <td>{member.position || 'N/A'}</td>
+                                <td>{member.department ? member.department.name : 'N/A'}</td>
+                                <td>{member.staffId.startsWith('A') ? 'Admin' : 'Staff'}</td>
+                                <td className="actions-cell">
+                                    <button className="action-btn view" onClick={() => window.location.href = `/staff/${member.staffId}`}>
+                                        <i className="fas fa-eye"></i>
+                                    </button>
+                                    <button className="action-btn delete" onClick={() => handleDeleteStaff(member.staffId)}>
+                                        <i className="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {staff.length === 0 && (
+                            <tr>
+                                <td colSpan="7" className="no-data">No staff members found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            
+            {/* Add Staff Modal */}
+            {showAddModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h3>Add New Staff Member</h3>
+                            <button className="close-btn" onClick={() => setShowAddModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddStaff}>
+                            <div className="form-section">
+                                <h4>Account Information</h4>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Email</label>
+                                        <input 
+                                            type="email" 
+                                            name="email" 
+                                            value={formData.email} 
+                                            onChange={handleInputChange} 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Password</label>
+                                        <input 
+                                            type="password" 
+                                            name="password" 
+                                            value={formData.password} 
+                                            onChange={handleInputChange} 
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="form-section">
+                                <h4>Personal Information</h4>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>First Name</label>
+                                        <input 
+                                            type="text" 
+                                            name="firstName" 
+                                            value={formData.firstName} 
+                                            onChange={handleInputChange} 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Last Name</label>
+                                        <input 
+                                            type="text" 
+                                            name="lastName" 
+                                            value={formData.lastName} 
+                                            onChange={handleInputChange} 
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Phone Number</label>
+                                        <input 
+                                            type="tel" 
+                                            name="phoneNumber" 
+                                            value={formData.phoneNumber} 
+                                            onChange={handleInputChange} 
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Date of Birth</label>
+                                        <input 
+                                            type="date" 
+                                            name="dateOfBirth" 
+                                            value={formData.dateOfBirth} 
+                                            onChange={handleInputChange} 
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Gender</label>
+                                        <select 
+                                            name="gender" 
+                                            value={formData.gender} 
+                                            onChange={handleInputChange}
+                                        >
+                                            <option value="">Select Gender</option>
+                                            <option value="MALE">Male</option>
+                                            <option value="FEMALE">Female</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group wide">
+                                        <label>Address</label>
+                                        <textarea 
+                                            name="address" 
+                                            value={formData.address} 
+                                            onChange={handleInputChange} 
+                                            rows="2"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="form-section">
+                                <h4>Employment Information</h4>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Department</label>
+                                        <select 
+                                            name="departmentId" 
+                                            value={formData.departmentId} 
+                                            onChange={handleInputChange}
+                                        >
+                                            <option value="">Select Department</option>
+                                            {departments.map(dept => (
+                                                <option key={dept.departmentId} value={dept.departmentId}>
+                                                    {dept.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Position</label>
+                                        <input 
+                                            type="text" 
+                                            name="position" 
+                                            value={formData.position} 
+                                            onChange={handleInputChange} 
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Hire Date</label>
+                                        <input 
+                                            type="date" 
+                                            name="hireDate" 
+                                            value={formData.hireDate} 
+                                            onChange={handleInputChange} 
+                                        />
+                                    </div>
+                                    <div className="form-group admin-toggle">
+                                        <label className="checkbox-label">
+                                            <input 
+                                                type="checkbox" 
+                                                name="isAdmin" 
+                                                checked={formData.isAdmin} 
+                                                onChange={handleInputChange} 
+                                            />
+                                            <span>Admin Privileges</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="modal-actions">
+                                <button type="button" className="cancel-btn" onClick={() => setShowAddModal(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="save-btn">
+                                    <i className="fas fa-save"></i> Add Staff Member
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

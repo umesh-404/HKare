@@ -8,6 +8,8 @@ const HomePage = () => {
     const [selectedCard, setSelectedCard] = useState(null);
     const [isRedirecting, setIsRedirecting] = useState(false);
     const [redirectTarget, setRedirectTarget] = useState('');
+    const [loginNotification, setLoginNotification] = useState({ show: false, message: '', type: '' });
+    const [loggedInUser, setLoggedInUser] = useState(null);
 
     // Updated cardContent with specific icons for each card
     const cardContent = {
@@ -53,6 +55,19 @@ const HomePage = () => {
     };
 
     useEffect(() => {
+        // Check if user is already logged in
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.role) {
+                setLoggedInUser(user);
+            }
+        } catch (error) {
+            console.error("Error checking user login:", error);
+            localStorage.removeItem('user');
+        }
+    }, []);
+
+    useEffect(() => {
         const handleScroll = () => {
             if (window.scrollY > 1) {
                 setIsScrolled(true);
@@ -71,28 +86,61 @@ const HomePage = () => {
         setSelectedCard(title);
     };
 
-    const handleDoctorLogin = () => {
+    const handleLoginClick = (role) => {
+        // Check if already logged in
+        if (loggedInUser) {
+            const currentRole = loggedInUser.role;
+            
+            // If trying to access the same role they're logged in as
+            if (currentRole === role.toUpperCase()) {
+                setLoginNotification({
+                    show: true,
+                    message: `You are already logged in as ${currentRole}. Redirecting to dashboard...`,
+                    type: 'info'
+                });
+                
+                // Show the loading overlay for consistent user experience
+                setIsRedirecting(true);
+                setRedirectTarget(role);
+                
+                setTimeout(() => {
+                    navigate(`/${role.toLowerCase()}-dashboard`);
+                }, 2000);
+                return;
+            } 
+            // If trying to access a different role than currently logged in
+            else {
+                setLoginNotification({
+                    show: true,
+                    message: `You are currently logged in as ${currentRole}. Please logout first to login as ${role}.`,
+                    type: 'warning'
+                });
+                
+                setTimeout(() => {
+                    setLoginNotification({ show: false, message: '', type: '' });
+                }, 3000);
+                return;
+            }
+        }
+        
+        // Normal login flow if not logged in
         setIsRedirecting(true);
-        setRedirectTarget('doctor');
+        setRedirectTarget(role);
         setTimeout(() => {
-            navigate('/doctor-login');
+            navigate(`/${role.toLowerCase()}-login`);
         }, 1500);
+    };
+
+    const handleDoctorLogin = () => {
+        handleLoginClick('DOCTOR');
     };
 
     const handlePatientLogin = () => {
-        setIsRedirecting(true);
-        setRedirectTarget('patient');
-        setTimeout(() => {
-            navigate('/patient-login');
-        }, 1500);
+        handleLoginClick('PATIENT');
     };
 
     const handleStaffLogin = () => {
-        setIsRedirecting(true);
-        setRedirectTarget('staff');
-        setTimeout(() => {
-            navigate('/staff-login');
-        }, 1500);
+        handleLoginClick('STAFF');
     };
 
     return (
@@ -100,108 +148,116 @@ const HomePage = () => {
             {isRedirecting && (
                 <div className="redirect-overlay">
                     <div className="loading-spinner"></div>
-                    <p>Redirecting to {redirectTarget} login...</p>
+                    <p>Redirecting to {redirectTarget.toLowerCase()} login...</p>
+                </div>
+            )}
+            
+            {loginNotification.show && (
+                <div className={`login-notification ${loginNotification.type}`}>
+                    <i className={`fas ${loginNotification.type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`}></i>
+                    <p>{loginNotification.message}</p>
                 </div>
             )}
 
+            <div className="home-page">
+                <div className={`homepage-wrapper ${isScrolled ? 'scrolled' : ''}`}>
+                    <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
+                        <div className="header-content">
+                            <img src="vite.svg" alt="Hospital Logo" className="logo" />
+                            <div className="login-buttons">
+                                <div className="DOCTOR" onClick={handleDoctorLogin}>
+                                    <img src="doctor-image.svg" alt="Doctor" className="card-image" />
+                                    <div className="label">DOCTOR</div>
+                                </div>
 
-            <div className={`homepage-wrapper ${isScrolled ? 'scrolled' : ''}`}>
-                <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
-                    <div className="header-content">
-                        <img src="vite.svg" alt="Hospital Logo" className="logo" />
-                        <div className="login-buttons">
-                            <div className="DOCTOR" onClick={handleDoctorLogin}>
-                                <img src="doctor-image.svg" alt="Doctor" className="card-image" />
-                                <div className="label">DOCTOR</div>
-                            </div>
+                                <div className="PATIENT" onClick={handlePatientLogin}>
+                                    <img src="patient-image.svg" alt="Patient" className="card-image" />
+                                    <div className="label">PATIENT</div>
+                                </div>
 
-                            <div className="PATIENT" onClick={handlePatientLogin}>
-                                <img src="patient-image.svg" alt="Patient" className="card-image" />
-                                <div className="label">PATIENT</div>
-                            </div>
-
-                            <div className="STAFF" onClick={handleStaffLogin}>
-                                <img src="staff-image.svg" alt="Staff" className="card-image" />
-                                <div className="label">STAFF</div>
+                                <div className="STAFF" onClick={handleStaffLogin}>
+                                    <img src="staff-image.svg" alt="Staff" className="card-image" />
+                                    <div className="label">STAFF</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </header>
+                    </header>
 
-                {/* Hero Section */}
-                <section className="hero-section">
-                    <div className="hero-section-div1">
-                        <p className="scroll-indicator">Scroll down for Info</p>
-                        <img src="down-arrow.png" alt="down-arrow-1" className="down-arrow" />
-                    </div>
-                    <div className="hero-section-div2">
-                        <i className="fa-solid fa-heart heart-icon"></i>
-                        <h1>Your Health, Our Priority</h1><br />
-                        <p>Providing world-class healthcare services at your fingertips.</p><br />
-                        
-                        <div className="info-cards-container">
-                            <div className="cards-column left-column">
-                                {Object.entries(cardContent).slice(0, 4).map(([title, content]) => (
-                                    <div key={title} className="info-card" onClick={() => handleCardClick(title)}>
-                                        <h3>{title}</h3>
-                                    </div>
-                                ))}
-                            </div>
+                    {/* Hero Section */}
+                    <section className="hero-section">
+                        <div className="hero-section-div1">
+                            <p className="scroll-indicator">Scroll down for Info</p>
+                            <img src="down-arrow.png" alt="down-arrow-1" className="down-arrow" />
+                        </div>
+                        <div className="hero-section-div2">
+                            <i className="fa-solid fa-heart heart-icon"></i>
+                            <h1>Your Health, Our Priority</h1><br />
+                            <p>Providing world-class healthcare services at your fingertips.</p><br />
                             
-                            <div className="cards-column right-column">
-                                {Object.entries(cardContent).slice(4).map(([title, content]) => (
-                                    <div key={title} className="info-card" onClick={() => handleCardClick(title)}>
-                                        <h3>{title}</h3>
-                                    </div>
-                                ))}
+                            <div className="info-cards-container">
+                                <div className="cards-column left-column">
+                                    {Object.entries(cardContent).slice(0, 4).map(([title, content]) => (
+                                        <div key={title} className="info-card" onClick={() => handleCardClick(title)}>
+                                            <h3>{title}</h3>
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                <div className="cards-column right-column">
+                                    {Object.entries(cardContent).slice(4).map(([title, content]) => (
+                                        <div key={title} className="info-card" onClick={() => handleCardClick(title)}>
+                                            <h3>{title}</h3>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
-                {/* Popup */}
-                {selectedCard && (
-                    <div className="popup-overlay" onClick={() => setSelectedCard(null)}>
-                        <div className="popup-content" onClick={(e) => e.stopPropagation()}>
-                            <button className="close-button" onClick={() => setSelectedCard(null)}>×</button>
-                            <div className="popup-header">
-                                <i className={`${cardContent[selectedCard].icon} popup-icon`}></i>
-                                <h2 className="popup-title">{selectedCard}</h2>
+                    {/* Popup */}
+                    {selectedCard && (
+                        <div className="popup-overlay" onClick={() => setSelectedCard(null)}>
+                            <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                                <button className="close-button" onClick={() => setSelectedCard(null)}>×</button>
+                                <div className="popup-header">
+                                    <i className={`${cardContent[selectedCard].icon} popup-icon`}></i>
+                                    <h2 className="popup-title">{selectedCard}</h2>
+                                </div>
+                                <p>{cardContent[selectedCard].text}</p>
                             </div>
-                            <p>{cardContent[selectedCard].text}</p>
+                        </div>
+                    )}
+                </div>
+
+                <footer className="footer">
+                    <div className="footer-content">
+                        <div className="footer-section">
+                            <h4>Contact Us</h4>
+                            <p><i className="fa-solid fa-phone"></i> +1 (555) 123-4567</p>
+                            <p><i className="fa-solid fa-envelope"></i> info@hospital.com</p>
+                        </div>
+                        <div className="footer-section">
+                            <h4>Quick Links</h4>
+                            <ul>
+                                <li><a href="#about">About Us</a></li>
+                                <li><a href="#services">Services</a></li>
+                                <li><a href="#contact">Contact</a></li>
+                            </ul>
+                        </div>
+                        <div className="footer-section">
+                            <h4>Follow Us</h4>
+                            <div className="social-links">
+                                <a href="#"><i className="fa-brands fa-facebook"></i></a>
+                                <a href="#"><i className="fa-brands fa-twitter"></i></a>
+                                <a href="#"><i className="fa-brands fa-linkedin"></i></a>
+                            </div>
                         </div>
                     </div>
-                )}
+                    <div className="footer-bottom">
+                        <p>&copy; 2024 Hospital Management System. All rights reserved.</p>
+                    </div>
+                </footer>
             </div>
-
-            <footer className="footer">
-                <div className="footer-content">
-                    <div className="footer-section">
-                        <h4>Contact Us</h4>
-                        <p><i className="fa-solid fa-phone"></i> +1 (555) 123-4567</p>
-                        <p><i className="fa-solid fa-envelope"></i> info@hospital.com</p>
-                    </div>
-                    <div className="footer-section">
-                        <h4>Quick Links</h4>
-                        <ul>
-                            <li><a href="#about">About Us</a></li>
-                            <li><a href="#services">Services</a></li>
-                            <li><a href="#contact">Contact</a></li>
-                        </ul>
-                    </div>
-                    <div className="footer-section">
-                        <h4>Follow Us</h4>
-                        <div className="social-links">
-                            <a href="#"><i className="fa-brands fa-facebook"></i></a>
-                            <a href="#"><i className="fa-brands fa-twitter"></i></a>
-                            <a href="#"><i className="fa-brands fa-linkedin"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div className="footer-bottom">
-                    <p>&copy; 2024 Hospital Management System. All rights reserved.</p>
-                </div>
-            </footer>
         </>
     );
 };

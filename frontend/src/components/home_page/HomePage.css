@@ -298,7 +298,7 @@ body {
               padding-top: 30px;
 }
 
-.hero-text h1 {
+.home-page .hero-text h1 {
   font-size: 36px;
   margin-bottom: 20px;
   transition: all 0.8s ease;
@@ -388,13 +388,13 @@ body {
   text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
-.heart-icon:hover {
+.home-page .heart-icon:hover {
   cursor: pointer;
   animation: none;
   transform: scale(1.2);
 }
 
-.info-cards-container {
+.home-page .info-cards-container {
     width: 100%;
     max-width: 1400px;
     margin: 40px auto;
@@ -784,8 +784,8 @@ body {
 .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #2171CD;
+    border: 4px solid #2171CD;
+    border-top: 4px solid #2171CD !important;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -798,4 +798,64 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* Login Notification */
+.login-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  padding: 15px 25px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 90%;
+  width: auto;
+  animation: slideDown 0.3s ease-out, fadeOut 0.3s ease-out 2.7s;
+}
+
+.login-notification i {
+  font-size: 20px;
+}
+
+.login-notification p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.login-notification.info {
+  background-color: #e3f2fd;
+  border-left: 5px solid #2196f3;
+  color: #0d47a1;
+}
+
+.login-notification.warning {
+  background-color: #fff8e1;
+  border-left: 5px solid #ffc107;
+  color: #ff6f00;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translate(-50%, -20px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
