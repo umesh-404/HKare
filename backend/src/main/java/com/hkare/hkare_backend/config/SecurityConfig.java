@@ -1,6 +1,7 @@
 package com.hkare.hkare_backend.config;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,11 +16,12 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@Slf4j
 public class SecurityConfig {
 
     @PostConstruct
     public void init() {
-        System.out.println("SecurityConfig initialized - allowing all requests");
+        log.info("SecurityConfig initialized - allowing all requests");
     }
 
     @Bean
@@ -31,7 +33,7 @@ public class SecurityConfig {
                 auth.anyRequest().permitAll() // Allow all requests for development
             );
         
-        System.out.println("Security filter chain configured");
+        log.info("Security filter chain configured");
         return http.build();
     }
     
@@ -41,9 +43,10 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(false); // Must be false if allowedOrigins contains "*"
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        System.out.println("CORS configuration set up with allowed origins: *");
+        log.info("CORS configuration set up with allowed origins: *");
         return source;
     }
 } 

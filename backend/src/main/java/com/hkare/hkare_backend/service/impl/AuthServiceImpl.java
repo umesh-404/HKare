@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -84,8 +85,8 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordService.encodePassword(request.getPassword()));
         user.setPhoneNumber(request.getPhoneNumber());
         user.setAddress(request.getAddress());
-        user.setDateOfBirth(request.getDateOfBirth());
-        user.setGender(request.getGender());
+        user.setDateOfBirth(request.getDateOfBirthAsLocalDateTime());
+        user.setGender(request.getGenderAsEnum());
         user.setUserType(Users.UserType.DOCTOR);
         
         // Save user
@@ -305,8 +306,8 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordService.encodePassword(request.getPassword()));
         user.setPhoneNumber(request.getPhoneNumber());
         user.setAddress(request.getAddress());
-        user.setDateOfBirth(request.getDateOfBirth());
-        user.setGender(request.getGender());
+        user.setDateOfBirth(request.getDateOfBirthAsLocalDateTime());
+        user.setGender(request.getGenderAsEnum());
         user.setUserType(request.isAdmin() ? Users.UserType.ADMIN : Users.UserType.STAFF);
         
         // Save user
@@ -333,12 +334,15 @@ public class AuthServiceImpl implements AuthService {
         staff.setFirstName(request.getFirstName());
         staff.setLastName(request.getLastName());
         staff.setPosition(request.getPosition());
-        staff.setHireDate(request.getHireDate());
+        staff.setHireDate(request.getHireDateAsLocalDate());
         
         // Set department if provided
         if (request.getDepartmentId() != null) {
-            departmentRepository.findById(request.getDepartmentId())
-                    .ifPresent(staff::setDepartment);
+            Long departmentId = request.getDepartmentIdAsLong();
+            if (departmentId != null) {
+                departmentRepository.findById(departmentId)
+                        .ifPresent(staff::setDepartment);
+            }
         }
         
         // Save staff

@@ -38,6 +38,7 @@ public class PrescriptionResponse {
     private Integer refillsRemaining;
     private Integer totalRefills;
     
+    @Builder.Default
     private List<MedicationItem> medications = new ArrayList<>();
     
     // Pharmacy info

@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth/doctor")
+@RequestMapping({"/auth/doctor", "/api/auth/doctor"})
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class DoctorAuthController {

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -15,6 +17,10 @@ public class DoctorResponse {
     private String firstName;
     private String lastName;
     private String email;
+    private String phoneNumber;
+    private String address;
+    private String gender;
+    private LocalDateTime dateOfBirth;
     private String specialization;
     private String qualification;
     private Integer experienceYears;
@@ -31,6 +37,11 @@ public class DoctorResponse {
                 .firstName(doctor.getFirstName())
                 .lastName(doctor.getLastName())
                 .email(doctor.getUser() != null ? doctor.getUser().getEmail() : null)
+                .phoneNumber(doctor.getUser() != null ? doctor.getUser().getPhoneNumber() : null)
+                .address(doctor.getUser() != null ? doctor.getUser().getAddress() : null)
+                .gender(doctor.getUser() != null && doctor.getUser().getGender() != null ? 
+                        doctor.getUser().getGender().name() : null)
+                .dateOfBirth(doctor.getUser() != null ? doctor.getUser().getDateOfBirth() : null)
                 .specialization(doctor.getSpecialization())
                 .qualification(doctor.getQualification())
                 .experienceYears(doctor.getExperienceYears())

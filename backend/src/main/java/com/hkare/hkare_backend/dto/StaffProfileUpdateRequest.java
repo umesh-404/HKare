@@ -16,9 +16,64 @@ public class StaffProfileUpdateRequest {
     private String lastName;
     private String phoneNumber;
     private String address;
-    private LocalDateTime dateOfBirth;
-    private Gender gender;
-    private Long departmentId;
+    private String dateOfBirth;
+    private String gender;
+    private String departmentId;
     private String position;
-    private LocalDate hireDate;
+    private String hireDate;
+    private Boolean isAdmin;
+    
+    // Helper method to convert string dateOfBirth to LocalDateTime
+    public LocalDateTime getDateOfBirthAsLocalDateTime() {
+        if (dateOfBirth == null || dateOfBirth.isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(dateOfBirth);
+        } catch (Exception e) {
+            try {
+                // Try with a different format (yyyy-MM-dd)
+                LocalDate date = LocalDate.parse(dateOfBirth);
+                return date.atStartOfDay();
+            } catch (Exception ex) {
+                return null;
+            }
+        }
+    }
+    
+    // Helper method to convert string gender to Gender enum
+    public Gender getGenderAsEnum() {
+        if (gender == null || gender.isEmpty()) {
+            return null;
+        }
+        try {
+            return Gender.valueOf(gender.toUpperCase());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    // Helper method to convert string hireDate to LocalDate
+    public LocalDate getHireDateAsLocalDate() {
+        if (hireDate == null || hireDate.isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(hireDate);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    // Helper method to convert string departmentId to Long
+    public Long getDepartmentIdAsLong() {
+        if (departmentId == null || departmentId.isEmpty()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(departmentId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 } 

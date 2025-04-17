@@ -429,9 +429,10 @@ const Dashboard = () => {
 // Staff Management Section
 const StaffManagement = () => {
     const [staff, setStaff] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [showViewModal, setShowViewModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
     const [departments, setDepartments] = useState([]);
@@ -456,45 +457,58 @@ const StaffManagement = () => {
     }, []);
 
     const fetchStaff = async () => {
-        setLoading(true);
+        setIsLoading(true);
+        setError('');
         try {
-            const response = await axios.get('http://localhost:8080/api/staff/profiles');
+            console.log('Fetching staff from API...');
+            const response = await axios.get('http://localhost:8080/api/staff/profiles', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000 // 10 second timeout
+            });
             
-            if (response.status === 200) {
-                setStaff(response.data);
+            console.log('Staff data received:', response.data);
+            setStaff(response.data || []);
                 setError('');
-            } else {
-                console.error('Failed to fetch staff data');
-                setError('Failed to load staff data. Please try again later.');
-            }
         } catch (err) {
             console.error('Error fetching staff:', err);
-            setError('Network error while fetching staff data.');
+            const errorMessage = err.response?.data?.message || 
+                                err.message || 
+                                'Failed to load staff data. Please try again later.';
+            setError(`Error: ${errorMessage}`);
+            setStaff([]); // Set empty array instead of undefined
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     const fetchDepartments = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/departments');
+            console.log('Fetching departments from API...');
+            const response = await axios.get('http://localhost:8080/api/departments', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000
+            });
             
-            if (response.status === 200) {
-                setDepartments(response.data);
-            } else {
-                console.error('Failed to fetch departments');
-            }
+            console.log('Departments data received:', response.data);
+            setDepartments(response.data || []);
         } catch (err) {
             console.error('Error fetching departments:', err);
+            // We don't set a general error here as it's not critical for the page to function
         }
     };
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData({
-            ...formData,
+        setFormData(prev => ({
+            ...prev,
             [name]: type === 'checkbox' ? checked : value
-        });
+        }));
     };
 
     const handleOpenAddModal = () => {
@@ -515,6 +529,24 @@ const StaffManagement = () => {
         setShowAddModal(true);
     };
 
+    const handleOpenEditModal = (staffMember) => {
+        setSelectedStaff(staffMember);
+        setFormData({
+            email: staffMember.email || '',
+            firstName: staffMember.firstName || '',
+            lastName: staffMember.lastName || '',
+            phoneNumber: staffMember.phoneNumber || '',
+            address: staffMember.address || '',
+            gender: staffMember.gender || '',
+            dateOfBirth: staffMember.dateOfBirth ? new Date(staffMember.dateOfBirth).toISOString().split('T')[0] : '',
+            departmentId: staffMember.departmentId || '',
+            position: staffMember.position || '',
+            hireDate: staffMember.hireDate ? new Date(staffMember.hireDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            isAdmin: staffMember.admin || false
+        });
+        setShowEditModal(true);
+    };
+
     const handleViewStaff = (staffMember) => {
         setSelectedStaff(staffMember);
         setShowViewModal(true);
@@ -524,7 +556,12 @@ const StaffManagement = () => {
         e.preventDefault();
         
         try {
-            const response = await axios.post('http://localhost:8080/api/staff/create', formData);
+            console.log('Adding new staff member with data:', formData);
+            const response = await axios.post('http://localhost:8080/api/staff/create', formData, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             
             if (response.status === 201 || response.status === 200) {
                 // Refresh the staff list
@@ -533,9 +570,6 @@ const StaffManagement = () => {
                 
                 // Success notification
                 alert(`Staff member added successfully! Staff ID: ${response.data.roleId}`);
-            } else {
-                console.error('Failed to add staff member');
-                alert('Failed to add staff member. Please try again.');
             }
         } catch (err) {
             console.error('Error adding staff:', err);
@@ -543,9 +577,33 @@ const StaffManagement = () => {
         }
     };
 
+    const handleUpdateStaff = async (e) => {
+        e.preventDefault();
+        if (!selectedStaff) return;
+        
+        try {
+            console.log('Updating staff member with data:', formData);
+            const response = await axios.put(`http://localhost:8080/api/staff/${selectedStaff.staffId}`, formData, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.status === 200) {
+                setShowEditModal(false);
+                fetchStaff();
+                alert('Staff member updated successfully!');
+            }
+        } catch (err) {
+            console.error('Error updating staff:', err);
+            alert(err.response?.data?.message || 'Failed to update staff member. Please try again.');
+        }
+    };
+
     const handleDeleteStaff = async (staffId) => {
         if (window.confirm('Are you sure you want to delete this staff member?')) {
             try {
+                console.log(`Deleting staff member with ID: ${staffId}`);
                 const response = await axios.delete(`http://localhost:8080/api/staff/${staffId}`);
                 
                 if (response.status === 200 || response.status === 204) {
@@ -554,9 +612,6 @@ const StaffManagement = () => {
                     
                     // Success notification
                     alert('Staff member deleted successfully!');
-                } else {
-                    console.error('Failed to delete staff member');
-                    alert('Failed to delete staff member. Please try again.');
                 }
             } catch (err) {
                 console.error('Error deleting staff:', err);
@@ -576,7 +631,7 @@ const StaffManagement = () => {
         });
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="loading-container">
                 <div className="spinner"></div>
@@ -594,7 +649,23 @@ const StaffManagement = () => {
                 </button>
             </div>
             
-            {error && <div className="error-message">{error}</div>}
+            {error && (
+                <div className="error-container">
+                    <div className="error-message">
+                        <i className="fas fa-exclamation-circle"></i>
+                        <span>{error}</span>
+                    </div>
+                    <button 
+                        className="retry-btn" 
+                        onClick={() => {
+                            setError('');
+                            fetchStaff();
+                        }}
+                    >
+                        <i className="fas fa-sync"></i> Retry
+                    </button>
+                </div>
+            )}
             
             <div className="management-content">
                 <table className="data-table">
@@ -631,7 +702,11 @@ const StaffManagement = () => {
                                         >
                                             <i className="fas fa-eye"></i>
                                         </button>
-                                        <button className="action-btn edit-btn" title="Edit">
+                                        <button 
+                                            className="action-btn edit-btn" 
+                                            title="Edit"
+                                            onClick={() => handleOpenEditModal(staffMember)}
+                                        >
                                             <i className="fas fa-edit"></i>
                                         </button>
                                         <button 
@@ -837,6 +912,179 @@ const StaffManagement = () => {
                 </div>
             )}
             
+            {/* Edit Staff Modal */}
+            {showEditModal && selectedStaff && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Edit Staff Member</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleUpdateStaff}>
+                                <div className="form-section">
+                                    <h4>Account Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="email">Email*</label>
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="checkbox-label">
+                                                <input
+                                                    type="checkbox"
+                                                    name="isAdmin"
+                                                    checked={formData.isAdmin}
+                                                    onChange={handleInputChange}
+                                                />
+                                                Is Admin
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-section">
+                                    <h4>Personal Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="firstName">First Name*</label>
+                                            <input
+                                                type="text"
+                                                id="firstName"
+                                                name="firstName"
+                                                value={formData.firstName}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="lastName">Last Name*</label>
+                                            <input
+                                                type="text"
+                                                id="lastName"
+                                                name="lastName"
+                                                value={formData.lastName}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="phoneNumber">Phone</label>
+                                            <input
+                                                type="tel"
+                                                id="phoneNumber"
+                                                name="phoneNumber"
+                                                value={formData.phoneNumber}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="address">Address</label>
+                                            <input
+                                                type="text"
+                                                id="address"
+                                                name="address"
+                                                value={formData.address}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="dateOfBirth">Date of Birth</label>
+                                            <input
+                                                type="date"
+                                                id="dateOfBirth"
+                                                name="dateOfBirth"
+                                                value={formData.dateOfBirth}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="gender">Gender</label>
+                                            <select
+                                                id="gender"
+                                                name="gender"
+                                                value={formData.gender}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Gender</option>
+                                                <option value="MALE">Male</option>
+                                                <option value="FEMALE">Female</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-section">
+                                    <h4>Professional Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="departmentId">Department*</label>
+                                            <select
+                                                id="departmentId"
+                                                name="departmentId"
+                                                value={formData.departmentId}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="">Select Department</option>
+                                                {departments.map(dept => (
+                                                    <option key={dept.departmentId} value={dept.departmentId}>
+                                                        {dept.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="position">Position*</label>
+                                            <input
+                                                type="text"
+                                                id="position"
+                                                name="position"
+                                                value={formData.position}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="hireDate">Hire Date*</label>
+                                            <input
+                                                type="date"
+                                                id="hireDate"
+                                                name="hireDate"
+                                                value={formData.hireDate}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowEditModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">Update Staff</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             {/* View Staff Modal */}
             {showViewModal && selectedStaff && (
                 <div className="modal-overlay">
@@ -919,6 +1167,16 @@ const StaffManagement = () => {
                                         onClick={() => setShowViewModal(false)}
                                     >
                                         Close
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        className="edit-btn"
+                                        onClick={() => {
+                                            setShowViewModal(false);
+                                            handleOpenEditModal(selectedStaff);
+                                        }}
+                                    >
+                                        Edit Staff
                                     </button>
                                 </div>
                             </div>
@@ -1342,6 +1600,8 @@ const PatientManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedPatient, setSelectedPatient] = useState(null);
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -1352,9 +1612,13 @@ const PatientManagement = () => {
         gender: '',
         dateOfBirth: '',
         bloodGroup: '',
-        insuranceInfo: '',
-        emergencyContact: '',
-        medicalHistory: ''
+        height: '',
+        weight: '',
+        allergies: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        insuranceProvider: '',
+        insuranceId: ''
     });
 
     useEffect(() => {
@@ -1363,28 +1627,29 @@ const PatientManagement = () => {
 
     const fetchPatients = async () => {
         setIsLoading(true);
+        setError('');
         try {
-            console.log("Fetching patients from:", 'http://localhost:8080/api/patients');
-            // First try with /api prefix
-            try {
-                const response = await axios.get('http://localhost:8080/api/patients');
-                console.log("Patients response:", response.data);
-                setPatients(response.data);
-            } catch (apiError) {
-                console.log("Trying alternate URL without /api prefix");
-                // If that fails, try without /api prefix
-                const response = await axios.get('http://localhost:8080/patients');
-                console.log("Patients response (alternate URL):", response.data);
-                setPatients(response.data);
-            }
+            console.log('Fetching patients from API...');
+            // Note that the endpoint already includes /api in the controller
+            const response = await axios.get('http://localhost:8080/api/patients', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000 // 10 second timeout
+            });
+            
+            console.log('Patient data received:', response.data);
+            setPatients(response.data || []);
+            setIsLoading(false);
         } catch (err) {
             console.error('Error fetching patients:', err);
-            const errorMessage = err.response ? 
-                `Failed to load patients. Status: ${err.response.status}, Message: ${err.response.statusText}` : 
-                'Failed to load patients. Server might be unreachable. Please try again later.';
-            setError(errorMessage);
-        } finally {
+            const errorMessage = err.response?.data?.message || 
+                                err.message || 
+                                'Failed to load patients. Please try again later.';
+            setError(`Error: ${errorMessage}`);
             setIsLoading(false);
+            setPatients([]); // Set empty array instead of undefined
         }
     };
 
@@ -1407,60 +1672,90 @@ const PatientManagement = () => {
             gender: '',
             dateOfBirth: '',
             bloodGroup: '',
-            insuranceInfo: '',
-            emergencyContact: '',
-            medicalHistory: ''
+            height: '',
+            weight: '',
+            allergies: '',
+            emergencyContactName: '',
+            emergencyContactPhone: '',
+            insuranceProvider: '',
+            insuranceId: ''
         });
         setShowAddModal(true);
+    };
+
+    const openEditModal = (patient) => {
+        setSelectedPatient(patient);
+        setFormData({
+            email: patient.email || '',
+            firstName: patient.firstName || '',
+            lastName: patient.lastName || '',
+            phoneNumber: patient.phoneNumber || '',
+            address: patient.address || '',
+            gender: patient.gender || '',
+            dateOfBirth: patient.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split('T')[0] : '',
+            bloodGroup: patient.bloodGroup || '',
+            height: patient.height || '',
+            weight: patient.weight || '',
+            allergies: patient.allergies || '',
+            emergencyContactName: patient.emergencyContactName || '',
+            emergencyContactPhone: patient.emergencyContactPhone || '',
+            insuranceProvider: patient.insuranceProvider || '',
+            insuranceId: patient.insuranceId || ''
+        });
+        setShowEditModal(true);
     };
 
     const handleAddPatient = async (e) => {
         e.preventDefault();
         try {
-            // Convert date string to ISO format for backend
-            const dateOfBirth = formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null;
-            
             const patientData = {
-                ...formData,
-                dateOfBirth
+                ...formData
             };
             
-            console.log("Creating patient with data:", patientData);
-            try {
                 const response = await axios.post('http://localhost:8080/api/patients', patientData);
-                console.log("Patient creation response:", response.data);
+            if (response.status === 201 || response.status === 200) {
                 setShowAddModal(false);
-                fetchPatients(); // Refresh the list
-            } catch (apiError) {
-                console.log("Trying alternate URL without /api prefix");
-                const response = await axios.post('http://localhost:8080/patients', patientData);
-                console.log("Patient creation response (alternate URL):", response.data);
-                setShowAddModal(false);
-                fetchPatients(); // Refresh the list
+                fetchPatients();
+                alert('Patient added successfully!');
             }
         } catch (err) {
             console.error('Error adding patient:', err);
-            setError(err.response?.data?.message || 'Failed to add patient. Please try again.');
+            alert(err.response?.data?.message || 'Failed to add patient. Please try again.');
+        }
+    };
+
+    const handleUpdatePatient = async (e) => {
+        e.preventDefault();
+        if (!selectedPatient) return;
+        
+        try {
+            const patientData = {
+                ...formData
+            };
+            
+            const response = await axios.put(`http://localhost:8080/api/patients/${selectedPatient.patientId}`, patientData);
+            if (response.status === 200) {
+                setShowEditModal(false);
+                fetchPatients();
+                alert('Patient updated successfully!');
+            }
+        } catch (err) {
+            console.error('Error updating patient:', err);
+            alert(err.response?.data?.message || 'Failed to update patient. Please try again.');
         }
     };
 
     const handleDeletePatient = async (patientId) => {
         if (window.confirm('Are you sure you want to delete this patient?')) {
             try {
-                console.log(`Deleting patient: ${patientId}`);
-                try {
-                    await axios.delete(`http://localhost:8080/api/patients/${patientId}`);
-                    console.log(`Patient ${patientId} deleted successfully`);
-                    fetchPatients(); // Refresh the list
-                } catch (apiError) {
-                    console.log("Trying alternate URL without /api prefix");
-                    await axios.delete(`http://localhost:8080/patients/${patientId}`);
-                    console.log(`Patient ${patientId} deleted successfully (alternate URL)`);
-                    fetchPatients(); // Refresh the list
+                const response = await axios.delete(`http://localhost:8080/api/patients/${patientId}`);
+                if (response.status === 200 || response.status === 204) {
+                    fetchPatients();
+                    alert('Patient deleted successfully!');
                 }
             } catch (err) {
                 console.error('Error deleting patient:', err);
-                setError(err.response?.data?.message || 'Failed to delete patient. Please try again.');
+                alert(err.response?.data?.message || 'Failed to delete patient. Please try again.');
             }
         }
     };
@@ -1475,17 +1770,34 @@ const PatientManagement = () => {
     }
 
     return (
-        <div className="patient-management">
-            {error && <div className="error-message">{error}</div>}
-            
+        <div className="management-container">
             <div className="management-header">
+                <h2>Patient Management</h2>
                 <button className="add-btn" onClick={openAddModal}>
-                    <i className="fas fa-plus"></i> Add Patient
+                    <i className="fas fa-plus"></i> Add New Patient
                 </button>
             </div>
             
-            <div className="management-table">
-                <table>
+            {error && (
+                <div className="error-container">
+                    <div className="error-message">
+                        <i className="fas fa-exclamation-circle"></i>
+                        <span>{error}</span>
+                    </div>
+                    <button 
+                        className="retry-btn" 
+                        onClick={() => {
+                            setError('');
+                            fetchPatients();
+                        }}
+                    >
+                        <i className="fas fa-sync"></i> Retry
+                    </button>
+                </div>
+            )}
+            
+            <div className="management-content">
+                <table className="data-table">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -1498,7 +1810,8 @@ const PatientManagement = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {patients.map(patient => (
+                        {patients.length > 0 ? (
+                            patients.map(patient => (
                             <tr key={patient.patientId}>
                                 <td>{patient.patientId}</td>
                                 <td>{patient.firstName} {patient.lastName}</td>
@@ -1507,19 +1820,30 @@ const PatientManagement = () => {
                                 <td>{patient.bloodGroup || 'N/A'}</td>
                                 <td>{patient.gender || 'N/A'}</td>
                                 <td className="actions-cell">
-                                    <button className="action-btn view">
+                                        <button 
+                                            className="action-btn view-btn" 
+                                            title="View Details"
+                                        >
                                         <i className="fas fa-eye"></i>
                                     </button>
-                                    <button className="action-btn edit">
+                                        <button 
+                                            className="action-btn edit-btn" 
+                                            title="Edit"
+                                            onClick={() => openEditModal(patient)}
+                                        >
                                         <i className="fas fa-edit"></i>
                                     </button>
-                                    <button className="action-btn delete" onClick={() => handleDeletePatient(patient.patientId)}>
+                                        <button 
+                                            className="action-btn delete-btn" 
+                                            title="Delete"
+                                            onClick={() => handleDeletePatient(patient.patientId)}
+                                        >
                                         <i className="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
-                        ))}
-                        {patients.length === 0 && (
+                            ))
+                        ) : (
                             <tr>
                                 <td colSpan="7" className="no-data">No patients found</td>
                             </tr>
@@ -1531,21 +1855,23 @@ const PatientManagement = () => {
             {/* Add Patient Modal */}
             {showAddModal && (
                 <div className="modal-overlay">
-                    <div className="modal-content">
+                    <div className="modal-container">
                         <div className="modal-header">
                             <h3>Add New Patient</h3>
                             <button className="close-btn" onClick={() => setShowAddModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
+                        <div className="modal-body">
                         <form onSubmit={handleAddPatient}>
                             <div className="form-section">
                                 <h4>Account Information</h4>
-                                <div className="form-row">
+                                    <div className="form-grid">
                                     <div className="form-group">
-                                        <label>Email</label>
+                                            <label htmlFor="email">Email*</label>
                                         <input 
                                             type="email" 
+                                                id="email"
                                             name="email" 
                                             value={formData.email} 
                                             onChange={handleInputChange} 
@@ -1553,9 +1879,10 @@ const PatientManagement = () => {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Password</label>
+                                            <label htmlFor="password">Password*</label>
                                         <input 
                                             type="password" 
+                                                id="password"
                                             name="password" 
                                             value={formData.password} 
                                             onChange={handleInputChange} 
@@ -1567,11 +1894,12 @@ const PatientManagement = () => {
                             
                             <div className="form-section">
                                 <h4>Personal Information</h4>
-                                <div className="form-row">
+                                    <div className="form-grid">
                                     <div className="form-group">
-                                        <label>First Name</label>
+                                            <label htmlFor="firstName">First Name*</label>
                                         <input 
                                             type="text" 
+                                                id="firstName"
                                             name="firstName" 
                                             value={formData.firstName} 
                                             onChange={handleInputChange} 
@@ -1579,42 +1907,243 @@ const PatientManagement = () => {
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Last Name</label>
+                                            <label htmlFor="lastName">Last Name*</label>
                                         <input 
                                             type="text" 
+                                                id="lastName"
                                             name="lastName" 
                                             value={formData.lastName} 
                                             onChange={handleInputChange} 
                                             required 
                                         />
                                     </div>
+                                        <div className="form-group">
+                                            <label htmlFor="gender">Gender</label>
+                                            <select
+                                                id="gender"
+                                                name="gender"
+                                                value={formData.gender}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Gender</option>
+                                                <option value="MALE">Male</option>
+                                                <option value="FEMALE">Female</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
                                 </div>
-                                
-                                <div className="form-row">
                                     <div className="form-group">
-                                        <label>Phone Number</label>
+                                            <label htmlFor="dateOfBirth">Date of Birth</label>
                                         <input 
-                                            type="tel" 
+                                                type="date"
+                                                id="dateOfBirth"
+                                                name="dateOfBirth"
+                                                value={formData.dateOfBirth}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="phoneNumber">Phone Number</label>
+                                            <input
+                                                type="text"
+                                                id="phoneNumber"
                                             name="phoneNumber" 
                                             value={formData.phoneNumber} 
                                             onChange={handleInputChange} 
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label>Date of Birth</label>
+                                            <label htmlFor="address">Address</label>
                                         <input 
-                                            type="date" 
-                                            name="dateOfBirth" 
-                                            value={formData.dateOfBirth} 
+                                                type="text"
+                                                id="address"
+                                                name="address"
+                                                value={formData.address}
                                             onChange={handleInputChange} 
                                         />
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div className="form-row">
+                                <div className="form-section">
+                                    <h4>Medical Information</h4>
+                                    <div className="form-grid">
                                     <div className="form-group">
-                                        <label>Gender</label>
+                                            <label htmlFor="bloodGroup">Blood Group</label>
                                         <select 
+                                                id="bloodGroup"
+                                                name="bloodGroup"
+                                                value={formData.bloodGroup}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Blood Group</option>
+                                                <option value="A+">A+</option>
+                                                <option value="A-">A-</option>
+                                                <option value="B+">B+</option>
+                                                <option value="B-">B-</option>
+                                                <option value="AB+">AB+</option>
+                                                <option value="AB-">AB-</option>
+                                                <option value="O+">O+</option>
+                                                <option value="O-">O-</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="height">Height (cm)</label>
+                                            <input
+                                                type="number"
+                                                id="height"
+                                                name="height"
+                                                value={formData.height}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="weight">Weight (kg)</label>
+                                            <input
+                                                type="number"
+                                                id="weight"
+                                                name="weight"
+                                                value={formData.weight}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="allergies">Allergies</label>
+                                        <textarea
+                                            id="allergies"
+                                            name="allergies"
+                                            value={formData.allergies}
+                                            onChange={handleInputChange}
+                                            rows="3"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-section">
+                                    <h4>Emergency Contact</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="emergencyContactName">Contact Name</label>
+                                            <input
+                                                type="text"
+                                                id="emergencyContactName"
+                                                name="emergencyContactName"
+                                                value={formData.emergencyContactName}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="emergencyContactPhone">Contact Phone</label>
+                                            <input
+                                                type="text"
+                                                id="emergencyContactPhone"
+                                                name="emergencyContactPhone"
+                                                value={formData.emergencyContactPhone}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-section">
+                                    <h4>Insurance Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="insuranceProvider">Insurance Provider</label>
+                                            <input
+                                                type="text"
+                                                id="insuranceProvider"
+                                                name="insuranceProvider"
+                                                value={formData.insuranceProvider}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="insuranceId">Insurance ID</label>
+                                            <input
+                                                type="text"
+                                                id="insuranceId"
+                                                name="insuranceId"
+                                                value={formData.insuranceId}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowAddModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        Add Patient
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Edit Patient Modal */}
+            {showEditModal && selectedPatient && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Edit Patient</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleUpdatePatient}>
+                                <div className="form-section">
+                                    <h4>Personal Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="firstName">First Name*</label>
+                                            <input
+                                                type="text"
+                                                id="firstName"
+                                                name="firstName"
+                                                value={formData.firstName}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="lastName">Last Name*</label>
+                                            <input
+                                                type="text"
+                                                id="lastName"
+                                                name="lastName"
+                                                value={formData.lastName}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="email">Email*</label>
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="gender">Gender</label>
+                                            <select
+                                                id="gender"
                                             name="gender" 
                                             value={formData.gender} 
                                             onChange={handleInputChange}
@@ -1626,8 +2155,45 @@ const PatientManagement = () => {
                                         </select>
                                     </div>
                                     <div className="form-group">
-                                        <label>Blood Group</label>
+                                            <label htmlFor="dateOfBirth">Date of Birth</label>
+                                            <input
+                                                type="date"
+                                                id="dateOfBirth"
+                                                name="dateOfBirth"
+                                                value={formData.dateOfBirth}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="phoneNumber">Phone Number</label>
+                                            <input
+                                                type="text"
+                                                id="phoneNumber"
+                                                name="phoneNumber"
+                                                value={formData.phoneNumber}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="address">Address</label>
+                                            <input
+                                                type="text"
+                                                id="address"
+                                                name="address"
+                                                value={formData.address}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-section">
+                                    <h4>Medical Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="bloodGroup">Blood Group</label>
                                         <select 
+                                                id="bloodGroup"
                                             name="bloodGroup" 
                                             value={formData.bloodGroup} 
                                             onChange={handleInputChange}
@@ -1643,68 +2209,108 @@ const PatientManagement = () => {
                                             <option value="O-">O-</option>
                                         </select>
                                     </div>
+                                        <div className="form-group">
+                                            <label htmlFor="height">Height (cm)</label>
+                                            <input
+                                                type="number"
+                                                id="height"
+                                                name="height"
+                                                value={formData.height}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                            />
                                 </div>
-                                
-                                <div className="form-group wide">
-                                    <label>Address</label>
+                                        <div className="form-group">
+                                            <label htmlFor="weight">Weight (kg)</label>
+                                            <input
+                                                type="number"
+                                                id="weight"
+                                                name="weight"
+                                                value={formData.weight}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                step="0.01"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="allergies">Allergies</label>
                                     <textarea 
-                                        name="address" 
-                                        value={formData.address} 
+                                            id="allergies"
+                                            name="allergies"
+                                            value={formData.allergies}
                                         onChange={handleInputChange} 
-                                        rows="2"
+                                            rows="3"
                                     ></textarea>
                                 </div>
                             </div>
                             
                             <div className="form-section">
-                                <h4>Medical Information</h4>
-                                <div className="form-row">
-                                    <div className="form-group wide">
-                                        <label>Insurance Information</label>
+                                    <h4>Emergency Contact</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="emergencyContactName">Contact Name</label>
                                         <input 
                                             type="text" 
-                                            name="insuranceInfo" 
-                                            value={formData.insuranceInfo} 
+                                                id="emergencyContactName"
+                                                name="emergencyContactName"
+                                                value={formData.emergencyContactName}
                                             onChange={handleInputChange} 
-                                            placeholder="Insurance provider and policy number"
                                         />
+                                    </div>
+                                        <div className="form-group">
+                                            <label htmlFor="emergencyContactPhone">Contact Phone</label>
+                                        <input 
+                                            type="text" 
+                                                id="emergencyContactPhone"
+                                                name="emergencyContactPhone"
+                                                value={formData.emergencyContactPhone}
+                                            onChange={handleInputChange} 
+                                        />
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div className="form-row">
-                                    <div className="form-group wide">
-                                        <label>Emergency Contact</label>
-                                        <input 
-                                            type="text" 
-                                            name="emergencyContact" 
-                                            value={formData.emergencyContact} 
-                                            onChange={handleInputChange} 
-                                            placeholder="Name and phone number"
-                                        />
-                                    </div>
-                                </div>
-                                
-                                <div className="form-group wide">
-                                    <label>Medical History</label>
-                                    <textarea 
-                                        name="medicalHistory" 
-                                        value={formData.medicalHistory} 
+                                <div className="form-section">
+                                    <h4>Insurance Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="insuranceProvider">Insurance Provider</label>
+                                            <input
+                                                type="text"
+                                                id="insuranceProvider"
+                                                name="insuranceProvider"
+                                                value={formData.insuranceProvider}
                                         onChange={handleInputChange} 
-                                        rows="3"
-                                        placeholder="Allergies, chronic conditions, past surgeries, etc."
-                                    ></textarea>
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="insuranceId">Insurance ID</label>
+                                            <input
+                                                type="text"
+                                                id="insuranceId"
+                                                name="insuranceId"
+                                                value={formData.insuranceId}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
                                 </div>
                             </div>
                             
-                            <div className="modal-actions">
-                                <button type="button" className="cancel-btn" onClick={() => setShowAddModal(false)}>
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowEditModal(false)}
+                                    >
                                     Cancel
                                 </button>
-                                <button type="submit" className="save-btn">
-                                    <i className="fas fa-save"></i> Add Patient
+                                    <button type="submit" className="submit-btn">
+                                        Update Patient
                                 </button>
                             </div>
                         </form>
+                        </div>
                     </div>
                 </div>
             )}
@@ -1713,9 +2319,1090 @@ const PatientManagement = () => {
 };
 
 // Placeholder components for other sections
-const AppointmentManagement = () => <div className="placeholder-section">Appointment Management coming soon...</div>;
+const AppointmentManagement = () => {
+    const [appointments, setAppointments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [doctors, setDoctors] = useState([]);
+    const [patients, setPatients] = useState([]);
+    
+    // Modal states
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
+    
+    // Form data for adding/editing appointments
+    const [formData, setFormData] = useState({
+        patientId: '',
+        doctorId: '',
+        appointmentDate: '',
+        appointmentTime: '',
+        status: 'SCHEDULED',
+        reason: '',
+        notes: ''
+    });
+    
+    // Selected appointment for view/edit/delete operations
+    const [selectedAppointment, setSelectedAppointment] = useState(null);
+    
+    // Filter states
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [dateFilter, setDateFilter] = useState('');
+
+    useEffect(() => {
+        fetchAppointments();
+        fetchDoctors();
+        fetchPatients();
+    }, []);
+
+    const fetchAppointments = async () => {
+        setLoading(true);
+        try {
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/appointments');
+            } catch (err) {
+                // Try alternate endpoint if the first one fails
+                response = await axios.get('http://localhost:8080/appointments');
+            }
+            
+            if (response.data) {
+                setAppointments(response.data);
+            }
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching appointments:', err);
+            setError('Failed to load appointments. Please try again later.');
+            setLoading(false);
+        }
+    };
+
+    const fetchDoctors = async () => {
+        try {
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/doctors');
+            } catch (err) {
+                response = await axios.get('http://localhost:8080/doctors');
+            }
+            
+            if (response.data) {
+                setDoctors(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching doctors:', err);
+        }
+    };
+
+    const fetchPatients = async () => {
+        try {
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/patients');
+            } catch (err) {
+                response = await axios.get('http://localhost:8080/patients');
+            }
+            
+            if (response.data) {
+                setPatients(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching patients:', err);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
+
+    const handleOpenAddModal = () => {
+        // Reset form data
+        setFormData({
+            patientId: '',
+            doctorId: '',
+            appointmentDate: '',
+            appointmentTime: '',
+            status: 'SCHEDULED',
+            reason: '',
+            notes: ''
+        });
+        setShowAddModal(true);
+    };
+
+    const handleOpenEditModal = (appointment) => {
+        setSelectedAppointment(appointment);
+        // Format date and time for form
+        const appointmentDateTime = new Date(appointment.appointmentDateTime);
+        const date = appointmentDateTime.toISOString().split('T')[0];
+        const time = appointmentDateTime.toTimeString().slice(0, 5);
+        
+        setFormData({
+            patientId: appointment.patient?.patientId || '',
+            doctorId: appointment.doctor?.doctorId || '',
+            appointmentDate: date,
+            appointmentTime: time,
+            status: appointment.status,
+            reason: appointment.reason || '',
+            notes: appointment.notes || ''
+        });
+        setShowEditModal(true);
+    };
+
+    const handleViewAppointment = (appointment) => {
+        setSelectedAppointment(appointment);
+        setShowViewModal(true);
+    };
+
+    const handleAddAppointment = async (e) => {
+        e.preventDefault();
+        try {
+            const appointmentData = {
+                patientId: formData.patientId,
+                doctorId: formData.doctorId,
+                appointmentDateTime: `${formData.appointmentDate}T${formData.appointmentTime}:00`,
+                status: formData.status,
+                reason: formData.reason,
+                notes: formData.notes
+            };
+            
+            let response;
+            try {
+                response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
+            } catch (err) {
+                response = await axios.post('http://localhost:8080/appointments', appointmentData);
+            }
+            
+            if (response.status === 201 || response.status === 200) {
+                alert('Appointment added successfully!');
+                fetchAppointments();
+                setShowAddModal(false);
+            }
+        } catch (err) {
+            console.error('Error adding appointment:', err);
+            alert('Failed to add appointment. Please try again.');
+        }
+    };
+
+    const handleUpdateAppointment = async (e) => {
+        e.preventDefault();
+        if (!selectedAppointment) return;
+        
+        try {
+            const appointmentData = {
+                patientId: formData.patientId,
+                doctorId: formData.doctorId,
+                appointmentDateTime: `${formData.appointmentDate}T${formData.appointmentTime}:00`,
+                status: formData.status,
+                reason: formData.reason,
+                notes: formData.notes
+            };
+            
+            let response;
+            try {
+                response = await axios.put(`http://localhost:8080/api/appointments/${selectedAppointment.appointmentId}`, appointmentData);
+            } catch (err) {
+                response = await axios.put(`http://localhost:8080/appointments/${selectedAppointment.appointmentId}`, appointmentData);
+            }
+            
+            if (response.status === 200) {
+                alert('Appointment updated successfully!');
+                fetchAppointments();
+                setShowEditModal(false);
+            }
+        } catch (err) {
+            console.error('Error updating appointment:', err);
+            alert('Failed to update appointment. Please try again.');
+        }
+    };
+
+    const handleDeleteAppointment = async (id) => {
+        if (window.confirm('Are you sure you want to cancel this appointment?')) {
+            try {
+                let response;
+                try {
+                    response = await axios.delete(`http://localhost:8080/api/appointments/${id}`);
+                } catch (err) {
+                    response = await axios.delete(`http://localhost:8080/appointments/${id}`);
+                }
+                
+                if (response.status === 200 || response.status === 204) {
+                    alert('Appointment cancelled successfully!');
+                    fetchAppointments();
+                }
+            } catch (err) {
+                console.error('Error cancelling appointment:', err);
+                alert('Failed to cancel appointment. Please try again.');
+            }
+        }
+    };
+
+    const formatDateTime = (dateTimeStr) => {
+        const dateTime = new Date(dateTimeStr);
+        return {
+            date: dateTime.toLocaleDateString(),
+            time: dateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+    };
+
+    const getStatusClass = (status) => {
+        switch (status) {
+            case 'SCHEDULED':
+                return 'status-scheduled';
+            case 'COMPLETED':
+                return 'status-completed';
+            case 'CANCELLED':
+                return 'status-cancelled';
+            case 'IN_PROGRESS':
+                return 'status-in-progress';
+            case 'NO_SHOW':
+                return 'status-no-show';
+            default:
+                return '';
+        }
+    };
+
+    const getFilteredAppointments = () => {
+        return appointments.filter(appointment => {
+            // Filter by status
+            if (statusFilter !== 'ALL' && appointment.status !== statusFilter) {
+                return false;
+            }
+            
+            // Filter by date
+            if (dateFilter) {
+                const appointmentDate = new Date(appointment.appointmentDateTime).toISOString().split('T')[0];
+                if (appointmentDate !== dateFilter) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+    };
+    
+    // If data is still loading, show a loading spinner
+    if (loading) {
+        return (
+            <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p>Loading appointments...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="management-section">
+            <div className="management-header">
+                <div className="filters">
+                    <div className="filter-group">
+                        <label>Status:</label>
+                        <select 
+                            value={statusFilter} 
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="ALL">All Statuses</option>
+                            <option value="SCHEDULED">Scheduled</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="CANCELLED">Cancelled</option>
+                            <option value="NO_SHOW">No Show</option>
+                        </select>
+                    </div>
+                    <div className="filter-group">
+                        <label>Date:</label>
+                        <input 
+                            type="date" 
+                            value={dateFilter} 
+                            onChange={(e) => setDateFilter(e.target.value)}
+                        />
+                    </div>
+                </div>
+                <button className="add-btn" onClick={handleOpenAddModal}>
+                    <i className="fas fa-plus"></i>
+                    New Appointment
+                </button>
+            </div>
+            
+            {error && <div className="error-message">{error}</div>}
+            
+            <div className="table-responsive">
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {getFilteredAppointments().length > 0 ? (
+                            getFilteredAppointments().map(appointment => {
+                                const { date, time } = formatDateTime(appointment.appointmentDateTime);
+                                return (
+                                    <tr key={appointment.appointmentId}>
+                                        <td>{appointment.appointmentId}</td>
+                                        <td>{appointment.patient && `${appointment.patient.firstName || ''} ${appointment.patient.lastName || ''}`}</td>
+                                        <td>{appointment.doctor && `Dr. ${appointment.doctor.firstName || ''} ${appointment.doctor.lastName || ''}`}</td>
+                                        <td>{date}</td>
+                                        <td>{time}</td>
+                                        <td>
+                                            <span className={`status-badge ${getStatusClass(appointment.status)}`}>
+                                                {appointment.status}
+                                            </span>
+                                        </td>
+                                        <td>{appointment.reason}</td>
+                                        <td className="actions-cell">
+                                            <button 
+                                                className="action-btn view" 
+                                                onClick={() => handleViewAppointment(appointment)}
+                                            >
+                                                <i className="fas fa-eye"></i>
+                                            </button>
+                                            <button 
+                                                className="action-btn edit" 
+                                                onClick={() => handleOpenEditModal(appointment)}
+                                            >
+                                                <i className="fas fa-edit"></i>
+                                            </button>
+                                            <button 
+                                                className="action-btn delete" 
+                                                onClick={() => handleDeleteAppointment(appointment.appointmentId)}
+                                            >
+                                                <i className="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        ) : (
+                            <tr>
+                                <td colSpan="8" className="no-data">No appointments found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            
+            {/* Add Appointment Modal */}
+            {showAddModal && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Schedule New Appointment</h3>
+                            <button className="close-btn" onClick={() => setShowAddModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleAddAppointment}>
+                                <div className="form-section">
+                                    <div className="form-group">
+                                        <label htmlFor="patientId">Patient*</label>
+                                        <select
+                                            id="patientId"
+                                            name="patientId"
+                                            value={formData.patientId}
+                                            onChange={handleInputChange}
+                                            required
+                                        >
+                                            <option value="">Select Patient</option>
+                                            {patients.map(patient => (
+                                                <option key={patient.patientId} value={patient.patientId}>
+                                                    {patient.firstName} {patient.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="doctorId">Doctor*</label>
+                                        <select
+                                            id="doctorId"
+                                            name="doctorId"
+                                            value={formData.doctorId}
+                                            onChange={handleInputChange}
+                                            required
+                                        >
+                                            <option value="">Select Doctor</option>
+                                            {doctors.map(doctor => (
+                                                <option key={doctor.doctorId} value={doctor.doctorId}>
+                                                    Dr. {doctor.firstName} {doctor.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="appointmentDate">Date*</label>
+                                        <input
+                                            type="date"
+                                            id="appointmentDate"
+                                            name="appointmentDate"
+                                            value={formData.appointmentDate}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="appointmentTime">Time*</label>
+                                        <input
+                                            type="time"
+                                            id="appointmentTime"
+                                            name="appointmentTime"
+                                            value={formData.appointmentTime}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="status">Status*</label>
+                                        <select
+                                            id="status"
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleInputChange}
+                                            required
+                                        >
+                                            <option value="SCHEDULED">Scheduled</option>
+                                            <option value="COMPLETED">Completed</option>
+                                            <option value="IN_PROGRESS">In Progress</option>
+                                            <option value="CANCELLED">Cancelled</option>
+                                            <option value="NO_SHOW">No Show</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="reason">Reason*</label>
+                                        <input
+                                            type="text"
+                                            id="reason"
+                                            name="reason"
+                                            value={formData.reason}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="notes">Notes</label>
+                                        <textarea
+                                            id="notes"
+                                            name="notes"
+                                            value={formData.notes}
+                                            onChange={handleInputChange}
+                                            rows="3"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowAddModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        Schedule Appointment
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Edit Appointment Modal */}
+            {showEditModal && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Edit Appointment</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleUpdateAppointment}>
+                                <div className="form-section">
+                                    <div className="form-group">
+                                        <label htmlFor="patientId">Patient*</label>
+                                        <select
+                                            id="patientId"
+                                            name="patientId"
+                                            value={formData.patientId}
+                                            onChange={handleInputChange}
+                                            required
+                                        >
+                                            <option value="">Select Patient</option>
+                                            {patients.map(patient => (
+                                                <option key={patient.patientId} value={patient.patientId}>
+                                                    {patient.firstName} {patient.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="doctorId">Doctor*</label>
+                                        <select
+                                            id="doctorId"
+                                            name="doctorId"
+                                            value={formData.doctorId}
+                                            onChange={handleInputChange}
+                                            required
+                                        >
+                                            <option value="">Select Doctor</option>
+                                            {doctors.map(doctor => (
+                                                <option key={doctor.doctorId} value={doctor.doctorId}>
+                                                    Dr. {doctor.firstName} {doctor.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="appointmentDate">Date*</label>
+                                        <input
+                                            type="date"
+                                            id="appointmentDate"
+                                            name="appointmentDate"
+                                            value={formData.appointmentDate}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="appointmentTime">Time*</label>
+                                        <input
+                                            type="time"
+                                            id="appointmentTime"
+                                            name="appointmentTime"
+                                            value={formData.appointmentTime}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="status">Status*</label>
+                                        <select
+                                            id="status"
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleInputChange}
+                                            required
+                                        >
+                                            <option value="SCHEDULED">Scheduled</option>
+                                            <option value="COMPLETED">Completed</option>
+                                            <option value="IN_PROGRESS">In Progress</option>
+                                            <option value="CANCELLED">Cancelled</option>
+                                            <option value="NO_SHOW">No Show</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="reason">Reason*</label>
+                                        <input
+                                            type="text"
+                                            id="reason"
+                                            name="reason"
+                                            value={formData.reason}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="notes">Notes</label>
+                                        <textarea
+                                            id="notes"
+                                            name="notes"
+                                            value={formData.notes}
+                                            onChange={handleInputChange}
+                                            rows="3"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowEditModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        Update Appointment
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* View Appointment Modal */}
+            {showViewModal && selectedAppointment && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Appointment Details</h3>
+                            <button className="close-btn" onClick={() => setShowViewModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="appointment-details">
+                                <div className="detail-section">
+                                    <h4>Appointment Information</h4>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Appointment ID:</span>
+                                        <span className="detail-value">{selectedAppointment.appointmentId}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Status:</span>
+                                        <span className={`status-badge ${getStatusClass(selectedAppointment.status)}`}>
+                                            {selectedAppointment.status}
+                                        </span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Date & Time:</span>
+                                        <span className="detail-value">
+                                            {formatDateTime(selectedAppointment.appointmentDateTime).date} at {formatDateTime(selectedAppointment.appointmentDateTime).time}
+                                        </span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Reason:</span>
+                                        <span className="detail-value">{selectedAppointment.reason || 'N/A'}</span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Notes:</span>
+                                        <span className="detail-value">{selectedAppointment.notes || 'N/A'}</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4>Patient Information</h4>
+                                    {selectedAppointment.patient ? (
+                                        <>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Patient ID:</span>
+                                                <span className="detail-value">{selectedAppointment.patient.patientId}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Name:</span>
+                                                <span className="detail-value">{selectedAppointment.patient.firstName} {selectedAppointment.patient.lastName}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Email:</span>
+                                                <span className="detail-value">{selectedAppointment.patient.email}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Phone:</span>
+                                                <span className="detail-value">{selectedAppointment.patient.phoneNumber || 'N/A'}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="detail-row">
+                                            <span className="detail-value">Patient information not available</span>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4>Doctor Information</h4>
+                                    {selectedAppointment.doctor ? (
+                                        <>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Doctor ID:</span>
+                                                <span className="detail-value">{selectedAppointment.doctor.doctorId}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Name:</span>
+                                                <span className="detail-value">Dr. {selectedAppointment.doctor.firstName} {selectedAppointment.doctor.lastName}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Email:</span>
+                                                <span className="detail-value">{selectedAppointment.doctor.email}</span>
+                                            </div>
+                                            <div className="detail-row">
+                                                <span className="detail-label">Specialization:</span>
+                                                <span className="detail-value">{selectedAppointment.doctor.specialization || 'N/A'}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="detail-row">
+                                            <span className="detail-value">Doctor information not available</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="modal-actions">
+                                <button 
+                                    className="action-btn edit"
+                                    onClick={() => {
+                                        setShowViewModal(false);
+                                        handleOpenEditModal(selectedAppointment);
+                                    }}
+                                >
+                                    <i className="fas fa-edit"></i> Edit Appointment
+                                </button>
+                                <button 
+                                    className="action-btn close"
+                                    onClick={() => setShowViewModal(false)}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 const PaymentManagement = () => <div className="placeholder-section">Payment Management coming soon...</div>;
-const DepartmentManagement = () => <div className="placeholder-section">Department Management coming soon...</div>;
+const DepartmentManagement = () => {
+    const [departments, setDepartments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        headDoctorId: ''
+    });
+    const [doctors, setDoctors] = useState([]);
+
+    useEffect(() => {
+        fetchDepartments();
+        fetchDoctors();
+    }, []);
+
+    // Fetch all departments
+    const fetchDepartments = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get('http://localhost:8080/api/departments');
+            if (response.data) {
+                setDepartments(response.data);
+            }
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching departments:', err);
+            setError('Failed to load departments. Please try again later.');
+            setLoading(false);
+        }
+    };
+
+    // Fetch doctors for head doctor selection
+    const fetchDoctors = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/api/doctors');
+            if (response.data) {
+                setDoctors(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching doctors:', err);
+        }
+    };
+
+    // Handle form input changes
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    // Open add department modal
+    const openAddModal = () => {
+        setFormData({
+            name: '',
+            description: '',
+            headDoctorId: ''
+        });
+        setShowAddModal(true);
+    };
+
+    // Open edit department modal
+    const openEditModal = (department) => {
+        setFormData({
+            name: department.name,
+            description: department.description,
+            headDoctorId: department.headDoctorId || ''
+        });
+        setShowEditModal(true);
+    };
+
+    // Handle add department form submission
+    const handleAddDepartment = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('http://localhost:8080/api/departments', formData);
+            
+            if (response.status === 201 || response.status === 200) {
+                fetchDepartments();
+                setShowAddModal(false);
+                alert('Department added successfully!');
+            }
+        } catch (err) {
+            console.error('Error adding department:', err);
+            alert(err.response?.data || 'Failed to add department. Please try again.');
+        }
+    };
+
+    // Handle edit department form submission
+    const handleUpdateDepartment = async (e, departmentId) => {
+        e.preventDefault();
+        try {
+            const response = await axios.put(`http://localhost:8080/api/departments/${departmentId}`, formData);
+            
+            if (response.status === 200) {
+                fetchDepartments();
+                setShowEditModal(false);
+                alert('Department updated successfully!');
+            }
+        } catch (err) {
+            console.error('Error updating department:', err);
+            alert(err.response?.data || 'Failed to update department. Please try again.');
+        }
+    };
+
+    // Handle delete department
+    const handleDeleteDepartment = async (departmentId) => {
+        if (window.confirm('Are you sure you want to delete this department?')) {
+            try {
+                const response = await axios.delete(`http://localhost:8080/api/departments/${departmentId}`);
+                
+                if (response.status === 200 || response.status === 204) {
+                    fetchDepartments();
+                    alert('Department deleted successfully!');
+                }
+            } catch (err) {
+                console.error('Error deleting department:', err);
+                alert(err.response?.data || 'Failed to delete department. Please try again.');
+            }
+        }
+    };
+
+    // Get doctor name by ID
+    const getDoctorName = (doctorId) => {
+        if (!doctorId) return 'None';
+        const doctor = doctors.find(doc => doc.doctorId === doctorId);
+        return doctor ? `Dr. ${doctor.firstName} ${doctor.lastName}` : 'Unknown';
+    };
+
+    if (loading) {
+        return (
+            <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Loading departments...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="management-container">
+            <div className="management-header">
+                <h2>Department Management</h2>
+                <button className="add-btn" onClick={openAddModal}>
+                    <i className="fas fa-plus"></i> Add New Department
+                </button>
+            </div>
+            
+            {error && <div className="error-message">{error}</div>}
+            
+            <div className="management-content">
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Head Doctor</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {departments.length > 0 ? (
+                            departments.map(department => (
+                                <tr key={department.departmentId}>
+                                    <td>{department.departmentId}</td>
+                                    <td>{department.name}</td>
+                                    <td>{department.description}</td>
+                                    <td>{getDoctorName(department.headDoctorId)}</td>
+                                    <td className="actions-cell">
+                                        <button 
+                                            className="action-btn edit-btn" 
+                                            title="Edit"
+                                            onClick={() => openEditModal(department)}
+                                        >
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                        <button 
+                                            className="action-btn delete-btn" 
+                                            title="Delete"
+                                            onClick={() => handleDeleteDepartment(department.departmentId)}
+                                        >
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="5" className="no-data">No departments found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            
+            {/* Add Department Modal */}
+            {showAddModal && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Add New Department</h3>
+                            <button className="close-btn" onClick={() => setShowAddModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleAddDepartment}>
+                                <div className="form-section">
+                                    <h4>Department Information</h4>
+                                    <div className="form-group">
+                                        <label htmlFor="name">Department Name*</label>
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="description">Description*</label>
+                                        <textarea
+                                            id="description"
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleInputChange}
+                                            required
+                                            rows="4"
+                                        ></textarea>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="headDoctorId">Head Doctor</label>
+                                        <select
+                                            id="headDoctorId"
+                                            name="headDoctorId"
+                                            value={formData.headDoctorId}
+                                            onChange={handleInputChange}
+                                        >
+                                            <option value="">None</option>
+                                            {doctors.map(doctor => (
+                                                <option key={doctor.doctorId} value={doctor.doctorId}>
+                                                    Dr. {doctor.firstName} {doctor.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowAddModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        Add Department
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Edit Department Modal */}
+            {showEditModal && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Edit Department</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={(e) => handleUpdateDepartment(e, departments.find(d => d.name === formData.name)?.departmentId)}>
+                                <div className="form-section">
+                                    <h4>Department Information</h4>
+                                    <div className="form-group">
+                                        <label htmlFor="name">Department Name*</label>
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleInputChange}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="description">Description*</label>
+                                        <textarea
+                                            id="description"
+                                            name="description"
+                                            value={formData.description}
+                                            onChange={handleInputChange}
+                                            required
+                                            rows="4"
+                                        ></textarea>
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="headDoctorId">Head Doctor</label>
+                                        <select
+                                            id="headDoctorId"
+                                            name="headDoctorId"
+                                            value={formData.headDoctorId}
+                                            onChange={handleInputChange}
+                                        >
+                                            <option value="">None</option>
+                                            {doctors.map(doctor => (
+                                                <option key={doctor.doctorId} value={doctor.doctorId}>
+                                                    Dr. {doctor.firstName} {doctor.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowEditModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        Update Department
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 const MedicalRecordManagement = () => <div className="placeholder-section">Medical Record Management coming soon...</div>;
 const PrescriptionManagement = () => <div className="placeholder-section">Prescription Management coming soon...</div>;
 const MedicationManagement = () => {
