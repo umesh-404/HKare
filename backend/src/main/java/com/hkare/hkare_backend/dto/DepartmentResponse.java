@@ -24,7 +24,7 @@ public class DepartmentResponse {
                 .description(department.getDescription())
                 .headDoctorId(department.getHeadDoctor() != null ? department.getHeadDoctor().getDoctorId() : null)
                 .headDoctorName(department.getHeadDoctor() != null ? 
-                        department.getHeadDoctor().getFirstName() + " " + department.getHeadDoctor().getLastName() : null)
+                        "Dr. " + department.getHeadDoctor().getFirstName() + " " + department.getHeadDoctor().getLastName() : null)
                 .build();
     }
 } 

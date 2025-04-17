@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -25,10 +26,25 @@ public class DepartmentServiceImpl implements DepartmentService {
     
     @Override
     public List<DepartmentResponse> getAllDepartmentResponses() {
-        return departmentRepository.findAll()
-                .stream()
-                .map(DepartmentResponse::fromDepartment)
-                .collect(Collectors.toList());
+        try {
+            List<Department> departments = departmentRepository.findAll();
+            return departments.stream()
+                    .map(department -> {
+                        try {
+                            return DepartmentResponse.fromDepartment(department);
+                        } catch (Exception e) {
+                            System.err.println("Error mapping department to response: " + e.getMessage());
+                            e.printStackTrace();
+                            return null;
+                        }
+                    })
+                    .filter(response -> response != null)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            System.err.println("Error getting all department responses: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
     
     @Override

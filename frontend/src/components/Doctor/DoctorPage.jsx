@@ -49,6 +49,8 @@ const DoctorPage = () => {
         return <Patients />;
       case "prescriptions":
         return <Prescriptions />;
+      case "medications":
+        return <Medications />;
       case "communication":
         return <Communications />;
       case "support":
@@ -97,6 +99,7 @@ const DoctorPage = () => {
           "Appointments",
           "Patients",
           "Prescriptions",
+          "Medications",
           "Communication",
           "Support",
           "Profile"
@@ -133,6 +136,7 @@ const getIconForSection = (section) => {
     appointments: "fa-calendar-plus",
     patients: "fa-users",
     prescriptions: "fa-prescription",
+    medications: "fa-pills",
     communication: "fa-comments",
     support: "fa-headset",
     profile: "fa-user-circle"
@@ -693,59 +697,505 @@ const Appointments = () => (
   </div>
 );
 
-const Prescriptions = () => (
-  <div className="prescriptions-grid">
-    {/* Active Prescriptions */}
-    <div className="prescription-card">
-      <div className="card-header">
-        <i className="fas fa-prescription" style={{ color: '#0066ff' }}></i>
-        <h3>Active Prescriptions</h3>
-      </div>
-      <div className="card-content">
-        <div className="prescription-entry">
-          <h3 className="patient-name">Meera Kapoor</h3>
-          <p className="medication-name">Amoxicillin 500mg</p>
-          <div className="prescription-details">
-            <div className="dosage">
-              <i className="fas fa-pills"></i>
-              <span>1 tablet, twice daily</span>
-            </div>
-            <div className="duration">
-              <i className="far fa-calendar"></i>
-              <span>7 days (ends 20 Mar)</span>
-            </div>
-          </div>
-          <div className="prescription-actions">
-            <button className="view-details-btn">View Details</button>
-            <button className="renew-btn">Renew</button>
-          </div>
-        </div>
-      </div>
-    </div>
+const Prescriptions = () => {
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [patients, setPatients] = useState([]);
+  const [medications, setMedications] = useState([]);
+  const [userData, setUserData] = useState(null);
+  const [prescriptionForm, setPrescriptionForm] = useState({
+    patientId: "",
+    prescriptionDate: new Date().toISOString().split('T')[0],
+    expiryDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
+    notes: "",
+    isRefillable: false,
+    totalRefills: 0,
+    medications: [{ medicationName: "", dosage: "", frequency: "", instructions: "", quantity: 1, duration: "" }]
+  });
 
-    {/* New Prescription Requests */}
-    <div className="prescription-card">
-      <div className="card-header">
-        <i className="fas fa-file-medical" style={{ color: '#0066ff' }}></i>
-        <h3>Prescription Requests</h3>
+  useEffect(() => {
+    // Get user data from localStorage
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      setUserData(user);
+      fetchPrescriptions(user.roleId);
+    }
+    fetchPatients();
+    fetchMedications();
+  }, []);
+
+  const fetchPrescriptions = async (doctorId) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8080/api/prescriptions/doctor/${doctorId}`);
+      setPrescriptions(response.data);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load prescriptions");
+      console.error("Error fetching prescriptions:", err);
+      setLoading(false);
+    }
+  };
+
+  const fetchPatients = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/patients");
+      setPatients(response.data);
+    } catch (err) {
+      console.error("Error fetching patients:", err);
+    }
+  };
+
+  const fetchMedications = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/medications");
+      setMedications(response.data);
+    } catch (err) {
+      console.error("Error fetching medications:", err);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setPrescriptionForm({
+      ...prescriptionForm,
+      [name]: type === "checkbox" ? checked : value
+    });
+  };
+
+  const handleMedicationChange = (index, field, value) => {
+    const updatedMedications = [...prescriptionForm.medications];
+    updatedMedications[index][field] = value;
+    setPrescriptionForm({
+      ...prescriptionForm,
+      medications: updatedMedications
+    });
+  };
+
+  const addMedicationRow = () => {
+    setPrescriptionForm({
+      ...prescriptionForm,
+      medications: [
+        ...prescriptionForm.medications,
+        { medicationName: "", dosage: "", frequency: "", instructions: "", quantity: 1, duration: "" }
+      ]
+    });
+  };
+
+  const removeMedicationRow = (index) => {
+    const updatedMedications = [...prescriptionForm.medications];
+    updatedMedications.splice(index, 1);
+    setPrescriptionForm({
+      ...prescriptionForm,
+      medications: updatedMedications
+    });
+  };
+
+  const handleCreatePrescription = async (e) => {
+    e.preventDefault();
+    try {
+      const prescriptionData = {
+        ...prescriptionForm,
+        doctorId: userData.roleId
+      };
+      
+      await axios.post("http://localhost:8080/api/prescriptions", prescriptionData);
+      setShowCreateModal(false);
+      fetchPrescriptions(userData.roleId);
+      
+      // Reset form
+      setPrescriptionForm({
+        patientId: "",
+        prescriptionDate: new Date().toISOString().split('T')[0],
+        expiryDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
+        notes: "",
+        isRefillable: false,
+        totalRefills: 0,
+        medications: [{ medicationName: "", dosage: "", frequency: "", instructions: "", quantity: 1, duration: "" }]
+      });
+    } catch (err) {
+      setError("Failed to create prescription");
+      console.error("Error creating prescription:", err);
+    }
+  };
+
+  const handleProcessRefill = async (prescriptionId) => {
+    try {
+      await axios.post(`http://localhost:8080/api/prescriptions/${prescriptionId}/refill`);
+      fetchPrescriptions(userData.roleId);
+    } catch (err) {
+      setError("Failed to process refill");
+      console.error("Error processing refill:", err);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
+  const filteredPrescriptions = prescriptions.filter(
+    (prescription) =>
+      prescription.patientName.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="prescriptions-container">
+      {error && <div className="error-message">{error}</div>}
+
+      <div className="prescriptions-header">
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Search by patient name..."
+            value={search}
+            onChange={handleSearchChange}
+          />
+          <i className="fas fa-search"></i>
+        </div>
+        <button className="add-button" onClick={() => setShowCreateModal(true)}>
+          <i className="fas fa-plus"></i> New Prescription
+        </button>
       </div>
-      <div className="card-content">
-        <div className="prescription-entry">
-          <h3 className="patient-name">Anjali Gupta</h3>
-          <p className="medication-name">Lisinopril 10mg</p>
-          <div className="request-info">
-            <i className="far fa-clock"></i>
-            <span>Requested: Today, 9:30 AM</span>
-          </div>
-          <div className="request-actions">
-            <button className="accept-btn">Approve</button>
-            <button className="reject-btn">Decline</button>
+
+      {loading ? (
+        <div className="loading">Loading prescriptions...</div>
+      ) : (
+        <div className="prescriptions-list">
+          {filteredPrescriptions.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Patient</th>
+                  <th>Date</th>
+                  <th>Expiry</th>
+                  <th>Status</th>
+                  <th>Refillable</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPrescriptions.map((prescription) => (
+                  <tr key={prescription.prescriptionId}>
+                    <td>{prescription.prescriptionId}</td>
+                    <td>{prescription.patientName}</td>
+                    <td>{formatDate(prescription.prescriptionDate)}</td>
+                    <td>{formatDate(prescription.expiryDate)}</td>
+                    <td>
+                      <span className={`status ${prescription.status.toLowerCase()}`}>
+                        {prescription.status}
+                      </span>
+                    </td>
+                    <td>
+                      {prescription.isRefillable
+                        ? `Yes (${prescription.refillsRemaining}/${prescription.totalRefills})`
+                        : "No"}
+                    </td>
+                    <td>
+                      {prescription.status === "ACTIVE" &&
+                        prescription.isRefillable &&
+                        prescription.refillsRemaining > 0 && (
+                          <button
+                            onClick={() => handleProcessRefill(prescription.prescriptionId)}
+                            className="refill-btn"
+                            title="Process Refill"
+                          >
+                            <i className="fas fa-sync"></i> Refill
+                          </button>
+                        )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="no-data">No prescriptions found</div>
+          )}
+        </div>
+      )}
+
+      {/* Create Prescription Modal */}
+      {showCreateModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Create New Prescription</h3>
+            <span className="close" onClick={() => setShowCreateModal(false)}>
+              &times;
+            </span>
+            <form onSubmit={handleCreatePrescription}>
+              <div className="form-group">
+                <label>Patient*</label>
+                <select
+                  name="patientId"
+                  value={prescriptionForm.patientId}
+                  onChange={handleFormChange}
+                  required
+                >
+                  <option value="">Select Patient</option>
+                  {patients.map((patient) => (
+                    <option key={patient.patientId} value={patient.patientId}>
+                      {patient.firstName} {patient.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Prescription Date*</label>
+                  <input
+                    type="date"
+                    name="prescriptionDate"
+                    value={prescriptionForm.prescriptionDate}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Expiry Date*</label>
+                  <input
+                    type="date"
+                    name="expiryDate"
+                    value={prescriptionForm.expiryDate}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="isRefillable"
+                    name="isRefillable"
+                    checked={prescriptionForm.isRefillable}
+                    onChange={handleFormChange}
+                  />
+                  <label htmlFor="isRefillable">Refillable</label>
+                </div>
+                {prescriptionForm.isRefillable && (
+                  <div className="form-group">
+                    <label>Total Refills</label>
+                    <input
+                      type="number"
+                      name="totalRefills"
+                      min="1"
+                      value={prescriptionForm.totalRefills}
+                      onChange={handleFormChange}
+                      required={prescriptionForm.isRefillable}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Notes</label>
+                <textarea
+                  name="notes"
+                  value={prescriptionForm.notes}
+                  onChange={handleFormChange}
+                  rows="2"
+                />
+              </div>
+
+              <h4>Medications</h4>
+              {prescriptionForm.medications.map((med, index) => (
+                <div key={index} className="medication-item">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Medication Name*</label>
+                      <input
+                        type="text"
+                        value={med.medicationName}
+                        onChange={(e) =>
+                          handleMedicationChange(index, "medicationName", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Dosage*</label>
+                      <input
+                        type="text"
+                        value={med.dosage}
+                        onChange={(e) =>
+                          handleMedicationChange(index, "dosage", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Frequency*</label>
+                      <input
+                        type="text"
+                        value={med.frequency}
+                        onChange={(e) =>
+                          handleMedicationChange(index, "frequency", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Quantity</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={med.quantity}
+                        onChange={(e) =>
+                          handleMedicationChange(index, "quantity", e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label>Instructions</label>
+                    <textarea
+                      value={med.instructions}
+                      onChange={(e) =>
+                        handleMedicationChange(index, "instructions", e.target.value)
+                      }
+                      rows="2"
+                    />
+                  </div>
+                  {prescriptionForm.medications.length > 1 && (
+                    <button
+                      type="button"
+                      className="remove-btn"
+                      onClick={() => removeMedicationRow(index)}
+                    >
+                      <i className="fas fa-minus-circle"></i> Remove
+                    </button>
+                  )}
+                  {index === prescriptionForm.medications.length - 1 && (
+                    <button type="button" className="add-btn" onClick={addMedicationRow}>
+                      <i className="fas fa-plus-circle"></i> Add Another Medication
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <div className="form-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="cancel-btn"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">
+                  Create Prescription
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
+
+const Medications = () => {
+  const [medications, setMedications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    fetchMedications();
+  }, []);
+
+  const fetchMedications = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("http://localhost:8080/api/medications");
+      setMedications(response.data);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load medications");
+      console.error("Error fetching medications:", err);
+      setLoading(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredMedications = medications.filter(
+    (medication) =>
+      medication.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (medication.genericName && medication.genericName.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  return (
+    <div className="medications-container">
+      {error && <div className="error-message">{error}</div>}
+
+      <div className="medications-header">
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Search medications..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <i className="fas fa-search"></i>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="loading">Loading medications...</div>
+      ) : (
+        <div className="medications-list">
+          {filteredMedications.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Generic Name</th>
+                  <th>Type</th>
+                  <th>Dosage Form</th>
+                  <th>Requires Prescription</th>
+                  <th>Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMedications.map((medication) => (
+                  <tr key={medication.medicationId}>
+                    <td>{medication.name}</td>
+                    <td>{medication.genericName || "N/A"}</td>
+                    <td>{medication.type || "N/A"}</td>
+                    <td>{medication.dosageForm || "N/A"}</td>
+                    <td>{medication.requiresPrescription ? "Yes" : "No"}</td>
+                    <td>
+                      <span className={medication.isLowStock ? "low-stock" : ""}>
+                        {medication.stockQuantity || 0}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="no-data">No medications found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Communications = () => (
   <div className="communications-grid">

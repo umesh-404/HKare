@@ -10,6 +10,8 @@ const HomePage = () => {
     const [redirectTarget, setRedirectTarget] = useState('');
     const [loginNotification, setLoginNotification] = useState({ show: false, message: '', type: '' });
     const [loggedInUser, setLoggedInUser] = useState(null);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [logoutRedirectRole, setLogoutRedirectRole] = useState('');
 
     // Updated cardContent with specific icons for each card
     const cardContent = {
@@ -86,6 +88,23 @@ const HomePage = () => {
         setSelectedCard(title);
     };
 
+    const handleLogout = (redirectToLogin = false, role = '') => {
+        setIsRedirecting(true);
+        setRedirectTarget('logout');
+        
+        setTimeout(() => {
+            localStorage.removeItem('user');
+            setLoggedInUser(null);
+            
+            if (redirectToLogin && role) {
+                navigate(`/${role.toLowerCase()}-login`);
+            } else {
+                setIsRedirecting(false);
+                window.location.reload(); // Refresh the page after logout
+            }
+        }, 1500);
+    };
+
     const handleLoginClick = (role) => {
         // Check if already logged in
         if (loggedInUser) {
@@ -110,15 +129,8 @@ const HomePage = () => {
             } 
             // If trying to access a different role than currently logged in
             else {
-                setLoginNotification({
-                    show: true,
-                    message: `You are currently logged in as ${currentRole}. Please logout first to login as ${role}.`,
-                    type: 'warning'
-                });
-                
-                setTimeout(() => {
-                    setLoginNotification({ show: false, message: '', type: '' });
-                }, 3000);
+                setLogoutRedirectRole(role);
+                setShowLogoutConfirm(true);
                 return;
             }
         }
@@ -148,7 +160,11 @@ const HomePage = () => {
             {isRedirecting && (
                 <div className="redirect-overlay">
                     <div className="loading-spinner"></div>
-                    <p>Redirecting to {redirectTarget.toLowerCase()} login...</p>
+                    <p>
+                        {redirectTarget === 'logout' 
+                            ? 'Logging out...' 
+                            : `Redirecting to ${redirectTarget.toLowerCase()} login...`}
+                    </p>
                 </div>
             )}
             
@@ -156,6 +172,23 @@ const HomePage = () => {
                 <div className={`login-notification ${loginNotification.type}`}>
                     <i className={`fas ${loginNotification.type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`}></i>
                     <p>{loginNotification.message}</p>
+                </div>
+            )}
+
+            {showLogoutConfirm && (
+                <div className="popup-overlay">
+                    <div className="popup-content logout-confirm">
+                        <h2>You are already logged in</h2>
+                        <p>You are currently logged in as {loggedInUser.role}. Would you like to:</p>
+                        <div className="logout-actions">
+                            <button className="logout-btn" onClick={() => handleLogout(true, logoutRedirectRole)}>
+                                Logout and go to {logoutRedirectRole} Login
+                            </button>
+                            <button className="cancel-btn" onClick={() => setShowLogoutConfirm(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

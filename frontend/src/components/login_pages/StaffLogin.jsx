@@ -28,18 +28,23 @@ const StaffLogin = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in
     const user = JSON.parse(localStorage.getItem('user'));
     if (user) {
-      // Redirect to appropriate dashboard based on role
+      // If user is ADMIN or STAFF and trying to access staff login
+      if (user.role === 'ADMIN' || user.role === 'STAFF') {
+        setError(`You are currently logged in as ${user.role}. Please logout first from the home page.`);
+        return;
+      }
+      
+      // For other roles, redirect to appropriate dashboard
       if (user.role === 'DOCTOR') {
         navigate('/doctor-dashboard');
       } else if (user.role === 'PATIENT') {
         navigate('/patient-dashboard');
-      } else if (user.role === 'STAFF') {
-        navigate('/staff-dashboard');
       }
     }
   }, [navigate]);
@@ -79,6 +84,32 @@ const StaffLogin = () => {
     setOverlayMessage('Logging in...');
     
     try {
+      // Check if this is the hardcoded admin login
+      if (formData.identifier === 'admin' && formData.password === 'admin') {
+        // Hardcoded admin user
+        const adminUserData = {
+          roleId: 'ADMIN001',
+          firstName: 'System',
+          lastName: 'Administrator',
+          email: 'admin@hkare.com',
+          role: 'ADMIN',
+          authenticated: true,
+          loginTime: new Date().getTime()
+        };
+        
+        console.log('Setting admin user data in localStorage:', adminUserData);
+        localStorage.setItem('user', JSON.stringify(adminUserData));
+        
+        setOverlayMessage('Admin login successful! Redirecting to Admin Dashboard...');
+        
+        setTimeout(() => {
+          navigate('/admin-dashboard');
+        }, 1500);
+        
+        return;
+      }
+      
+      // Regular staff login flow
       console.log('Sending login request:', formData);
       const response = await axios.post('http://localhost:8080/api/auth/staff/login', formData);
       console.log('Login response:', response.data);
@@ -90,21 +121,26 @@ const StaffLogin = () => {
       }
       
       if (response.data.authenticated === true) {
+        // Determine if admin based on ID prefix or userType
+        const isAdmin = response.data.roleId.startsWith('A') || response.data.userType === 'ADMIN';
+        
         // Store user data in localStorage for session management
         const userData = {
           ...response.data,
-          role: 'STAFF',
+          role: isAdmin ? 'ADMIN' : 'STAFF',
           loginTime: new Date().getTime()
         };
         console.log('Setting user data in localStorage:', userData);
         localStorage.setItem('user', JSON.stringify(userData));
         
-        console.log('Navigating to /staff-dashboard');
-        setOverlayMessage('Login successful! Redirecting...');
+        // Redirect to appropriate dashboard
+        const dashboardPath = isAdmin ? '/admin-dashboard' : '/staff-dashboard';
+        console.log(`Navigating to ${dashboardPath}`);
+        setOverlayMessage(`Login successful! Redirecting to ${isAdmin ? 'Admin' : 'Staff'} Dashboard...`);
         
         // Use React Router navigate instead of direct location change
         setTimeout(() => {
-          navigate('/staff-dashboard');
+          navigate(dashboardPath);
         }, 1500);
       } else {
         console.log('Authentication failed:', response.data.message);
@@ -178,11 +214,33 @@ const StaffLogin = () => {
     }
   };
 
+  const handleGoBack = (e) => {
+    e.preventDefault();
+    
+    // Check if user is logged in as ADMIN or STAFF
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && (user.role === 'ADMIN' || user.role === 'STAFF')) {
+      setShowLogoutConfirm(true);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleLogout = () => {
+    setShowLoginOverlay(true);
+    setOverlayMessage('Logging out...');
+    
+    setTimeout(() => {
+      localStorage.removeItem('user');
+      navigate('/');
+    }, 1500);
+  };
+
   return (
     <>
       <header className="login-header">
         <img src="/vite.svg" alt="Hospital Logo" className="header-logo" />
-        <a href="#" onClick={() => navigate('/')} className="home-link">
+        <a href="#" onClick={handleGoBack} className="home-link">
           Go Back to Home
           <i className="fa-solid fa-right-from-bracket"></i>
         </a>
@@ -193,6 +251,20 @@ const StaffLogin = () => {
         <div className="login-overlay">
           <div className="loading-spinner"></div>
           <p>{overlayMessage}</p>
+        </div>
+      )}
+
+      {/* Logout Confirmation */}
+      {showLogoutConfirm && (
+        <div className="logout-confirm-overlay">
+          <div className="logout-confirm-popup">
+            <h3>You are currently logged in</h3>
+            <p>Would you like to logout before going back to the home page?</p>
+            <div className="logout-confirm-actions">
+              <button className="logout-yes-btn" onClick={handleLogout}>Yes, Logout</button>
+              <button className="logout-no-btn" onClick={() => navigate('/')}>No, Continue</button>
+            </div>
+          </div>
         </div>
       )}
 

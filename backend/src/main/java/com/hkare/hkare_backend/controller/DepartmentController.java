@@ -6,25 +6,43 @@ import com.hkare.hkare_backend.model.Department;
 import com.hkare.hkare_backend.model.Doctor;
 import com.hkare.hkare_backend.repository.DoctorRepository;
 import com.hkare.hkare_backend.service.DepartmentService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
-@RequestMapping("/api/departments")
+@RequestMapping({"/departments", "/api/departments"})
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class DepartmentController {
     private final DepartmentService departmentService;
     private final DoctorRepository doctorRepository;
     
+    @PostConstruct
+    public void init() {
+        System.out.println("DepartmentController initialized with mappings: /departments and /api/departments");
+    }
+    
     @GetMapping
     public ResponseEntity<List<DepartmentResponse>> getAllDepartments() {
-        return ResponseEntity.ok(departmentService.getAllDepartmentResponses());
+        System.out.println("GET request received at /departments or /api/departments");
+        try {
+            List<DepartmentResponse> departmentResponses = departmentService.getAllDepartmentResponses();
+            System.out.println("Retrieved " + departmentResponses.size() + " departments");
+            return ResponseEntity.ok(departmentResponses);
+        } catch (Exception e) {
+            // Log the error
+            System.err.println("Error fetching departments: " + e.getMessage());
+            e.printStackTrace();
+            // Return an empty list instead of failing
+            return ResponseEntity.ok(new ArrayList<>());
+        }
     }
     
     @GetMapping("/{departmentId}")

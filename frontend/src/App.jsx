@@ -8,6 +8,7 @@ import StaffLogin from './components/login_pages/StaffLogin'
 import DoctorPage from './components/doctor/DoctorPage'
 import PatientPage from './components/patient/PatientPage'
 import StaffPage from './components/staff/StaffPage'
+import AdminPage from './components/admin/AdminPage'
 
 // Session checker that wraps protected routes
 const ProtectedRoute = ({ element, allowedRole }) => {
@@ -26,6 +27,8 @@ const ProtectedRoute = ({ element, allowedRole }) => {
       return <Navigate to="/patient-dashboard" />;
     } else if (user.role === 'STAFF') {
       return <Navigate to="/staff-dashboard" />;
+    } else if (user.role === 'ADMIN') {
+      return <Navigate to="/admin-dashboard" />;
     }
   }
   
@@ -80,6 +83,10 @@ function App() {
         <Route 
           path="/staff-dashboard" 
           element={<ProtectedRoute element={<StaffPage />} allowedRole="STAFF" />} 
+        />
+        <Route 
+          path="/admin-dashboard" 
+          element={<ProtectedRoute element={<AdminPage />} allowedRole="ADMIN" />} 
         />
       </Routes>
     </Router>

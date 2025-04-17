@@ -880,11 +880,29 @@ const Profile = ({ userData }) => {
     useEffect(() => {
         // Fetch departments for dropdown
         const fetchDepartments = async () => {
+            setIsLoading(true);
             try {
-                const response = await axios.get('http://localhost:8080/api/departments');
-                setDepartments(response.data);
+                console.log("Fetching departments from:", 'http://localhost:8080/api/departments');
+                // First try with /api prefix
+                try {
+                    const response = await axios.get('http://localhost:8080/api/departments');
+                    console.log("Departments response:", response.data);
+                    setDepartments(response.data);
+                } catch (apiError) {
+                    console.log("Trying alternate URL without /api prefix");
+                    // If that fails, try without /api prefix
+                    const response = await axios.get('http://localhost:8080/departments');
+                    console.log("Departments response (alternate URL):", response.data);
+                    setDepartments(response.data);
+                }
             } catch (err) {
                 console.error('Error fetching departments:', err);
+                const errorMessage = err.response ? 
+                    `Failed to load departments. Status: ${err.response.status}, Message: ${err.response.statusText}` : 
+                    'Failed to load departments. Server might be unreachable. Please try again later.';
+                setError(errorMessage);
+            } finally {
+                setIsLoading(false);
             }
         };
         
@@ -1233,11 +1251,16 @@ const DepartmentManagement = () => {
     const fetchDepartments = async () => {
         setIsLoading(true);
         try {
+            console.log("Fetching departments from:", 'http://localhost:8080/api/departments');
             const response = await axios.get('http://localhost:8080/api/departments');
+            console.log("Departments response:", response.data);
             setDepartments(response.data);
         } catch (err) {
             console.error('Error fetching departments:', err);
-            setError('Failed to load departments. Please try again later.');
+            const errorMessage = err.response ? 
+                `Failed to load departments. Status: ${err.response.status}, Message: ${err.response.statusText}` : 
+                'Failed to load departments. Server might be unreachable. Please try again later.';
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -1245,10 +1268,15 @@ const DepartmentManagement = () => {
 
     const fetchDoctors = async () => {
         try {
+            console.log("Fetching doctors from:", 'http://localhost:8080/api/doctors');
             const response = await axios.get('http://localhost:8080/api/doctors');
+            console.log("Doctors response:", response.data);
             setDoctors(response.data);
         } catch (err) {
             console.error('Error fetching doctors:', err);
+            console.error('Error details:', err.response ? 
+                `Status: ${err.response.status}, Message: ${err.response.statusText}` : 
+                'Server might be unreachable');
         }
     };
 
@@ -1271,7 +1299,7 @@ const DepartmentManagement = () => {
         setFormData({
             name: department.name,
             description: department.description,
-            headDoctorId: department.headDoctor?.doctorId || ''
+            headDoctorId: department.headDoctorId || ''
         });
         setShowEditModal(true);
     };
@@ -1348,7 +1376,7 @@ const DepartmentManagement = () => {
                                 <td>{dept.departmentId}</td>
                                 <td>{dept.name}</td>
                                 <td>{dept.description}</td>
-                                <td>{dept.headDoctor ? `Dr. ${dept.headDoctor.firstName} ${dept.headDoctor.lastName}` : 'Not assigned'}</td>
+                                <td>{dept.headDoctorName || 'Not assigned'}</td>
                                 <td className="actions-cell">
                                     <button className="action-btn edit" onClick={() => openEditModal(dept)}>
                                         <i className="fas fa-edit"></i>
@@ -1408,7 +1436,7 @@ const DepartmentManagement = () => {
                                     <option value="">Select Head Doctor</option>
                                     {doctors.map(doctor => (
                                         <option key={doctor.doctorId} value={doctor.doctorId}>
-                                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.specialization})
+                                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.specialization || 'General'})
                                         </option>
                                     ))}
                                 </select>
@@ -1466,7 +1494,7 @@ const DepartmentManagement = () => {
                                     <option value="">Select Head Doctor</option>
                                     {doctors.map(doctor => (
                                         <option key={doctor.doctorId} value={doctor.doctorId}>
-                                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.specialization})
+                                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.specialization || 'General'})
                                         </option>
                                     ))}
                                 </select>
@@ -1516,11 +1544,25 @@ const StaffManagement = () => {
     const fetchStaff = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:8080/api/staff');
-            setStaff(response.data);
+            console.log("Fetching staff from:", 'http://localhost:8080/api/staff');
+            // First try with /api prefix
+            try {
+                const response = await axios.get('http://localhost:8080/api/staff');
+                console.log("Staff response:", response.data);
+                setStaff(response.data);
+            } catch (apiError) {
+                console.log("Trying alternate URL without /api prefix");
+                // If that fails, try without /api prefix
+                const response = await axios.get('http://localhost:8080/staff');
+                console.log("Staff response (alternate URL):", response.data);
+                setStaff(response.data);
+            }
         } catch (err) {
             console.error('Error fetching staff:', err);
-            setError('Failed to load staff members. Please try again later.');
+            const errorMessage = err.response ? 
+                `Failed to load staff members. Status: ${err.response.status}, Message: ${err.response.statusText}` : 
+                'Failed to load staff members. Server might be unreachable. Please try again later.';
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -1574,23 +1616,42 @@ const StaffManagement = () => {
                 departmentId: formData.departmentId ? Number(formData.departmentId) : null
             };
             
-            await axios.post('http://localhost:8080/api/staff', staffData);
-            setShowAddModal(false);
-            fetchStaff(); // Refresh the list
+            console.log("Creating staff member with data:", staffData);
+            try {
+                const response = await axios.post('http://localhost:8080/api/staff', staffData);
+                console.log("Staff creation response:", response.data);
+                setShowAddModal(false);
+                fetchStaff(); // Refresh the list
+            } catch (apiError) {
+                console.log("Trying alternate URL without /api prefix");
+                const response = await axios.post('http://localhost:8080/staff', staffData);
+                console.log("Staff creation response (alternate URL):", response.data);
+                setShowAddModal(false);
+                fetchStaff(); // Refresh the list
+            }
         } catch (err) {
             console.error('Error adding staff member:', err);
-            setError('Failed to add staff member. Please try again.');
+            setError(err.response?.data?.message || 'Failed to add staff member. Please try again.');
         }
     };
 
     const handleDeleteStaff = async (staffId) => {
         if (window.confirm('Are you sure you want to delete this staff member?')) {
             try {
-                await axios.delete(`http://localhost:8080/api/staff/${staffId}`);
-                fetchStaff(); // Refresh the list
+                console.log(`Deleting staff member: ${staffId}`);
+                try {
+                    await axios.delete(`http://localhost:8080/api/staff/${staffId}`);
+                    console.log(`Staff member ${staffId} deleted successfully`);
+                    fetchStaff(); // Refresh the list
+                } catch (apiError) {
+                    console.log("Trying alternate URL without /api prefix");
+                    await axios.delete(`http://localhost:8080/staff/${staffId}`);
+                    console.log(`Staff member ${staffId} deleted successfully (alternate URL)`);
+                    fetchStaff(); // Refresh the list
+                }
             } catch (err) {
                 console.error('Error deleting staff member:', err);
-                setError('Failed to delete staff member. Please try again.');
+                setError(err.response?.data?.message || 'Failed to delete staff member. Please try again.');
             }
         }
     };
