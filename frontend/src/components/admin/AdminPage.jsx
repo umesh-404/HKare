@@ -93,8 +93,6 @@ const AdminPage = () => {
                 return <AuditLogManagement />;
             case "profile":
                 return <Profile userData={userData} />;
-            case "settings":
-                return <Settings />;
             default:
                 return <div>Select a section from the sidebar</div>;
         }
@@ -117,7 +115,6 @@ const AdminPage = () => {
             { name: "Login History", icon: "fa-history" },
             { name: "Audit Logs", icon: "fa-clipboard-list" },
             { name: "Profile", icon: "fa-user-circle" },
-            { name: "Settings", icon: "fa-cog" }
         ];
     };
 
@@ -198,7 +195,6 @@ const getIconForSection = (section) => {
         'login-history': 'fa-history',
         'audit-logs': 'fa-clipboard-list',
         'profile': 'fa-user-circle',
-        'settings': 'fa-cog'
     };
     return icons[section] || 'fa-circle';
 };
@@ -1744,16 +1740,16 @@ const DoctorManagement = () => {
                                             value={formData.phoneNumber} 
                                             onChange={handleInputChange} 
                                         />
-                                    </div>
-                                    <div className="form-group">
+                                        </div>
+                                        <div className="form-group">
                                             <label htmlFor="address">Address</label>
-                                        <input 
+                                            <input 
                                                 type="text"
                                                 id="address"
                                                 name="address"
                                                 value={formData.address}
-                                            onChange={handleInputChange} 
-                                        />
+                                                onChange={handleInputChange} 
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -8313,8 +8309,6 @@ const MedicationManagement = () => {
 const NotificationManagement = () => <div className="placeholder-section">Notification Management coming soon...</div>;
 const LoginHistoryManagement = () => <div className="placeholder-section">Login History coming soon...</div>;
 const AuditLogManagement = () => <div className="placeholder-section">Audit Log Management coming soon...</div>;
-const Settings = () => <div className="placeholder-section">Settings coming soon...</div>;
-
 
 // Profile component implementation
 const Profile = ({ userData }) => {
