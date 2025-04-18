@@ -775,8 +775,8 @@ const Dashboard = ({ patientId, setActiveSection }) => {
         <div className="analytics-cards">
           <div className="analytics-card">
             <div className="card-icon">
-              <i className="fas fa-calendar-check"></i>
-            </div>
+          <i className="fas fa-calendar-check"></i>
+        </div>
             <div className="card-content">
               <h4>Total Appointments</h4>
               <p>{stats.totalAppointments}</p>
@@ -790,13 +790,13 @@ const Dashboard = ({ patientId, setActiveSection }) => {
             <div className="card-content">
               <h4>Pending Appointments</h4>
               <p>{stats.pendingAppointments}</p>
-            </div>
-          </div>
-          
+        </div>
+      </div>
+
           <div className="analytics-card">
             <div className="card-icon">
               <i className="fas fa-check-circle"></i>
-            </div>
+        </div>
             <div className="card-content">
               <h4>Completed Visits</h4>
               <p>{stats.completedAppointments}</p>
@@ -822,12 +822,6 @@ const Dashboard = ({ patientId, setActiveSection }) => {
             <h3>
               <i className="fas fa-calendar-alt"></i> Upcoming Appointments
             </h3>
-            <button 
-              className="view-all-btn"
-              onClick={() => setActiveSection("appointments")}
-            >
-              View All
-            </button>
           </div>
           <div className="dashboard-card-body">
             {upcomingAppointments.length === 0 ? (
@@ -867,12 +861,6 @@ const Dashboard = ({ patientId, setActiveSection }) => {
             <h3>
               <i className="fas fa-prescription"></i> Recent Prescriptions
             </h3>
-            <button 
-              className="view-all-btn"
-              onClick={() => setActiveSection("prescriptions")}
-            >
-              View All
-            </button>
           </div>
           <div className="dashboard-card-body">
             {recentPrescriptions.length === 0 ? (
@@ -934,11 +922,11 @@ const Dashboard = ({ patientId, setActiveSection }) => {
             <i className="fas fa-tint tip-icon"></i>
             <h4>Stay Hydrated</h4>
             <p>Drink at least 8 glasses of water daily to maintain proper hydration.</p>
-          </div>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 // Appointment Management for patients
@@ -961,12 +949,104 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
   
   // State for booking modal
   const [showBookModal, setShowBookModal] = useState(false);
+  const [doctors, setDoctors] = useState([]);
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    patientId: patientId,
+    doctorId: '',
+    appointmentDate: '',
+    appointmentTime: '',
+    appointmentType: 'GENERAL_CHECKUP',
+    reasonForVisit: '',
+    notes: ''
+  });
 
   useEffect(() => {
     if (patientId) {
       fetchAppointments(patientId);
+      fetchDoctors();
     }
   }, [patientId]);
+
+  const fetchDoctors = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/doctors');
+      setDoctors(response.data);
+    } catch (err) {
+      console.error('Error fetching doctors:', err);
+    }
+  };
+  
+  const handleBookingInputChange = (e) => {
+    const { name, value } = e.target;
+    setBookingForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleBookAppointment = async (e) => {
+    e.preventDefault();
+    setIsBooking(true);
+    setError('');
+    
+    try {
+      // Set the form's patientId to the current patient
+      const appointmentData = {
+        ...bookingForm,
+        patientId: patientId,
+        status: 'SCHEDULED'
+      };
+      
+      const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
+      
+      // Add the new appointment to the appointments list
+      setAppointments(prev => [...prev, response.data]);
+      
+      // Show success message and reset form
+      setBookingSuccess(true);
+      
+      // Reset form after delay
+      setTimeout(() => {
+        setBookingSuccess(false);
+        setShowBookModal(false);
+        setBookingForm({
+          patientId: patientId,
+          doctorId: '',
+          appointmentDate: '',
+          appointmentTime: '',
+          appointmentType: 'GENERAL_CHECKUP',
+          reasonForVisit: '',
+          notes: ''
+        });
+      }, 2000);
+      
+    } catch (err) {
+      console.error('Error booking appointment:', err);
+      setError(err.response?.data?.message || 'Failed to book appointment. Please try again.');
+    } finally {
+      setIsBooking(false);
+    }
+  };
+  
+  // Calculate min date (today) and max date (3 months from now) for date picker
+  const today = new Date().toISOString().split('T')[0];
+  const maxDate = new Date();
+  maxDate.setMonth(maxDate.getMonth() + 3);
+  const maxDateStr = maxDate.toISOString().split('T')[0];
+  
+  // Generate available time slots (example: 9 AM to 5 PM with 30 min intervals)
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let i = 9; i < 17; i++) {
+      slots.push(`${i.toString().padStart(2, '0')}:00`);
+      slots.push(`${i.toString().padStart(2, '0')}:30`);
+    }
+    return slots;
+  };
+  
+  const timeSlots = generateTimeSlots();
 
   const fetchAppointments = async (patientId) => {
     setLoading(true);
@@ -1130,7 +1210,7 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
       <div className="loading-container">
         <div className="spinner"></div>
         <p>Loading appointments...</p>
-      </div>
+        </div>
     );
   }
 
@@ -1175,15 +1255,15 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
                   className="search-input"
                 />
                 <i className="fas fa-search search-icon"></i>
-              </div>
+            </div>
             </div>
           </div>
         </div>
         
         <button className="add-btn" onClick={() => setShowBookModal(true)}>
           <i className="fas fa-plus"></i> Book New Appointment
-        </button>
-      </div>
+            </button>
+        </div>
       
       {error && <div className="error-message">{error}</div>}
       
@@ -1243,7 +1323,7 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
           </tbody>
         </table>
       </div>
-      
+
       {/* View Appointment Modal */}
       {showViewModal && selectedAppointment && (
         <div className="modal-overlay">
@@ -1253,7 +1333,7 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
               <button className="close-btn" onClick={() => setShowViewModal(false)} style={modalStyles.closeButton}>
                 <i className="fas fa-times"></i>
               </button>
-            </div>
+        </div>
             <div className="modal-body">
               <div className="detail-section" style={modalStyles.detailSection}>
                 <h4 style={modalStyles.sectionTitle}>Basic Information</h4>
@@ -1261,36 +1341,36 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
                   <div className="detail-group" style={modalStyles.detailGroup}>
                     <label style={modalStyles.label}>Appointment ID:</label>
                     <p style={modalStyles.value}>{selectedAppointment.appointmentId}</p>
-                  </div>
+              </div>
                   <div className="detail-group" style={modalStyles.detailGroup}>
                     <label style={modalStyles.label}>Status:</label>
                     <p className={`status-badge ${getStatusClass(selectedAppointment.status)}`} style={modalStyles.value}>
                       {selectedAppointment.status}
                     </p>
-                  </div>
-                </div>
+            </div>
+              </div>
                 
                 <div className="detail-row" style={modalStyles.detailRow}>
                   <div className="detail-group" style={modalStyles.detailGroup}>
                     <label style={modalStyles.label}>Date:</label>
                     <p style={modalStyles.value}>{formatDate(selectedAppointment.appointmentDate)}</p>
-                  </div>
+            </div>
                   <div className="detail-group" style={modalStyles.detailGroup}>
                     <label style={modalStyles.label}>Time:</label>
                     <p style={modalStyles.value}>{formatTime(selectedAppointment.appointmentTime)}</p>
-                  </div>
-                </div>
+          </div>
+        </div>
                 
                 <div className="detail-row" style={modalStyles.detailRow}>
                   <div className="detail-group" style={modalStyles.detailGroup}>
                     <label style={modalStyles.label}>Doctor:</label>
                     <p style={modalStyles.value}>{getDoctorName(selectedAppointment.doctorId)}</p>
-                  </div>
+      </div>
                   <div className="detail-group" style={modalStyles.detailGroup}>
                     <label style={modalStyles.label}>Appointment Type:</label>
                     <p style={modalStyles.value}>{selectedAppointment.appointmentType || 'General'}</p>
-                  </div>
-                </div>
+    </div>
+  </div>
               </div>
               
               <div className="detail-section" style={modalStyles.detailSection}>
@@ -1299,15 +1379,15 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
                   <div className="detail-group wide" style={modalStyles.detailGroupWide}>
                     <label style={modalStyles.label}>Reason for Visit:</label>
                     <p style={modalStyles.value}>{selectedAppointment.reasonForVisit || 'Not specified'}</p>
-                  </div>
-                </div>
+        </div>
+            </div>
                 
                 {selectedAppointment.status === 'CANCELLED' && (
                   <div className="detail-row" style={modalStyles.detailRow}>
                     <div className="detail-group wide" style={modalStyles.detailGroupWide}>
                       <label style={modalStyles.label}>Cancellation Reason:</label>
                       <p style={modalStyles.value}>{selectedAppointment.cancellationReason || 'Not specified'}</p>
-                    </div>
+            </div>
                   </div>
                 )}
                 
@@ -1332,7 +1412,7 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
                     style={{...modalStyles.button, backgroundColor: '#d9534f', color: 'white'}}
                   >
                     <i className="fas fa-times"></i> Cancel Appointment
-                  </button>
+              </button>
                 )}
                 <button 
                   onClick={() => setShowViewModal(false)} 
@@ -1341,10 +1421,10 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
                 >
                   Close
                 </button>
-              </div>
             </div>
           </div>
         </div>
+      </div>
       )}
       
       {/* Cancel Appointment Modal */}
@@ -1363,7 +1443,7 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
               >
                 <i className="fas fa-times"></i>
               </button>
-            </div>
+        </div>
             <div className="modal-body">
               <p>Are you sure you want to cancel this appointment?</p>
               <div className="form-group" style={{marginTop: '15px'}}>
@@ -1376,7 +1456,7 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
                   placeholder="Please provide a reason for cancelling this appointment..."
                   required
                 ></textarea>
-              </div>
+            </div>
               
               <div className="modal-actions" style={modalStyles.modalActions}>
                 <button 
@@ -1398,7 +1478,7 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
                 >
                   Back
                 </button>
-              </div>
+            </div>
             </div>
           </div>
         </div>
@@ -1407,78 +1487,1185 @@ const AppointmentManagement = ({ patientId, setActiveSection }) => {
       {/* Book Appointment Modal */}
       {showBookModal && (
         <div className="modal-overlay">
-          <div className="modal-container" style={{...modalStyles.viewModal, width: '500px'}}>
+          <div className="modal-container" style={{...modalStyles.viewModal, width: '600px'}}>
             <div className="modal-header" style={modalStyles.modalHeader}>
               <h3 style={modalStyles.modalTitle}>Book New Appointment</h3>
               <button 
                 className="close-btn" 
                 onClick={() => setShowBookModal(false)} 
                 style={modalStyles.closeButton}
+                disabled={isBooking}
               >
+                <i className="fas fa-times"></i>
+              </button>
+      </div>
+            
+            {bookingSuccess ? (
+              <div className="modal-body" style={{textAlign: 'center', padding: '30px 20px'}}>
+                <div style={{marginBottom: '20px', color: '#4CAF50'}}>
+                  <i className="fas fa-check-circle" style={{fontSize: '50px'}}></i>
+    </div>
+                <h3 style={{fontSize: '24px', marginBottom: '20px', color: '#4CAF50'}}>Appointment Booked!</h3>
+                <p style={{color: '#333', marginBottom: '30px', fontSize: '16px'}}>
+                  Your appointment has been scheduled successfully.
+                </p>
+              </div>
+            ) : (
+              <div className="modal-body" style={{padding: '20px'}}>
+                {error && <div className="error-message" style={{marginBottom: '15px'}}>{error}</div>}
+                
+                <form onSubmit={handleBookAppointment}>
+                  <div className="form-section" style={{marginBottom: '20px'}}>
+                    <h4 style={{...modalStyles.sectionTitle, borderBottom: '2px solid #4CAF50', paddingBottom: '8px', marginBottom: '15px'}}>
+                      Appointment Details
+                    </h4>
+                    
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px'}}>
+                      <div className="form-group">
+                        <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Doctor*</label>
+                        <select
+                          name="doctorId"
+                          value={bookingForm.doctorId}
+                          onChange={handleBookingInputChange}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd'
+                          }}
+                        >
+                          <option value="">Select Doctor</option>
+                          {doctors.map(doctor => (
+                            <option key={doctor.doctorId} value={doctor.doctorId}>
+                              Dr. {doctor.firstName} {doctor.lastName} ({doctor.specialization})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Appointment Type*</label>
+                        <select
+                          name="appointmentType"
+                          value={bookingForm.appointmentType}
+                          onChange={handleBookingInputChange}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd'
+                          }}
+                        >
+                          <option value="GENERAL_CHECKUP">General Checkup</option>
+                          <option value="FOLLOW_UP">Follow-up</option>
+                          <option value="CONSULTATION">Consultation</option>
+                          <option value="VACCINATION">Vaccination</option>
+                          <option value="LAB_TEST">Lab Test</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px'}}>
+                      <div className="form-group">
+                        <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Date*</label>
+                        <input
+                          type="date"
+                          name="appointmentDate"
+                          value={bookingForm.appointmentDate}
+                          onChange={handleBookingInputChange}
+                          min={today}
+                          max={maxDateStr}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd'
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Time*</label>
+                        <select
+                          name="appointmentTime"
+                          value={bookingForm.appointmentTime}
+                          onChange={handleBookingInputChange}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '8px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd'
+                          }}
+                        >
+                          <option value="">Select Time</option>
+                          {timeSlots.map(time => (
+                            <option key={time} value={time}>
+                              {time}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="form-group" style={{marginBottom: '15px'}}>
+                      <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Reason for Visit*</label>
+                      <textarea
+                        name="reasonForVisit"
+                        value={bookingForm.reasonForVisit}
+                        onChange={handleBookingInputChange}
+                        required
+                        rows="3"
+                        placeholder="Please describe briefly why you're making this appointment..."
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '4px',
+                          border: '1px solid #ddd',
+                          resize: 'vertical'
+                        }}
+                      ></textarea>
+                    </div>
+                    
+                    <div className="form-group">
+                      <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Additional Notes</label>
+                      <textarea
+                        name="notes"
+                        value={bookingForm.notes}
+                        onChange={handleBookingInputChange}
+                        rows="2"
+                        placeholder="Any additional information for the doctor or staff..."
+                        style={{
+                          width: '100%',
+                          padding: '8px 10px',
+                          borderRadius: '4px',
+                          border: '1px solid #ddd',
+                          resize: 'vertical'
+                        }}
+                      ></textarea>
+                    </div>
+                  </div>
+                  
+                  <div className="form-section" style={{marginBottom: '10px'}}>
+                    <p style={{fontSize: '0.9rem', color: '#666', fontStyle: 'italic'}}>
+                      <i className="fas fa-info-circle" style={{marginRight: '5px'}}></i>
+                      Please note that all appointments are subject to confirmation by the hospital staff.
+                    </p>
+                  </div>
+                  
+                  <div className="modal-actions" style={{...modalStyles.modalActions, marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px'}}>
+                    <button 
+                      type="button"
+                      onClick={() => setShowBookModal(false)} 
+                      className="secondary-btn"
+                      style={{...modalStyles.button, ...modalStyles.secondaryButton}}
+                      disabled={isBooking}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit"
+                      className="primary-btn"
+                      style={{
+                        ...modalStyles.button,
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        border: 'none'
+                      }}
+                      disabled={isBooking}
+                    >
+                      {isBooking ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin" style={{marginRight: '8px'}}></i>
+                          Booking...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-calendar-check" style={{marginRight: '8px'}}></i>
+                          Book Appointment
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+  </div>
+);
+};
+
+// Payment Management Component
+const PaymentManagement = ({ patientId, setActiveSection }) => {
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [dateFilter, setDateFilter] = useState('');
+  
+  // Modal states
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+
+  useEffect(() => {
+    if (patientId) {
+      fetchPayments(patientId);
+    }
+  }, [patientId]);
+
+  const fetchPayments = async (patientId) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8080/api/payments/patient/${patientId}`);
+      setPayments(response.data);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching payments:', err);
+      setError('Failed to load payments. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleViewPayment = (payment) => {
+    setSelectedPayment(payment);
+    setShowViewModal(true);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "N/A";
+      
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return "N/A";
+    }
+  };
+  
+  const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined) return "N/A";
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+  
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'PAID':
+        return 'status-completed';
+      case 'PENDING':
+        return 'status-pending';
+      case 'OVERDUE':
+        return 'status-rejected';
+      case 'CANCELLED':
+        return 'status-expired';
+      case 'REFUNDED':
+        return 'status-info';
+      default:
+        return '';
+    }
+  };
+
+  const getFilteredPayments = () => {
+    return payments.filter(payment => {
+      // Filter by status
+      if (statusFilter !== 'ALL' && payment.status !== statusFilter) {
+        return false;
+      }
+      
+      // Filter by date
+      if (dateFilter && payment.invoiceDate) {
+        const paymentDate = new Date(payment.invoiceDate).toISOString().split('T')[0];
+        if (paymentDate !== dateFilter) {
+          return false;
+        }
+      }
+      
+      // Filter by search term
+      if (searchTerm) {
+        const paymentId = payment.paymentId?.toString().toLowerCase() || '';
+        const description = payment.description?.toLowerCase() || '';
+        
+        return paymentId.includes(searchTerm.toLowerCase()) || 
+               description.includes(searchTerm.toLowerCase());
+      }
+      
+      return true;
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading payments...</p>
+        </div>
+    );
+  }
+
+  return (
+    <div className="management-section">
+      <div className="management-header">
+        <div className="filters-container">
+          <h3>Filters</h3>
+          <div className="filters">
+            <div className="filter-group">
+              <label>Status:</label>
+              <select 
+                className="filter-select"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="PAID">Paid</option>
+                <option value="PENDING">Pending</option>
+                <option value="OVERDUE">Overdue</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="REFUNDED">Refunded</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Date:</label>
+              <input 
+                type="date" 
+                className="filter-date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+              />
+            </div>
+            <div className="filter-group">
+              <label>Search:</label>
+              <div className="search-input-container">
+                <input
+                  type="text"
+                  placeholder="Search by ID, description..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="search-input"
+                />
+                <i className="fas fa-search search-icon"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {error && <div className="error-message">{error}</div>}
+      
+      <div className="table-container">
+        <table className="data-table">
+              <thead>
+                <tr>
+              <th>Invoice #</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+            {getFilteredPayments().length === 0 ? (
+                <tr>
+                <td colSpan="7" className="no-data">No payments found</td>
+                </tr>
+            ) : (
+              getFilteredPayments().map(payment => (
+                <tr key={payment.paymentId}>
+                  <td>{payment.paymentId}</td>
+                  <td>{formatDate(payment.invoiceDate)}</td>
+                  <td>{payment.description || 'N/A'}</td>
+                  <td>{formatCurrency(payment.amount)}</td>
+                  <td>{formatDate(payment.dueDate)}</td>
+                  <td>
+                    <span className={`status-badge ${getStatusClass(payment.status)}`}>
+                      {payment.status}
+                    </span>
+                  </td>
+                  <td className="actions-cell">
+                    <button 
+                      className="action-btn view" 
+                      onClick={() => handleViewPayment(payment)}
+                      title="View Details"
+                    >
+                      <i className="fas fa-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+              </tbody>
+            </table>
+          </div>
+      
+      {/* View Payment Modal */}
+      {showViewModal && selectedPayment && (
+        <div className="modal-overlay">
+          <div className="modal-container" style={modalStyles.viewModal}>
+            <div className="modal-header" style={modalStyles.modalHeader}>
+              <h3 style={modalStyles.modalTitle}>Payment Details</h3>
+              <button className="close-btn" onClick={() => setShowViewModal(false)} style={modalStyles.closeButton}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
             <div className="modal-body">
-              <div className="construction-message" style={{boxShadow: 'none', padding: '20px'}}>
-                <i className="fas fa-tools construction-icon"></i>
-                <h3>Coming Soon!</h3>
-                <p>Online appointment booking is currently under development. Please contact the hospital directly to schedule an appointment.</p>
+              <div className="detail-section" style={modalStyles.detailSection}>
+                <h4 style={modalStyles.sectionTitle}>Invoice Information</h4>
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={modalStyles.label}>Invoice Number:</label>
+                    <p style={modalStyles.value}>{selectedPayment.paymentId}</p>
+                  </div>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={modalStyles.label}>Status:</label>
+                    <p style={modalStyles.value}>
+                      <span className={`status-badge ${getStatusClass(selectedPayment.status)}`}>
+                        {selectedPayment.status}
+                      </span>
+                    </p>
+        </div>
+      </div>
+
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={modalStyles.label}>Invoice Date:</label>
+                    <p style={modalStyles.value}>{formatDate(selectedPayment.invoiceDate)}</p>
+        </div>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={modalStyles.label}>Due Date:</label>
+                    <p style={modalStyles.value}>{formatDate(selectedPayment.dueDate)}</p>
+            </div>
+            </div>
+                
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={modalStyles.label}>Amount:</label>
+                    <p style={{...modalStyles.value, fontWeight: 'bold'}}>
+                      {formatCurrency(selectedPayment.amount)}
+                    </p>
+            </div>
+                  {selectedPayment.status === 'PAID' && (
+                    <div className="detail-group" style={modalStyles.detailGroup}>
+                      <label style={modalStyles.label}>Payment Date:</label>
+                      <p style={modalStyles.value}>{formatDate(selectedPayment.paymentDate)}</p>
+          </div>
+                  )}
+                </div>
+                
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
+                    <label style={modalStyles.label}>Description:</label>
+                    <p style={modalStyles.value}>{selectedPayment.description || 'N/A'}</p>
+                  </div>
+                </div>
               </div>
               
               <div className="modal-actions" style={modalStyles.modalActions}>
                 <button 
-                  onClick={() => setShowBookModal(false)} 
+                  onClick={() => setShowViewModal(false)} 
                   className="secondary-btn"
                   style={{...modalStyles.button, ...modalStyles.secondaryButton}}
                 >
                   Close
+          </button>
+        </div>
+      </div>
+    </div>
+        </div>
+      )}
+  </div>
+);
+};
+
+// MedicalRecordManagement for patients
+const MedicalRecordManagement = ({ patientId, setActiveSection }) => {
+  const [medicalRecords, setMedicalRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [recordTypeFilter, setRecordTypeFilter] = useState('ALL');
+  const [dateFilter, setDateFilter] = useState('');
+  
+  // Modal states
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+
+  useEffect(() => {
+    if (patientId) {
+      fetchMedicalRecords(patientId);
+    }
+  }, [patientId]);
+
+  const fetchMedicalRecords = async (patientId) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8080/api/medical-records/patient/${patientId}`);
+      setMedicalRecords(response.data);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching medical records:', err);
+      setError('Failed to load medical records. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleViewRecord = (record) => {
+    setSelectedRecord(record);
+    setShowViewModal(true);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not Specified";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+      
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return "Date Error";
+    }
+  };
+  
+  const getRecordTypeClass = (recordType) => {
+    const classes = {
+      'GENERAL_CHECKUP': 'status-pending',
+      'EMERGENCY': 'status-rejected',
+      'FOLLOW_UP': 'status-completed',
+      'SURGERY': 'status-rejected',
+      'LAB_TEST': 'status-pending',
+      'IMAGING': 'status-pending',
+      'VACCINATION': 'status-completed',
+      'CONSULTATION': 'status-completed'
+    };
+    return classes[recordType] || 'status-pending';
+  };
+
+  const getDoctorName = (doctorId) => {
+    // This would typically fetch doctor info from context or make an API call
+    // For simplicity, returning placeholder text
+    return doctorId ? `Dr. ${doctorId}` : 'Unknown Doctor';
+  };
+
+  const getFilteredRecords = () => {
+    return medicalRecords.filter(record => {
+      // Filter by record type
+      if (recordTypeFilter !== 'ALL' && record.recordType !== recordTypeFilter) {
+        return false;
+      }
+      
+      // Filter by date
+      if (dateFilter && record.recordDate) {
+        const recordDate = new Date(record.recordDate).toISOString().split('T')[0];
+        if (recordDate !== dateFilter) {
+          return false;
+        }
+      }
+      
+      // Apply search term to doctor name, diagnosis, or record ID
+      if (searchTerm) {
+        const doctorName = getDoctorName(record.doctorId).toLowerCase();
+        const recordId = record.recordId?.toString().toLowerCase() || '';
+        const diagnosis = record.diagnosis?.toLowerCase() || '';
+        
+        return doctorName.includes(searchTerm.toLowerCase()) || 
+               recordId.includes(searchTerm.toLowerCase()) ||
+               diagnosis.includes(searchTerm.toLowerCase());
+      }
+      
+      return true;
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading medical records...</p>
+        </div>
+    );
+  }
+
+  return (
+    <div className="management-section">
+      <div className="management-header">
+        <div className="filters-container">
+          <h3>Filters</h3>
+          <div className="filters">
+            <div className="filter-group">
+              <label>Record Type:</label>
+              <select 
+                className="filter-select"
+                value={recordTypeFilter}
+                onChange={(e) => setRecordTypeFilter(e.target.value)}
+              >
+                <option value="ALL">All Types</option>
+                <option value="GENERAL_CHECKUP">General Checkup</option>
+                <option value="EMERGENCY">Emergency</option>
+                <option value="FOLLOW_UP">Follow-up</option>
+                <option value="SURGERY">Surgery</option>
+                <option value="LAB_TEST">Lab Test</option>
+                <option value="IMAGING">Imaging</option>
+                <option value="VACCINATION">Vaccination</option>
+                <option value="CONSULTATION">Consultation</option>
+              </select>
+                </div>
+            <div className="filter-group">
+              <label>Date:</label>
+              <input 
+                type="date" 
+                className="filter-date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+              />
+              </div>
+            <div className="filter-group">
+              <label>Search:</label>
+              <div className="search-input-container">
+                <input
+                  type="text"
+                  placeholder="Search by doctor, ID, or diagnosis..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="search-input"
+                />
+                <i className="fas fa-search search-icon"></i>
+              </div>
+            </div>
+          </div>
+              </div>
+            </div>
+
+      {error && <div className="error-message">{error}</div>}
+      
+      <div className="table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Doctor</th>
+              <th>Record Type</th>
+              <th>Diagnosis</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {getFilteredRecords().length === 0 ? (
+              <tr>
+                <td colSpan="6" className="no-data">No medical records found</td>
+              </tr>
+            ) : (
+              getFilteredRecords().map(record => (
+                <tr key={record.recordId}>
+                  <td>{record.recordId}</td>
+                  <td>{formatDate(record.recordDate)}</td>
+                  <td>{getDoctorName(record.doctorId)}</td>
+                  <td>
+                    <span 
+                      className={`status-badge ${getRecordTypeClass(record.recordType)}`}
+                    >
+                      {record.recordType.replace(/_/g, ' ')}
+                    </span>
+                  </td>
+                  <td>{record.diagnosis ? record.diagnosis.substring(0, 30) + (record.diagnosis.length > 30 ? '...' : '') : 'Not recorded'}</td>
+                  <td className="actions-cell">
+                    <button 
+                      className="action-btn view" 
+                      onClick={() => handleViewRecord(record)}
+                      title="View Details"
+                    >
+                      <i className="fas fa-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+                </div>
+      
+      {/* View Medical Record Modal */}
+      {showViewModal && selectedRecord && (
+        <div className="modal-overlay">
+          <div className="modal-container large-modal" style={modalStyles.viewModal}>
+            <div className="modal-header" style={modalStyles.modalHeader}>
+              <h3 style={modalStyles.modalTitle}>Medical Record Details</h3>
+              <button className="close-btn" onClick={() => setShowViewModal(false)} style={modalStyles.closeButton}>
+                <i className="fas fa-times"></i>
+              </button>
+              </div>
+            <div className="modal-body" style={{ padding: '10px' }}>
+              <div className="detail-section" style={{...modalStyles.detailSection, marginBottom: '20px'}}>
+                <h4 style={{...modalStyles.sectionTitle, borderBottom: '2px solid #4CAF50'}}>Basic Information</h4>
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Record ID:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{selectedRecord.recordId}</p>
+              </div>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Doctor Name:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{getDoctorName(selectedRecord.doctorId)}</p>
+              </div>
+            </div>
+                
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Record Type:</label>
+                    <p style={{...modalStyles.value, ...modalStyles.statusBadge, fontSize: '0.9rem'}}>
+                      {selectedRecord.recordType.replace(/_/g, ' ')}
+                    </p>
+          </div>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Record Date:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{formatDate(selectedRecord.recordDate)}</p>
+        </div>
+      </div>
+
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Next Appointment:</label>
+                    <p style={{...modalStyles.value, fontWeight: selectedRecord.nextAppointment ? '500' : '400', 
+                      color: selectedRecord.nextAppointment ? '#1e1e1e' : '#666'}}>
+                      {formatDate(selectedRecord.nextAppointment)}
+                    </p>
+        </div>
+            </div>
+            </div>
+              
+              <div className="detail-section" style={{...modalStyles.detailSection, marginBottom: '20px'}}>
+                <h4 style={{...modalStyles.sectionTitle, borderBottom: '2px solid #4CAF50'}}>Medical Details</h4>
+                
+                <div className="medical-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Symptoms:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.symptoms || 'None recorded'}</p>
+            </div>
+                  
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Diagnosis:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.diagnosis || 'None recorded'}</p>
+                  </div>
+                </div>
+
+                <div className="medical-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Treatment:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.treatment || 'None recorded'}</p>
+                  </div>
+                  
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Prescription:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.prescription || 'None recorded'}</p>
+                  </div>
+                </div>
+
+                <div className="medical-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Test Results:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.testResults || 'None recorded'}</p>
+                  </div>
+                  
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Notes:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.notes || 'None recorded'}</p>
+                  </div>
+                </div>
+
+                <div className="detail-row" style={{...modalStyles.detailRow, marginTop: '20px'}}>
+                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Medical History:</label>
+                    <p style={{...modalStyles.value, padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'}}>{selectedRecord.medicalHistory || 'None recorded'}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="modal-actions" style={{...modalStyles.modalActions, borderTop: '2px solid #e0e0e0', paddingTop: '20px'}}>
+                <button 
+                  onClick={() => setShowViewModal(false)} 
+                  className="secondary-btn"
+                  style={{...modalStyles.button, ...modalStyles.secondaryButton, padding: '10px 20px', borderRadius: '6px'}}
+                >
+                  <i className="fas fa-times" style={{marginRight: '8px'}}></i> Close
+            </button>
+        </div>
+      </div>
+    </div>
+        </div>
+      )}
+  </div>
+);
+};
+
+// PrescriptionManagement for patients
+const PrescriptionManagement = ({ patientId, setActiveSection }) => {
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [dateFilter, setDateFilter] = useState('');
+  
+  // Modal states
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
+
+  useEffect(() => {
+    if (patientId) {
+      fetchPrescriptions(patientId);
+    }
+  }, [patientId]);
+
+  const fetchPrescriptions = async (patientId) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`http://localhost:8080/api/prescriptions/patient/${patientId}`);
+      setPrescriptions(response.data);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching prescriptions:', err);
+      setError('Failed to load prescriptions. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleViewPrescription = (prescription) => {
+    setSelectedPrescription(prescription);
+    setShowViewModal(true);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not Specified";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+      
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return "Date Error";
+    }
+  };
+  
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 'ACTIVE':
+        return 'status-pending';
+      case 'COMPLETED':
+        return 'status-completed';
+      case 'EXPIRED':
+        return 'status-rejected';
+      case 'REFILLED':
+        return 'status-info';
+      default:
+        return '';
+    }
+  };
+
+  const getDoctorName = (doctorId) => {
+    // This would typically fetch doctor info from context or make an API call
+    // For simplicity, returning placeholder text
+    return doctorId ? `Dr. ${doctorId}` : 'Unknown Doctor';
+  };
+
+  const getFilteredPrescriptions = () => {
+    return prescriptions.filter(prescription => {
+      // Filter by status
+      if (statusFilter !== 'ALL' && prescription.status !== statusFilter) {
+        return false;
+      }
+      
+      // Filter by date
+      if (dateFilter && prescription.prescriptionDate) {
+        const prescDate = new Date(prescription.prescriptionDate).toISOString().split('T')[0];
+        if (prescDate !== dateFilter) {
+          return false;
+        }
+      }
+      
+      // Apply search term to doctor name or medication names
+      if (searchTerm) {
+        const doctorName = getDoctorName(prescription.doctorId).toLowerCase();
+        const medicationNames = prescription.medications 
+          ? prescription.medications.map(m => m.medicationName.toLowerCase()).join(' ') 
+          : '';
+        
+        return doctorName.includes(searchTerm.toLowerCase()) || 
+               medicationNames.includes(searchTerm.toLowerCase());
+      }
+      
+      return true;
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading prescriptions...</p>
+        </div>
+    );
+  }
+
+  return (
+    <div className="management-section">
+      <div className="management-header">
+        <div className="filters-container">
+          <h3>Filters</h3>
+          <div className="filters">
+            <div className="filter-group">
+              <label>Status:</label>
+              <select 
+                className="filter-select"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="ACTIVE">Active</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="EXPIRED">Expired</option>
+                <option value="REFILLED">Refilled</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Date:</label>
+              <input 
+                type="date" 
+                className="filter-date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+              />
+            </div>
+            <div className="filter-group">
+              <label>Search:</label>
+              <div className="search-input-container">
+                <input
+                  type="text"
+                  placeholder="Search by doctor, medications..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="search-input"
+                />
+                <i className="fas fa-search search-icon"></i>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {error && <div className="error-message">{error}</div>}
+      
+      <div className="table-container">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Prescribed Date</th>
+              <th>Doctor</th>
+              <th>Medications</th>
+              <th>Expiry Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {getFilteredPrescriptions().length === 0 ? (
+              <tr>
+                <td colSpan="7" className="no-data">No prescriptions found</td>
+              </tr>
+            ) : (
+              getFilteredPrescriptions().map(prescription => (
+                <tr key={prescription.prescriptionId}>
+                  <td>{prescription.prescriptionId}</td>
+                  <td>{formatDate(prescription.prescriptionDate)}</td>
+                  <td>{getDoctorName(prescription.doctorId)}</td>
+                  <td>
+                    {prescription.medications && prescription.medications.length > 0 
+                      ? prescription.medications.map(med => med.medicationName).join(', ').substring(0, 30) + 
+                        (prescription.medications.map(med => med.medicationName).join(', ').length > 30 ? '...' : '')
+                      : 'No medications listed'}
+                  </td>
+                  <td>{formatDate(prescription.expiryDate)}</td>
+                  <td>
+                    <span className={`status-badge ${getStatusClass(prescription.status)}`}>
+                      {prescription.status}
+                    </span>
+                  </td>
+                  <td className="actions-cell">
+                    <button 
+                      className="action-btn view" 
+                      onClick={() => handleViewPrescription(prescription)}
+                      title="View Details"
+                    >
+                      <i className="fas fa-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+        </div>
+      
+      {/* View Prescription Modal */}
+      {showViewModal && selectedPrescription && (
+        <div className="modal-overlay">
+          <div className="modal-container large-modal" style={modalStyles.viewModal}>
+            <div className="modal-header" style={modalStyles.modalHeader}>
+              <h3 style={modalStyles.modalTitle}>Prescription Details</h3>
+              <button className="close-btn" onClick={() => setShowViewModal(false)} style={modalStyles.closeButton}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="modal-body" style={{ padding: '10px' }}>
+              <div className="detail-section" style={{...modalStyles.detailSection, marginBottom: '20px'}}>
+                <h4 style={{...modalStyles.sectionTitle, borderBottom: '2px solid #4CAF50'}}>Prescription Information</h4>
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Prescription ID:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{selectedPrescription.prescriptionId}</p>
+            </div>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Status:</label>
+                    <p style={{...modalStyles.value, ...modalStyles.statusBadge, display: 'inline-block', fontSize: '0.9rem'}}>
+                      {selectedPrescription.status}
+              </p>
+            </div>
+          </div>
+                
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Prescribed By:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{getDoctorName(selectedPrescription.doctorId)}</p>
+        </div>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Prescribed Date:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{formatDate(selectedPrescription.prescriptionDate)}</p>
+      </div>
+    </div>
+                
+                <div className="detail-row" style={modalStyles.detailRow}>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Expiry Date:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{formatDate(selectedPrescription.expiryDate)}</p>
+                  </div>
+                  <div className="detail-group" style={modalStyles.detailGroup}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Refillable:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{selectedPrescription.isRefillable ? 'Yes' : 'No'}</p>
+                  </div>
+                </div>
+                
+                {selectedPrescription.isRefillable && (
+                  <div className="detail-row" style={modalStyles.detailRow}>
+                    <div className="detail-group" style={modalStyles.detailGroup}>
+                      <label style={{...modalStyles.label, color: '#2c3e50'}}>Total Refills:</label>
+                      <p style={{...modalStyles.value, fontWeight: '500'}}>{selectedPrescription.totalRefills}</p>
+                    </div>
+                    <div className="detail-group" style={modalStyles.detailGroup}>
+                      <label style={{...modalStyles.label, color: '#2c3e50'}}>Refills Used:</label>
+                      <p style={{...modalStyles.value, fontWeight: '500'}}>{selectedPrescription.refillsUsed || 0}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="detail-section" style={{...modalStyles.detailSection, marginBottom: '20px'}}>
+                <h4 style={{...modalStyles.sectionTitle, borderBottom: '2px solid #4CAF50'}}>Medications</h4>
+                
+                {selectedPrescription.medications && selectedPrescription.medications.length > 0 ? (
+                  <div className="medications-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {selectedPrescription.medications.map((medication, index) => (
+                      <div key={index} className="medication-item" style={modalStyles.medicationItem}>
+                        <h5 style={modalStyles.medicationTitle}>{medication.medicationName}</h5>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <div>
+                            <label style={{...modalStyles.label, color: '#2c3e50', fontSize: '0.85rem'}}>Dosage:</label>
+                            <p style={{...modalStyles.value, margin: '0 0 8px 0'}}>{medication.dosage || 'Not specified'}</p>
+                          </div>
+                          <div>
+                            <label style={{...modalStyles.label, color: '#2c3e50', fontSize: '0.85rem'}}>Frequency:</label>
+                            <p style={{...modalStyles.value, margin: '0 0 8px 0'}}>{medication.frequency || 'Not specified'}</p>
+                          </div>
+                          <div>
+                            <label style={{...modalStyles.label, color: '#2c3e50', fontSize: '0.85rem'}}>Duration:</label>
+                            <p style={{...modalStyles.value, margin: '0 0 8px 0'}}>{medication.duration || 'Not specified'}</p>
+                          </div>
+                          <div>
+                            <label style={{...modalStyles.label, color: '#2c3e50', fontSize: '0.85rem'}}>Quantity:</label>
+                            <p style={{...modalStyles.value, margin: '0 0 8px 0'}}>{medication.quantity || 'Not specified'}</p>
+                          </div>
+                        </div>
+                        <div>
+                          <label style={{...modalStyles.label, color: '#2c3e50', fontSize: '0.85rem'}}>Instructions:</label>
+                          <p style={{...modalStyles.value, margin: '0'}}>{medication.instructions || 'No special instructions'}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p>No medications listed for this prescription.</p>
+                )}
+              </div>
+              
+              {selectedPrescription.notes && (
+                <div className="detail-section" style={{...modalStyles.detailSection, marginBottom: '20px'}}>
+                  <h4 style={{...modalStyles.sectionTitle, borderBottom: '2px solid #4CAF50'}}>Additional Notes</h4>
+                  <p style={{...modalStyles.value, padding: '10px'}}>{selectedPrescription.notes}</p>
+                </div>
+              )}
+              
+              <div className="modal-actions" style={{...modalStyles.modalActions, borderTop: '2px solid #e0e0e0', paddingTop: '20px'}}>
+                <button 
+                  onClick={() => setShowViewModal(false)} 
+                  className="secondary-btn"
+                  style={{...modalStyles.button, ...modalStyles.secondaryButton, padding: '10px 20px', borderRadius: '6px'}}
+                >
+                  <i className="fas fa-times" style={{marginRight: '8px'}}></i> Close
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-// Payment Management Component (Placeholder)
-const PaymentManagement = ({ patientId, setActiveSection }) => {
-  return (
-    <div className="management-section">
-      <div className="construction-message">
-        <i className="fas fa-tools construction-icon"></i>
-        <h3>Payment Management</h3>
-        <p>This feature is coming soon. Please check back later.</p>
-      </div>
-    </div>
-  );
-};
-
-// Medical Record Management Component (Placeholder)
-const MedicalRecordManagement = ({ patientId, setActiveSection }) => {
-  return (
-    <div className="management-section">
-      <div className="construction-message">
-        <i className="fas fa-tools construction-icon"></i>
-        <h3>Medical Record Management</h3>
-        <p>This feature is coming soon. Please check back later.</p>
-      </div>
-    </div>
-  );
-};
-
-// Prescription Management Component (Placeholder)
-const PrescriptionManagement = ({ patientId, setActiveSection }) => {
-  return (
-    <div className="management-section">
-      <div className="construction-message">
-        <i className="fas fa-tools construction-icon"></i>
-        <h3>Prescription Management</h3>
-        <p>This feature is coming soon. Please check back later.</p>
-      </div>
-    </div>
-  );
+  </div>
+);
 };
 
 export default PatientPortal;

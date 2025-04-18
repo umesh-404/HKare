@@ -1538,7 +1538,7 @@ const AppointmentManagement = ({ doctorId }) => {
                     <p className={`status-text ${getStatusClass(selectedAppointment.status)}`} style={{...modalStyles.value, ...modalStyles.statusBadge}}>
                       {selectedAppointment.status}
                     </p>
-                  </div>
+          </div>
                 </div>
                 
                 <div className="detail-row">
@@ -1651,28 +1651,28 @@ const AppointmentManagement = ({ doctorId }) => {
                   
                   <div className="form-group">
                     <label htmlFor="notes">Notes:</label>
-                    <textarea
+            <textarea 
                       id="notes"
                       name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}
                       rows="3"
-                    ></textarea>
+            ></textarea>
                   </div>
                 </div>
                 
                 <div className="form-actions">
                   <button type="button" onClick={() => setShowEditModal(false)} className="cancel-btn">
                     Cancel
-                  </button>
+              </button>
                   <button type="submit" className="submit-btn">
                     Update Appointment
-                  </button>
-                </div>
-              </form>
+              </button>
             </div>
+              </form>
           </div>
         </div>
+      </div>
       )}
     </div>
   );
@@ -1905,10 +1905,10 @@ const MedicalRecordManagement = ({ doctorId }) => {
 
   // Format date for display
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return "Not Specified";
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "N/A";
+      if (isNaN(date.getTime())) return "Invalid Date";
       
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -1917,7 +1917,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
       });
     } catch (error) {
       console.error('Error formatting date:', error);
-      return "N/A";
+      return "Date Error";
     }
   };
   
@@ -1992,7 +1992,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
       <div className="loading-container">
         <div className="spinner"></div>
         <p>Loading medical records...</p>
-      </div>
+        </div>
     );
   }
 
@@ -2016,7 +2016,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
                   </option>
                 ))}
               </select>
-            </div>
+              </div>
             <div className="filter-group">
               <label>Record Type:</label>
               <select 
@@ -2154,8 +2154,8 @@ const MedicalRecordManagement = ({ doctorId }) => {
                     </option>
                   ))}
                 </select>
-                    </div>
-              </div>
+        </div>
+      </div>
 
                   <div className="form-grid">
                 <div className="form-group">
@@ -2176,8 +2176,8 @@ const MedicalRecordManagement = ({ doctorId }) => {
                         <option value="VACCINATION">Vaccination</option>
                         <option value="CONSULTATION">Consultation</option>
                       </select>
-                    </div>
-                  </div>
+    </div>
+  </div>
                   
                   <div className="form-grid">
                     <div className="form-group">
@@ -2190,7 +2190,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
                         onChange={handleInputChange}
                     required
                   />
-                </div>
+      </div>
                 <div className="form-group">
                       <label htmlFor="nextAppointment">Next Appointment</label>
                   <input
@@ -2200,9 +2200,9 @@ const MedicalRecordManagement = ({ doctorId }) => {
                         value={formData.nextAppointment}
                         onChange={handleInputChange}
                       />
-                    </div>
-                </div>
-              </div>
+          </div>
+          </div>
+        </div>
 
                 <div className="form-section">
                   <h4>Medical Details</h4>
@@ -2275,8 +2275,8 @@ const MedicalRecordManagement = ({ doctorId }) => {
                       onChange={handleInputChange}
                       rows="2"
                     ></textarea>
-                  </div>
-              </div>
+      </div>
+    </div>
 
                 <div className="form-actions">
                   <button type="button" onClick={() => setShowAddModal(false)} className="cancel-btn">
@@ -2285,9 +2285,9 @@ const MedicalRecordManagement = ({ doctorId }) => {
                   <button type="submit" className="submit-btn">
                     Add Medical Record
                   </button>
-                </div>
+      </div>
               </form>
-            </div>
+          </div>
           </div>
         </div>
       )}
@@ -2301,7 +2301,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
               <button className="close-btn" onClick={() => setShowEditModal(false)}>
                 <i className="fas fa-times"></i>
               </button>
-            </div>
+      </div>
             <div className="modal-body">
               <form onSubmit={handleUpdateRecord}>
                 <div className="form-section">
@@ -2323,8 +2323,8 @@ const MedicalRecordManagement = ({ doctorId }) => {
                           </option>
                         ))}
                       </select>
-                    </div>
-                  </div>
+    </div>
+  </div>
                   
                   <div className="form-grid">
                     <div className="form-group">
@@ -2345,8 +2345,8 @@ const MedicalRecordManagement = ({ doctorId }) => {
                         <option value="VACCINATION">Vaccination</option>
                         <option value="CONSULTATION">Consultation</option>
                       </select>
-                    </div>
-                  </div>
+      </div>
+          </div>
                   
                   <div className="form-grid">
                     <div className="form-group">
@@ -2369,10 +2369,10 @@ const MedicalRecordManagement = ({ doctorId }) => {
                         value={formData.nextAppointment}
                         onChange={handleInputChange}
                       />
-                    </div>
-                  </div>
-                </div>
-                
+        </div>
+      </div>
+    </div>
+
                 <div className="form-section">
                   <h4>Medical Details</h4>
                   <div className="form-group">
@@ -2384,7 +2384,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
                       onChange={handleInputChange}
                       rows="2"
                     ></textarea>
-                  </div>
+      </div>
                   <div className="form-group">
                     <label htmlFor="diagnosis">Diagnosis</label>
                     <textarea
@@ -2394,7 +2394,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
                       onChange={handleInputChange}
                       rows="2"
                     ></textarea>
-                  </div>
+          </div>
                   <div className="form-group">
                     <label htmlFor="treatment">Treatment</label>
                     <textarea
@@ -2404,7 +2404,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
                       onChange={handleInputChange}
                       rows="2"
                     ></textarea>
-                  </div>
+          </div>
                   <div className="form-group">
                     <label htmlFor="notes">Notes</label>
                     <textarea
@@ -2414,7 +2414,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
                       onChange={handleInputChange}
                       rows="2"
                     ></textarea>
-                  </div>
+        </div>
                   <div className="form-group">
                     <label htmlFor="prescription">Prescription</label>
                     <textarea
@@ -2424,7 +2424,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
                       onChange={handleInputChange}
                       rows="2"
                     ></textarea>
-                  </div>
+      </div>
                   <div className="form-group">
                     <label htmlFor="testResults">Test Results</label>
                     <textarea
@@ -2434,7 +2434,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
                       onChange={handleInputChange}
                       rows="2"
                     ></textarea>
-                  </div>
+    </div>
                   <div className="form-group">
                     <label htmlFor="medicalHistory">Medical History</label>
                     <textarea
@@ -2471,118 +2471,116 @@ const MedicalRecordManagement = ({ doctorId }) => {
                 <i className="fas fa-times"></i>
               </button>
             </div>
-            <div className="modal-body">
-              <div className="detail-section" style={modalStyles.detailSection}>
-                <h4 style={modalStyles.sectionTitle}>Basic Information</h4>
+            <div className="modal-body" style={{ padding: '10px' }}>
+              <div className="detail-section" style={{...modalStyles.detailSection, marginBottom: '20px'}}>
+                <h4 style={{...modalStyles.sectionTitle, borderBottom: '2px solid #4CAF50'}}>Basic Information</h4>
                 <div className="detail-row" style={modalStyles.detailRow}>
                   <div className="detail-group" style={modalStyles.detailGroup}>
-                    <label style={modalStyles.label}>Record ID:</label>
-                    <p style={modalStyles.value}>{selectedRecord.recordId}</p>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Record ID:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{selectedRecord.recordId}</p>
                   </div>
                   <div className="detail-group" style={modalStyles.detailGroup}>
-                    <label style={modalStyles.label}>Patient Name:</label>
-                    <p style={modalStyles.value}>{getPatientName(selectedRecord.patientId)}</p>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Patient Name:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{getPatientName(selectedRecord.patientId)}</p>
                   </div>
                 </div>
                 
                 <div className="detail-row" style={modalStyles.detailRow}>
                   <div className="detail-group" style={modalStyles.detailGroup}>
-                    <label style={modalStyles.label}>Record Type:</label>
-                    <p style={{...modalStyles.value, ...modalStyles.statusBadge, ...styles.recordType}}>
-                      {selectedRecord.recordType.replace('_', ' ')}
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Record Type:</label>
+                    <p style={{...modalStyles.value, ...modalStyles.statusBadge, ...styles.recordType, fontSize: '0.9rem'}}>
+                      {selectedRecord.recordType.replace(/_/g, ' ')}
                     </p>
                   </div>
                   <div className="detail-group" style={modalStyles.detailGroup}>
-                    <label style={modalStyles.label}>Record Date:</label>
-                    <p style={modalStyles.value}>{formatDate(selectedRecord.recordDate)}</p>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Record Date:</label>
+                    <p style={{...modalStyles.value, fontWeight: '500'}}>{formatDate(selectedRecord.recordDate)}</p>
                   </div>
                 </div>
                 
                 <div className="detail-row" style={modalStyles.detailRow}>
-                  <div className="detail-group" style={modalStyles.detailGroup}>
-                    <label style={modalStyles.label}>Next Appointment:</label>
-                    <p style={modalStyles.value}>{formatDate(selectedRecord.nextAppointment)}</p>
+                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
+                    <label style={{...modalStyles.label, color: '#2c3e50'}}>Next Appointment:</label>
+                    <p style={{...modalStyles.value, fontWeight: selectedRecord.nextAppointment ? '500' : '400', 
+                      color: selectedRecord.nextAppointment ? '#1e1e1e' : '#666'}}>
+                      {formatDate(selectedRecord.nextAppointment)}
+                    </p>
                   </div>
                 </div>
               </div>
               
-              <div className="detail-section" style={modalStyles.detailSection}>
-                <h4 style={modalStyles.sectionTitle}>Medical Details</h4>
-                <div className="detail-row" style={modalStyles.detailRow}>
-                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
-                    <label style={modalStyles.label}>Symptoms:</label>
-                    <p style={modalStyles.value}>{selectedRecord.symptoms || 'None recorded'}</p>
+              <div className="detail-section" style={{...modalStyles.detailSection, marginBottom: '20px'}}>
+                <h4 style={{...modalStyles.sectionTitle, borderBottom: '2px solid #4CAF50'}}>Medical Details</h4>
+                
+                <div className="medical-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Symptoms:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.symptoms || 'None recorded'}</p>
+                  </div>
+                  
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Diagnosis:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.diagnosis || 'None recorded'}</p>
                   </div>
                 </div>
-                
-                <div className="detail-row" style={modalStyles.detailRow}>
-                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
-                    <label style={modalStyles.label}>Diagnosis:</label>
-                    <p style={modalStyles.value}>{selectedRecord.diagnosis || 'None recorded'}</p>
+
+                <div className="medical-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Treatment:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.treatment || 'None recorded'}</p>
+                  </div>
+                  
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Prescription:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.prescription || 'None recorded'}</p>
                   </div>
                 </div>
-                
-                <div className="detail-row" style={modalStyles.detailRow}>
-                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
-                    <label style={modalStyles.label}>Treatment:</label>
-                    <p style={modalStyles.value}>{selectedRecord.treatment || 'None recorded'}</p>
+
+                <div className="medical-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Test Results:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.testResults || 'None recorded'}</p>
+                  </div>
+                  
+                  <div className="detail-card" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Notes:</label>
+                    <p style={{...modalStyles.value, minHeight: '60px'}}>{selectedRecord.notes || 'None recorded'}</p>
                   </div>
                 </div>
-                
-                <div className="detail-row" style={modalStyles.detailRow}>
+
+                <div className="detail-row" style={{...modalStyles.detailRow, marginTop: '20px'}}>
                   <div className="detail-group wide" style={modalStyles.detailGroupWide}>
-                    <label style={modalStyles.label}>Notes:</label>
-                    <p style={modalStyles.value}>{selectedRecord.notes || 'None recorded'}</p>
-                  </div>
-                </div>
-                
-                <div className="detail-row" style={modalStyles.detailRow}>
-                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
-                    <label style={modalStyles.label}>Prescription:</label>
-                    <p style={modalStyles.value}>{selectedRecord.prescription || 'None recorded'}</p>
-                  </div>
-                </div>
-                
-                <div className="detail-row" style={modalStyles.detailRow}>
-                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
-                    <label style={modalStyles.label}>Test Results:</label>
-                    <p style={modalStyles.value}>{selectedRecord.testResults || 'None recorded'}</p>
-                  </div>
-                </div>
-                
-                <div className="detail-row" style={modalStyles.detailRow}>
-                  <div className="detail-group wide" style={modalStyles.detailGroupWide}>
-                    <label style={modalStyles.label}>Medical History:</label>
-                    <p style={modalStyles.value}>{selectedRecord.medicalHistory || 'None recorded'}</p>
+                    <label style={{...modalStyles.label, color: '#2c3e50', display: 'block', marginBottom: '8px'}}>Medical History:</label>
+                    <p style={{...modalStyles.value, padding: '15px', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'}}>{selectedRecord.medicalHistory || 'None recorded'}</p>
                   </div>
                 </div>
               </div>
               
-              <div className="modal-actions" style={modalStyles.modalActions}>
+              <div className="modal-actions" style={{...modalStyles.modalActions, borderTop: '2px solid #e0e0e0', paddingTop: '20px'}}>
                 <button 
                   onClick={() => {
                     setShowViewModal(false);
                     openEditModal(selectedRecord);
                   }} 
                   className="primary-btn"
-                  style={{...modalStyles.button, ...modalStyles.primaryButton}}
+                  style={{...modalStyles.button, ...modalStyles.primaryButton, padding: '10px 20px', borderRadius: '6px'}}
                 >
-                  Edit Record
+                  <i className="fas fa-edit" style={{marginRight: '8px'}}></i> Edit Record
                 </button>
                 <button 
                   onClick={() => setShowViewModal(false)} 
                   className="secondary-btn"
-                  style={{...modalStyles.button, ...modalStyles.secondaryButton}}
+                  style={{...modalStyles.button, ...modalStyles.secondaryButton, padding: '10px 20px', borderRadius: '6px'}}
                 >
-                  Close
+                  <i className="fas fa-times" style={{marginRight: '8px'}}></i> Close
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
+  </div>
+);
 };
 
 const PrescriptionManagement = ({ doctorId }) => {
@@ -2628,8 +2626,8 @@ const PrescriptionManagement = ({ doctorId }) => {
   useEffect(() => {
     if (doctorId) {
       fetchPrescriptions(doctorId);
-      fetchPatients();
-      fetchMedications();
+    fetchPatients();
+    fetchMedications();
     }
   }, [doctorId]);
 
@@ -2910,7 +2908,7 @@ const PrescriptionManagement = ({ doctorId }) => {
   };
 
   if (loading) {
-    return (
+  return (
       <div className="loading-container">
         <div className="spinner"></div>
         <p>Loading prescriptions...</p>
@@ -2950,15 +2948,15 @@ const PrescriptionManagement = ({ doctorId }) => {
             <div className="filter-group">
               <label>Search:</label>
               <div className="search-input-container">
-                <input
-                  type="text"
+          <input
+            type="text"
                   placeholder="Search by patient or ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="search-input"
                 />
                 <i className="fas fa-search search-icon"></i>
-              </div>
+        </div>
             </div>
           </div>
         </div>
@@ -2967,40 +2965,40 @@ const PrescriptionManagement = ({ doctorId }) => {
           New Prescription
         </button>
       </div>
-      
+
       {error && <div className="error-message">{error}</div>}
       
       <div className="table-container">
         <table className="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Patient</th>
-              <th>Date</th>
-              <th>Expiry</th>
-              <th>Status</th>
-              <th>Refillable</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Patient</th>
+                  <th>Date</th>
+                  <th>Expiry</th>
+                  <th>Status</th>
+                  <th>Refillable</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
             {getFilteredPrescriptions().length === 0 ? (
               <tr>
                 <td colSpan="7" className="no-data">No prescriptions found</td>
               </tr>
             ) : (
               getFilteredPrescriptions().map(prescription => (
-                <tr key={prescription.prescriptionId}>
-                  <td>{prescription.prescriptionId}</td>
+                  <tr key={prescription.prescriptionId}>
+                    <td>{prescription.prescriptionId}</td>
                   <td>{getPatientName(prescription.patientId)}</td>
-                  <td>{formatDate(prescription.prescriptionDate)}</td>
-                  <td>{formatDate(prescription.expiryDate)}</td>
-                  <td>
+                    <td>{formatDate(prescription.prescriptionDate)}</td>
+                    <td>{formatDate(prescription.expiryDate)}</td>
+                    <td>
                     <span className={`status-badge ${getStatusClass(prescription.status)}`}>
-                      {prescription.status}
-                    </span>
-                  </td>
-                  <td>
+                        {prescription.status}
+                      </span>
+                    </td>
+                    <td>
                     {prescription.isRefillable ? (
                       <span className="refill-info">
                         Yes ({prescription.refillsRemaining}/{prescription.totalRefills})
@@ -3008,9 +3006,9 @@ const PrescriptionManagement = ({ doctorId }) => {
                     ) : (
                       <span>No</span>
                     )}
-                  </td>
+                    </td>
                   <td className="actions-cell">
-                    <button 
+                          <button
                       className="action-btn view" 
                       onClick={() => openViewModal(prescription)}
                       title="View Details"
@@ -3027,19 +3025,19 @@ const PrescriptionManagement = ({ doctorId }) => {
                     {prescription.status === 'ACTIVE' && prescription.isRefillable && prescription.refillsRemaining > 0 && (
                       <button 
                         className="action-btn refill" 
-                        onClick={() => handleProcessRefill(prescription.prescriptionId)}
-                        title="Process Refill"
-                      >
+                            onClick={() => handleProcessRefill(prescription.prescriptionId)}
+                            title="Process Refill"
+                          >
                         <i className="fas fa-sync"></i>
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                          </button>
+                        )}
+                    </td>
+                  </tr>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
+              </tbody>
+            </table>
+        </div>
       
       {/* Add Prescription Modal */}
       {showAddModal && (
@@ -3056,50 +3054,50 @@ const PrescriptionManagement = ({ doctorId }) => {
                 <div className="form-section">
                   <h4>Basic Information</h4>
                   <div className="form-grid">
-                    <div className="form-group">
+              <div className="form-group">
                       <label htmlFor="patientId">Patient*</label>
-                      <select
+                <select
                         id="patientId"
-                        name="patientId"
+                  name="patientId"
                         value={formData.patientId}
                         onChange={handleInputChange}
-                        required
-                      >
-                        <option value="">Select Patient</option>
+                  required
+                >
+                  <option value="">Select Patient</option>
                         {patients.map(patient => (
-                          <option key={patient.patientId} value={patient.patientId}>
-                            {patient.firstName} {patient.lastName}
-                          </option>
-                        ))}
-                      </select>
+                    <option key={patient.patientId} value={patient.patientId}>
+                      {patient.firstName} {patient.lastName}
+                    </option>
+                  ))}
+                </select>
                     </div>
-                  </div>
-                  
+              </div>
+
                   <div className="form-grid">
-                    <div className="form-group">
+                <div className="form-group">
                       <label htmlFor="prescriptionDate">Prescription Date*</label>
-                      <input
-                        type="date"
+                  <input
+                    type="date"
                         id="prescriptionDate"
-                        name="prescriptionDate"
+                    name="prescriptionDate"
                         value={formData.prescriptionDate}
                         onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
+                    required
+                  />
+                </div>
+                <div className="form-group">
                       <label htmlFor="expiryDate">Expiry Date*</label>
-                      <input
-                        type="date"
+                  <input
+                    type="date"
                         id="expiryDate"
-                        name="expiryDate"
+                    name="expiryDate"
                         value={formData.expiryDate}
                         onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  
+                    required
+                  />
+                </div>
+              </div>
+
                   <div className="form-grid">
                     <div className="form-group">
                       <label htmlFor="status">Status*</label>
@@ -3116,98 +3114,98 @@ const PrescriptionManagement = ({ doctorId }) => {
                         <option value="CANCELLED">Cancelled</option>
                       </select>
                     </div>
-                    <div className="form-group checkbox-group">
-                      <input
-                        type="checkbox"
-                        id="isRefillable"
-                        name="isRefillable"
+                <div className="form-group checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="isRefillable"
+                    name="isRefillable"
                         checked={formData.isRefillable}
                         onChange={handleInputChange}
-                      />
-                      <label htmlFor="isRefillable">Refillable</label>
+                  />
+                  <label htmlFor="isRefillable">Refillable</label>
                       
                       {formData.isRefillable && (
                         <div className="refill-count">
                           <label htmlFor="totalRefills">Total Refills:</label>
-                          <input
-                            type="number"
+                    <input
+                      type="number"
                             id="totalRefills"
-                            name="totalRefills"
-                            min="1"
+                      name="totalRefills"
+                      min="1"
                             value={formData.totalRefills}
                             onChange={handleInputChange}
                             required={formData.isRefillable}
-                          />
-                        </div>
-                      )}
-                    </div>
+                    />
                   </div>
-                  
-                  <div className="form-group">
+                )}
+                    </div>
+              </div>
+
+              <div className="form-group">
                     <label htmlFor="notes">Notes</label>
-                    <textarea
+                <textarea
                       id="notes"
-                      name="notes"
+                  name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}
                       rows="3"
                     ></textarea>
                   </div>
-                </div>
-                
+              </div>
+
                 <div className="form-section">
-                  <h4>Medications</h4>
+              <h4>Medications</h4>
                   {formData.medications.map((medication, index) => (
                     <div className="medication-item" key={index}>
                       <div className="form-grid">
-                        <div className="form-group">
-                          <label>Medication Name*</label>
-                          <input
-                            type="text"
+                    <div className="form-group">
+                      <label>Medication Name*</label>
+                      <input
+                        type="text"
                             value={medication.medicationName}
                             onChange={(e) => handleMedicationChange(index, 'medicationName', e.target.value)}
-                            required
+                        required
                             list="medications-list"
-                          />
+                      />
                           <datalist id="medications-list">
                             {medications.map(med => (
                               <option key={med.medicationId} value={med.name} />
                             ))}
                           </datalist>
-                        </div>
-                        <div className="form-group">
-                          <label>Dosage*</label>
-                          <input
-                            type="text"
+                    </div>
+                    <div className="form-group">
+                      <label>Dosage*</label>
+                      <input
+                        type="text"
                             value={medication.dosage}
                             onChange={(e) => handleMedicationChange(index, 'dosage', e.target.value)}
-                            required
+                        required
                             placeholder="e.g., 10mg"
-                          />
-                        </div>
-                      </div>
+                      />
+                    </div>
+                  </div>
                       
                       <div className="form-grid">
-                        <div className="form-group">
-                          <label>Frequency*</label>
-                          <input
-                            type="text"
+                    <div className="form-group">
+                      <label>Frequency*</label>
+                      <input
+                        type="text"
                             value={medication.frequency}
                             onChange={(e) => handleMedicationChange(index, 'frequency', e.target.value)}
-                            required
+                        required
                             placeholder="e.g., 3 times daily"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Quantity</label>
-                          <input
-                            type="number"
-                            min="1"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Quantity</label>
+                      <input
+                        type="number"
+                        min="1"
                             value={medication.quantity}
                             onChange={(e) => handleMedicationChange(index, 'quantity', e.target.value)}
-                          />
-                        </div>
-                      </div>
+                      />
+                    </div>
+                  </div>
                       
                       <div className="form-grid">
                         <div className="form-group">
@@ -3221,25 +3219,25 @@ const PrescriptionManagement = ({ doctorId }) => {
                         </div>
                       </div>
                       
-                      <div className="form-group">
-                        <label>Instructions</label>
-                        <textarea
+                  <div className="form-group">
+                    <label>Instructions</label>
+                    <textarea
                           value={medication.instructions}
                           onChange={(e) => handleMedicationChange(index, 'instructions', e.target.value)}
-                          rows="2"
+                      rows="2"
                           placeholder="Special instructions for taking this medication"
                         ></textarea>
-                      </div>
+                  </div>
                       
                       {formData.medications.length > 1 && (
-                        <button
-                          type="button"
-                          className="remove-btn"
+                    <button
+                      type="button"
+                      className="remove-btn"
                           onClick={() => removeMedicationField(index)}
-                        >
+                    >
                           <i className="fas fa-minus-circle"></i> Remove Medication
-                        </button>
-                      )}
+                    </button>
+                  )}
                     </div>
                   ))}
                   
@@ -3249,7 +3247,7 @@ const PrescriptionManagement = ({ doctorId }) => {
                     onClick={addMedicationField}
                   >
                     <i className="fas fa-plus-circle"></i> Add Medication
-                  </button>
+                    </button>
                 </div>
                 
                 <div className="form-actions">
@@ -3275,7 +3273,7 @@ const PrescriptionManagement = ({ doctorId }) => {
               <button className="close-btn" onClick={() => setShowEditModal(false)}>
                 <i className="fas fa-times"></i>
               </button>
-            </div>
+                </div>
             <div className="modal-body">
               <form onSubmit={handleUpdatePrescription}>
                 <div className="form-section">
@@ -3457,8 +3455,8 @@ const PrescriptionManagement = ({ doctorId }) => {
                       </div>
                       
                       {formData.medications.length > 1 && (
-                        <button
-                          type="button"
+                <button
+                  type="button"
                           className="remove-btn"
                           onClick={() => removeMedicationField(index)}
                         >
@@ -3479,13 +3477,13 @@ const PrescriptionManagement = ({ doctorId }) => {
                 
                 <div className="form-actions">
                   <button type="button" onClick={() => setShowEditModal(false)} className="cancel-btn">
-                    Cancel
-                  </button>
-                  <button type="submit" className="submit-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">
                     Update Prescription
-                  </button>
-                </div>
-              </form>
+                </button>
+              </div>
+            </form>
             </div>
           </div>
         </div>
@@ -3624,7 +3622,7 @@ const MedicationManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   useEffect(() => {
     fetchMedications();
   }, []);
@@ -3659,7 +3657,7 @@ const MedicationManagement = () => {
   };
 
   if (loading) {
-    return (
+  return (
       <div className="loading-container">
         <div className="spinner"></div>
         <p>Loading medications...</p>
@@ -3680,45 +3678,45 @@ const MedicationManagement = () => {
           />
         </div>
       </div>
-      
+
       {error && <div className="error-message">{error}</div>}
       
       <div className="table-container">
         <table className="data-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Generic Name</th>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Generic Name</th>
               <th>Brand</th>
-              <th>Type</th>
-              <th>Dosage Form</th>
-              <th>Requires Prescription</th>
-              <th>Stock</th>
-            </tr>
-          </thead>
-          <tbody>
+                  <th>Type</th>
+                  <th>Dosage Form</th>
+                  <th>Requires Prescription</th>
+                  <th>Stock</th>
+                </tr>
+              </thead>
+              <tbody>
             {getFilteredMedications().length === 0 ? (
               <tr>
                 <td colSpan="7" className="no-data">No medications found</td>
               </tr>
             ) : (
               getFilteredMedications().map(medication => (
-                <tr key={medication.medicationId}>
-                  <td>{medication.name}</td>
+                  <tr key={medication.medicationId}>
+                    <td>{medication.name}</td>
                   <td>{medication.genericName || 'N/A'}</td>
                   <td>{medication.brand || 'N/A'}</td>
                   <td>{medication.type || 'N/A'}</td>
                   <td>{medication.dosageForm || 'N/A'}</td>
                   <td>{medication.requiresPrescription ? 'Yes' : 'No'}</td>
                   <td className={medication.isLowStock ? 'low-stock' : ''}>
-                    {medication.stockQuantity || 0}
-                  </td>
-                </tr>
+                        {medication.stockQuantity || 0}
+                    </td>
+                  </tr>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
+              </tbody>
+            </table>
+        </div>
     </div>
   );
 };
