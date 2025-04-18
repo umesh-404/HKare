@@ -2017,3 +2017,35 @@ select.profile-form-field {
     justify-content: center;
   }
 }
+
+/* Construction Message for In-Progress Features */
+.construction-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.construction-icon {
+  font-size: 48px;
+  color: #6c757d;
+  margin-bottom: 20px;
+}
+
+.construction-message h3 {
+  color: #343a40;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.construction-message p {
+  color: #6c757d;
+  font-size: 1rem;
+  max-width: 500px;
+}
