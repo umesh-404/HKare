@@ -16,19 +16,39 @@ const ProtectedRoute = ({ element, allowedRole }) => {
   
   // If no user, redirect to login
   if (!user) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
   
   // If role doesn't match, redirect to appropriate dashboard
   if (allowedRole && user.role !== allowedRole) {
     if (user.role === 'DOCTOR') {
-      return <Navigate to="/doctor-dashboard" />;
+      return <Navigate to="/doctor-dashboard" replace />;
     } else if (user.role === 'PATIENT') {
-      return <Navigate to="/patient-dashboard" />;
+      return <Navigate to="/patient-dashboard" replace />;
     } else if (user.role === 'STAFF') {
-      return <Navigate to="/staff-dashboard" />;
+      return <Navigate to="/staff-dashboard" replace />;
     } else if (user.role === 'ADMIN') {
-      return <Navigate to="/admin-dashboard" />;
+      return <Navigate to="/admin-dashboard" replace />;
+    }
+  }
+  
+  return element;
+};
+
+// Login route wrapper that prevents authenticated users from accessing login pages
+const LoginRouteGuard = ({ element }) => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  
+  // If user is logged in, redirect to their dashboard
+  if (user) {
+    if (user.role === 'DOCTOR') {
+      return <Navigate to="/doctor-dashboard" replace />;
+    } else if (user.role === 'PATIENT') {
+      return <Navigate to="/patient-dashboard" replace />;
+    } else if (user.role === 'STAFF') {
+      return <Navigate to="/staff-dashboard" replace />;
+    } else if (user.role === 'ADMIN') {
+      return <Navigate to="/admin-dashboard" replace />;
     }
   }
   
@@ -62,16 +82,38 @@ function App() {
     // Check session validity periodically
     const intervalId = setInterval(checkSessionValidity, 15 * 60 * 1000); // Every 15 minutes
     
-    return () => clearInterval(intervalId);
+    // Block navigation to login pages using browser history
+    const blockNavigationToLoginPages = () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) {
+        const loginPages = ['/doctor-login', '/patient-login', '/staff-login'];
+        if (loginPages.includes(window.location.pathname)) {
+          const dashboardUrl = `/${user.role.toLowerCase()}-dashboard`;
+          window.history.replaceState(null, '', dashboardUrl);
+          window.location.href = dashboardUrl;
+        }
+      }
+    };
+    
+    // Apply when page loads
+    blockNavigationToLoginPages();
+    
+    // Add event listener for popstate (browser back/forward buttons)
+    window.addEventListener('popstate', blockNavigationToLoginPages);
+    
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('popstate', blockNavigationToLoginPages);
+    };
   }, []);
 
   return (
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/doctor-login" element={<DoctorLogin />} />
-        <Route path="/patient-login" element={<PatientLogin />} />
-        <Route path="/staff-login" element={<StaffLogin />} />
+        <Route path="/doctor-login" element={<LoginRouteGuard element={<DoctorLogin />} />} />
+        <Route path="/patient-login" element={<LoginRouteGuard element={<PatientLogin />} />} />
+        <Route path="/staff-login" element={<LoginRouteGuard element={<StaffLogin />} />} />
         <Route 
           path="/doctor-dashboard" 
           element={<ProtectedRoute element={<DoctorPage />} allowedRole="DOCTOR" />} 

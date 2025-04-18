@@ -1263,6 +1263,7 @@ body.admin-page-body {
 
 .detail-section {
     margin-bottom: 25px;
+    color: black;
 }
 
 .section-title {
@@ -1372,4 +1373,451 @@ body.admin-page-body {
     .form-group.wide {
         grid-column: span 1;
     }
+}
+
+/* Prescription Management Styles */
+.prescription-management {
+    margin: 20px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.prescription-management .admin-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.prescription-management .admin-section-header h2 {
+    font-size: 24px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.prescription-management .admin-section-header h2 i {
+    margin-right: 10px;
+    color: #4a90e2;
+}
+
+.prescription-management .admin-section-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.prescription-management .search-bar {
+    position: relative;
+    width: 250px;
+}
+
+.prescription-management .search-bar input {
+    width: 100%;
+    padding: 10px 15px;
+    padding-right: 40px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.prescription-management .search-bar i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+}
+
+.prescription-management .filter-controls select {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+}
+
+.prescription-management .add-btn {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.prescription-management .add-btn i {
+    margin-right: 8px;
+}
+
+.prescription-management .data-table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.prescription-management .data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.prescription-management .data-table th,
+.prescription-management .data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.prescription-management .data-table th {
+    background-color: #f5f7fa;
+    color: #4b5563;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+.prescription-management .data-table tr:hover {
+    background-color: #f9fafb;
+}
+
+.prescription-management .no-data {
+    text-align: center;
+    padding: 30px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.prescription-management .status-badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.prescription-management .status-active {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.prescription-management .status-completed {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.prescription-management .status-expired {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.prescription-management .status-cancelled {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.prescription-management .actions-cell {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.prescription-management .view-btn,
+.prescription-management .edit-btn,
+.prescription-management .complete-btn,
+.prescription-management .refill-btn,
+.prescription-management .delete-btn {
+    border: none;
+    border-radius: 5px;
+    padding: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.prescription-management .view-btn {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+.prescription-management .edit-btn {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.prescription-management .complete-btn {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.prescription-management .refill-btn {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.prescription-management .delete-btn {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.prescription-management .loading-spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.prescription-management .loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4a90e2;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.prescription-management .medication-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9fafb;
+    border-radius: 5px;
+}
+
+.prescription-management .remove-medication-btn {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.prescription-management .add-medication-btn {
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.prescription-management .add-medication-btn i {
+    margin-right: 8px;
+}
+
+.prescription-management .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.prescription-management .cancel-btn {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.prescription-management .submit-btn {
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.prescription-management .detail-section {
+    margin-bottom: 20px;
+}
+
+.prescription-management .detail-section h4 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    color: #4a90e2;
+}
+
+.prescription-management .prescription-notes {
+    padding: 10px;
+    background-color: #f9fafb;
+    border-radius: 5px;
+    margin-top: 5px;
+    white-space: pre-line;
+}
+
+.prescription-management .medications-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.prescription-management .medication-card {
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    background-color: #f9fafb;
+}
+
+.prescription-management .medication-card h5 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #4a90e2;
+}
+
+.prescription-management .detail-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.prescription-management .close-modal-btn {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.prescription-management .refill-info {
+    font-weight: 600;
+    color: #92400e;
+}
+
+/* Modal Styles for Prescriptions */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.modal-container {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-container.large-modal {
+    max-width: 900px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 10;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2d3748;
+}
+
+.modal-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group select {
+    background-color: white;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+}
+
+.refill-count {
+    margin-top: 10px;
 } 
