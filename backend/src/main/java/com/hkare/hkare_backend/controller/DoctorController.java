@@ -5,13 +5,16 @@ import com.hkare.hkare_backend.dto.DoctorResponse;
 import com.hkare.hkare_backend.dto.RegistrationResponse;
 import com.hkare.hkare_backend.service.DoctorService;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping({"/doctors", "/api/doctors"})
@@ -42,14 +45,26 @@ public class DoctorController {
     }
     
     @GetMapping("/{doctorId}")
-    public ResponseEntity<DoctorResponse> getDoctorById(@PathVariable String doctorId) {
-        return doctorService.getDoctorResponseById(doctorId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getDoctorById(@PathVariable String doctorId) {
+        try {
+            System.out.println("GET request for doctor with ID: " + doctorId);
+            var doctorOptional = doctorService.getDoctorResponseById(doctorId);
+            if (doctorOptional.isPresent()) {
+                return ResponseEntity.ok(doctorOptional.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Doctor not found with ID: " + doctorId));
+            }
+        } catch (Exception e) {
+            System.err.println("Error fetching doctor: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error fetching doctor: " + e.getMessage()));
+        }
     }
     
     @PostMapping
-    public ResponseEntity<RegistrationResponse> createDoctor(@RequestBody DoctorRegistrationRequest request) {
+    public ResponseEntity<?> createDoctor(@RequestBody DoctorRegistrationRequest request) {
         System.out.println("POST request received to create new doctor: " + request.getFirstName() + " " + request.getLastName());
         try {
             RegistrationResponse response = doctorService.createDoctor(request);
@@ -63,11 +78,9 @@ public class DoctorController {
         } catch (Exception e) {
             System.err.println("Error creating doctor: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.badRequest()
-                    .body(RegistrationResponse.builder()
-                            .success(false)
-                            .message("Error creating doctor: " + e.getMessage())
-                            .build());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error creating doctor: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
@@ -78,10 +91,17 @@ public class DoctorController {
             DoctorResponse response = doctorService.updateDoctor(doctorId, request);
             System.out.println("Doctor updated successfully: " + doctorId);
             return ResponseEntity.ok(response);
+        } catch (EntityNotFoundException e) {
+            System.err.println("Doctor not found: " + e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         } catch (Exception e) {
             System.err.println("Error updating doctor: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.badRequest().body("Error updating doctor: " + e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error updating doctor: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
@@ -92,15 +112,17 @@ public class DoctorController {
             boolean deleted = doctorService.deleteDoctor(doctorId);
             if (deleted) {
                 System.out.println("Doctor deleted successfully: " + doctorId);
-                return ResponseEntity.ok().build();
+                return ResponseEntity.ok().body(Map.of("message", "Doctor deleted successfully"));
             } else {
                 System.err.println("Doctor not found: " + doctorId);
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Doctor not found with ID: " + doctorId));
             }
         } catch (Exception e) {
             System.err.println("Error deleting doctor: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting doctor: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error deleting doctor: " + e.getMessage()));
         }
     }
 } 

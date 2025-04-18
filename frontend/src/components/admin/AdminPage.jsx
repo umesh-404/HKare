@@ -69,10 +69,10 @@ const AdminPage = () => {
                 return <Dashboard />;
             case "staff":
                 return <StaffManagement />;
-            case "patients":
-                return <PatientManagement />;
             case "doctors":
                 return <DoctorManagement />;
+            case "patients":
+                return <PatientManagement />;
             case "appointments":
                 return <AppointmentManagement />;
             case "payments":
@@ -436,6 +436,8 @@ const StaffManagement = () => {
     const [showViewModal, setShowViewModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
     const [departments, setDepartments] = useState([]);
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [dateFilter, setDateFilter] = useState('');
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -461,13 +463,25 @@ const StaffManagement = () => {
         setError('');
         try {
             console.log('Fetching staff from API...');
-            const response = await axios.get('http://localhost:8080/api/staff/profiles', {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                timeout: 10000 // 10 second timeout
-            });
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/staff/profiles', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
+            } catch (err) {
+                // If first attempt fails, try without /api prefix
+                response = await axios.get('http://localhost:8080/staff/profiles', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+            }
             
             console.log('Staff data received:', response.data);
             setStaff(response.data || []);
@@ -487,13 +501,25 @@ const StaffManagement = () => {
     const fetchDepartments = async () => {
         try {
             console.log('Fetching departments from API...');
-            const response = await axios.get('http://localhost:8080/api/departments', {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                timeout: 10000
-            });
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/departments', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+            } catch (err) {
+                // If first attempt fails, try without /api prefix
+                response = await axios.get('http://localhost:8080/departments', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+            }
             
             console.log('Departments data received:', response.data);
             setDepartments(response.data || []);
@@ -531,18 +557,39 @@ const StaffManagement = () => {
 
     const handleOpenEditModal = (staffMember) => {
         setSelectedStaff(staffMember);
+        let dateOfBirth = '';
+        let hireDate = '';
+        
+        try {
+            if (staffMember.dateOfBirth) {
+                const dobDate = new Date(staffMember.dateOfBirth);
+                if (!isNaN(dobDate.getTime())) {
+                    dateOfBirth = dobDate.toISOString().split('T')[0];
+                }
+            }
+            
+            if (staffMember.hireDate) {
+                const hireDateObj = new Date(staffMember.hireDate);
+                if (!isNaN(hireDateObj.getTime())) {
+                    hireDate = hireDateObj.toISOString().split('T')[0];
+                }
+            }
+        } catch (error) {
+            console.error("Date parsing error:", error);
+        }
+
         setFormData({
             email: staffMember.email || '',
             firstName: staffMember.firstName || '',
             lastName: staffMember.lastName || '',
             phoneNumber: staffMember.phoneNumber || '',
             address: staffMember.address || '',
-            gender: staffMember.gender || '',
-            dateOfBirth: staffMember.dateOfBirth ? new Date(staffMember.dateOfBirth).toISOString().split('T')[0] : '',
-            departmentId: staffMember.departmentId || '',
             position: staffMember.position || '',
-            hireDate: staffMember.hireDate ? new Date(staffMember.hireDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            isAdmin: staffMember.admin || false
+            departmentId: staffMember.departmentId || '',
+            hireDate: hireDate,
+            gender: staffMember.gender || '',
+            dateOfBirth: dateOfBirth,
+            admin: staffMember.admin || false
         });
         setShowEditModal(true);
     };
@@ -557,11 +604,21 @@ const StaffManagement = () => {
         
         try {
             console.log('Adding new staff member with data:', formData);
-            const response = await axios.post('http://localhost:8080/api/staff/create', formData, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            let response;
+            try {
+                response = await axios.post('http://localhost:8080/api/staff/create', formData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch (err) {
+                // If first attempt fails, try without /api prefix
+                response = await axios.post('http://localhost:8080/staff/create', formData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
             
             if (response.status === 201 || response.status === 200) {
                 // Refresh the staff list
@@ -583,11 +640,21 @@ const StaffManagement = () => {
         
         try {
             console.log('Updating staff member with data:', formData);
-            const response = await axios.put(`http://localhost:8080/api/staff/${selectedStaff.staffId}`, formData, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            let response;
+            try {
+                response = await axios.put(`http://localhost:8080/api/staff/${selectedStaff.staffId}`, formData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch (err) {
+                // If first attempt fails, try without /api prefix
+                response = await axios.put(`http://localhost:8080/staff/${selectedStaff.staffId}`, formData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
             
             if (response.status === 200) {
                 setShowEditModal(false);
@@ -604,7 +671,13 @@ const StaffManagement = () => {
         if (window.confirm('Are you sure you want to delete this staff member?')) {
             try {
                 console.log(`Deleting staff member with ID: ${staffId}`);
-                const response = await axios.delete(`http://localhost:8080/api/staff/${staffId}`);
+                let response;
+                try {
+                    response = await axios.delete(`http://localhost:8080/api/staff/${staffId}`);
+                } catch (err) {
+                    // If first attempt fails, try without /api prefix
+                    response = await axios.delete(`http://localhost:8080/staff/${staffId}`);
+                }
                 
                 if (response.status === 200 || response.status === 204) {
                     // Refresh the staff list
@@ -626,26 +699,77 @@ const StaffManagement = () => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { 
             year: 'numeric', 
-            month: 'long', 
+            month: 'short', 
             day: 'numeric'
+        });
+    };
+
+    const getAdminStatusClass = (isAdmin) => {
+        return isAdmin ? 'status-completed' : 'status-pending';
+    };
+
+    const getFilteredStaff = () => {
+        return staff.filter(staffMember => {
+            // Filter by status (admin/staff)
+            if (statusFilter !== 'ALL') {
+                const isAdmin = staffMember.admin;
+                if (statusFilter === 'ADMIN' && !isAdmin) return false;
+                if (statusFilter === 'STAFF' && isAdmin) return false;
+            }
+            
+            // Filter by hire date if date filter is set
+            if (dateFilter && staffMember.hireDate) {
+                const hireDate = new Date(staffMember.hireDate).toISOString().split('T')[0];
+                if (hireDate !== dateFilter) {
+                    return false;
+                }
+            }
+            
+            return true;
         });
     };
 
     if (isLoading) {
         return (
             <div className="loading-container">
-                <div className="spinner"></div>
+                <div className="loading-spinner"></div>
                 <p>Loading staff data...</p>
             </div>
         );
     }
 
     return (
-        <div className="management-container">
+        <div className="management-section">
             <div className="management-header">
-                <h2>Staff Management</h2>
+                <div className="filters-container">
+                    <h3>Filters</h3>
+                    <div className="filters">
+                        <div className="filter-group">
+                            <label>Status:</label>
+                            <select 
+                                className="filter-select"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="ALL">All Staff</option>
+                                <option value="ADMIN">Admin</option>
+                                <option value="STAFF">Staff</option>
+                            </select>
+                        </div>
+                        <div className="filter-group">
+                            <label>Hire Date:</label>
+                            <input 
+                                type="date" 
+                                className="filter-date"
+                                value={dateFilter}
+                                onChange={(e) => setDateFilter(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
                 <button className="add-btn" onClick={handleOpenAddModal}>
-                    <i className="fas fa-plus"></i> Add New Staff
+                    <i className="fas fa-plus"></i>
+                    New Staff
                 </button>
             </div>
             
@@ -667,7 +791,7 @@ const StaffManagement = () => {
                 </div>
             )}
             
-            <div className="management-content">
+            <div className="table-responsive">
                 <table className="data-table">
                     <thead>
                         <tr>
@@ -676,52 +800,54 @@ const StaffManagement = () => {
                             <th>Email</th>
                             <th>Position</th>
                             <th>Department</th>
-                            <th>Admin</th>
+                            <th>Hire Date</th>
+                            <th>Role</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {staff.length > 0 ? (
-                            staff.map(staffMember => (
+                        {getFilteredStaff().length > 0 ? (
+                            getFilteredStaff().map(staffMember => (
                                 <tr key={staffMember.staffId}>
                                     <td>{staffMember.staffId}</td>
                                     <td>{`${staffMember.firstName} ${staffMember.lastName}`}</td>
                                     <td>{staffMember.email}</td>
-                                    <td>{staffMember.position}</td>
+                                    <td>{staffMember.position || 'N/A'}</td>
                                     <td>{staffMember.departmentName || 'N/A'}</td>
+                                    <td>{formatDate(staffMember.hireDate)}</td>
                                     <td>
-                                        <span className={`status-badge ${staffMember.admin ? 'active' : 'inactive'}`}>
+                                        <span className={`status-badge ${getAdminStatusClass(staffMember.admin)}`}>
                                             {staffMember.admin ? 'Admin' : 'Staff'}
                                         </span>
                                     </td>
                                     <td className="actions-cell">
                                         <button 
-                                            className="action-btn view-btn" 
-                                            title="View Details"
+                                            className="action-btn view" 
                                             onClick={() => handleViewStaff(staffMember)}
+                                            title="View Details"
                                         >
                                             <i className="fas fa-eye"></i>
                                         </button>
                                         <button 
-                                            className="action-btn edit-btn" 
-                                            title="Edit"
+                                            className="action-btn edit" 
                                             onClick={() => handleOpenEditModal(staffMember)}
+                                            title="Edit"
                                         >
                                             <i className="fas fa-edit"></i>
                                         </button>
                                         <button 
-                                            className="action-btn delete-btn" 
-                                            title="Delete"
+                                            className="action-btn delete" 
                                             onClick={() => handleDeleteStaff(staffMember.staffId)}
+                                            title="Delete"
                                         >
-                                            <i className="fas fa-trash"></i>
+                                            <i className="fas fa-trash-alt"></i>
                                         </button>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="7" className="no-data">No staff members found</td>
+                                <td colSpan="8" className="no-data">No staff members found</td>
                             </tr>
                         )}
                     </tbody>
@@ -1194,6 +1320,9 @@ const DoctorManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [departments, setDepartments] = useState([]);
     const [formData, setFormData] = useState({
         email: '',
@@ -1203,6 +1332,7 @@ const DoctorManagement = () => {
         phoneNumber: '',
         address: '',
         gender: '',
+        dateOfBirth: '',
         departmentId: '',
         specialization: '',
         licenseNumber: '',
@@ -1217,6 +1347,7 @@ const DoctorManagement = () => {
 
     const fetchDoctors = async () => {
         setIsLoading(true);
+        setError('');
         try {
             console.log("Fetching doctors from:", 'http://localhost:8080/api/doctors');
             // First try with /api prefix
@@ -1275,6 +1406,7 @@ const DoctorManagement = () => {
             phoneNumber: '',
             address: '',
             gender: '',
+            dateOfBirth: '',
             departmentId: '',
             specialization: '',
             licenseNumber: '',
@@ -1282,6 +1414,44 @@ const DoctorManagement = () => {
             experience: ''
         });
         setShowAddModal(true);
+    };
+    
+    const openEditModal = (doctor) => {
+        setSelectedDoctor(doctor);
+        let dateOfBirth = '';
+        
+        try {
+            if (doctor.dateOfBirth) {
+                const dobDate = new Date(doctor.dateOfBirth);
+                if (!isNaN(dobDate.getTime())) {
+                    dateOfBirth = dobDate.toISOString().split('T')[0];
+                }
+            }
+        } catch (error) {
+            console.error("Date parsing error:", error);
+        }
+        
+        setFormData({
+            email: doctor.email || '',
+            firstName: doctor.firstName || '',
+            lastName: doctor.lastName || '',
+            phoneNumber: doctor.phoneNumber || '',
+            address: doctor.address || '',
+            gender: doctor.gender || '',
+            dateOfBirth: dateOfBirth,
+            departmentId: doctor.departmentId || '',
+            specialization: doctor.specialization || '',
+            experience: doctor.experience || '',
+            qualification: doctor.qualification || '',
+            licenseNumber: doctor.licenseNumber || '',
+            consultationFee: doctor.consultationFee || ''
+        });
+        setShowEditModal(true);
+    };
+    
+    const openViewModal = (doctor) => {
+        setSelectedDoctor(doctor);
+        setShowViewModal(true);
     };
 
     const handleAddDoctor = async (e) => {
@@ -1293,7 +1463,8 @@ const DoctorManagement = () => {
             const doctorData = {
                 ...formData,
                 dateOfBirth,
-                departmentId: formData.departmentId ? Number(formData.departmentId) : null
+                departmentId: formData.departmentId ? Number(formData.departmentId) : null,
+                experienceYears: formData.experience ? Number(formData.experience) : null
             };
             
             console.log("Creating doctor with data:", doctorData);
@@ -1302,16 +1473,50 @@ const DoctorManagement = () => {
                 console.log("Doctor creation response:", response.data);
                 setShowAddModal(false);
                 fetchDoctors(); // Refresh the list
+                alert('Doctor added successfully!');
             } catch (apiError) {
                 console.log("Trying alternate URL without /api prefix");
                 const response = await axios.post('http://localhost:8080/doctors', doctorData);
                 console.log("Doctor creation response (alternate URL):", response.data);
                 setShowAddModal(false);
                 fetchDoctors(); // Refresh the list
+                alert('Doctor added successfully!');
             }
         } catch (err) {
             console.error('Error adding doctor:', err);
-            setError(err.response?.data?.message || 'Failed to add doctor. Please try again.');
+            alert(err.response?.data?.message || 'Failed to add doctor. Please try again.');
+        }
+    };
+    
+    const handleUpdateDoctor = async (e) => {
+        e.preventDefault();
+        if (!selectedDoctor) return;
+        
+        try {
+            // Convert date string to ISO format for backend
+            const dateOfBirth = formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null;
+            
+            const doctorData = {
+                ...formData,
+                dateOfBirth,
+                departmentId: formData.departmentId ? Number(formData.departmentId) : null,
+                experienceYears: formData.experience ? Number(formData.experience) : null
+            };
+            
+            try {
+                const response = await axios.put(`http://localhost:8080/api/doctors/${selectedDoctor.doctorId}`, doctorData);
+                setShowEditModal(false);
+                fetchDoctors(); // Refresh the list
+                alert('Doctor updated successfully!');
+            } catch (apiError) {
+                const response = await axios.put(`http://localhost:8080/doctors/${selectedDoctor.doctorId}`, doctorData);
+                setShowEditModal(false);
+                fetchDoctors(); // Refresh the list
+                alert('Doctor updated successfully!');
+            }
+        } catch (err) {
+            console.error('Error updating doctor:', err);
+            alert(err.response?.data?.message || 'Failed to update doctor. Please try again.');
         }
     };
 
@@ -1323,40 +1528,69 @@ const DoctorManagement = () => {
                     await axios.delete(`http://localhost:8080/api/doctors/${doctorId}`);
                     console.log(`Doctor ${doctorId} deleted successfully`);
                     fetchDoctors(); // Refresh the list
+                    alert('Doctor deleted successfully!');
                 } catch (apiError) {
                     console.log("Trying alternate URL without /api prefix");
                     await axios.delete(`http://localhost:8080/doctors/${doctorId}`);
                     console.log(`Doctor ${doctorId} deleted successfully (alternate URL)`);
                     fetchDoctors(); // Refresh the list
+                    alert('Doctor deleted successfully!');
                 }
             } catch (err) {
                 console.error('Error deleting doctor:', err);
-                setError(err.response?.data?.message || 'Failed to delete doctor. Please try again.');
+                alert(err.response?.data?.message || 'Failed to delete doctor. Please try again.');
             }
+        }
+    };
+    
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        } catch (error) {
+            return dateString;
         }
     };
 
     if (isLoading) {
         return (
             <div className="loading-container">
-                <div className="spinner"></div>
+                <div className="loading-spinner"></div>
                 <p>Loading doctors...</p>
             </div>
         );
     }
 
     return (
-        <div className="doctor-management">
-            {error && <div className="error-message">{error}</div>}
-            
+        <div className="management-section">
             <div className="management-header">
+                <h2>Doctor Management</h2>
                 <button className="add-btn" onClick={openAddModal}>
-                    <i className="fas fa-plus"></i> Add Doctor
+                    <i className="fas fa-plus"></i> Add New Doctor
                 </button>
             </div>
             
-            <div className="management-table">
-                <table>
+            {error && (
+                <div className="error-container">
+                    <div className="error-message">
+                        <i className="fas fa-exclamation-circle"></i>
+                        <span>{error}</span>
+                    </div>
+                    <button 
+                        className="retry-btn" 
+                        onClick={() => {
+                            setError('');
+                            fetchDoctors();
+                        }}
+                    >
+                        <i className="fas fa-sync"></i> Retry
+                    </button>
+                </div>
+            )}
+            
+            <div className="table-responsive">
+                <table className="data-table">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -1369,28 +1603,41 @@ const DoctorManagement = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {doctors.map(doctor => (
-                            <tr key={doctor.doctorId}>
-                                <td>{doctor.doctorId}</td>
-                                <td>Dr. {doctor.firstName} {doctor.lastName}</td>
-                                <td>{doctor.email}</td>
-                                <td>{doctor.specialization || 'N/A'}</td>
-                                <td>{doctor.department ? doctor.department.name : 'N/A'}</td>
-                                <td>{doctor.licenseNumber || 'N/A'}</td>
-                                <td className="actions-cell">
-                                    <button className="action-btn view">
-                                        <i className="fas fa-eye"></i>
-                                    </button>
-                                    <button className="action-btn edit">
-                                        <i className="fas fa-edit"></i>
-                                    </button>
-                                    <button className="action-btn delete" onClick={() => handleDeleteDoctor(doctor.doctorId)}>
-                                        <i className="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                        {doctors.length === 0 && (
+                        {doctors.length > 0 ? (
+                            doctors.map(doctor => (
+                                <tr key={doctor.doctorId}>
+                                    <td>{doctor.doctorId}</td>
+                                    <td>Dr. {doctor.firstName} {doctor.lastName}</td>
+                                    <td>{doctor.email}</td>
+                                    <td>{doctor.specialization || 'N/A'}</td>
+                                    <td>{doctor.department ? doctor.department.name : 'N/A'}</td>
+                                    <td>{doctor.licenseNumber || 'N/A'}</td>
+                                    <td className="actions-cell">
+                                        <button 
+                                            className="action-btn view-btn" 
+                                            title="View Details"
+                                            onClick={() => openViewModal(doctor)}
+                                        >
+                                            <i className="fas fa-eye"></i>
+                                        </button>
+                                        <button 
+                                            className="action-btn edit-btn" 
+                                            title="Edit"
+                                            onClick={() => openEditModal(doctor)}
+                                        >
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                        <button 
+                                            className="action-btn delete-btn" 
+                                            title="Delete"
+                                            onClick={() => handleDeleteDoctor(doctor.doctorId)}
+                                        >
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
                             <tr>
                                 <td colSpan="7" className="no-data">No doctors found</td>
                             </tr>
@@ -1402,191 +1649,505 @@ const DoctorManagement = () => {
             {/* Add Doctor Modal */}
             {showAddModal && (
                 <div className="modal-overlay">
-                    <div className="modal-content">
+                    <div className="modal-container">
                         <div className="modal-header">
                             <h3>Add New Doctor</h3>
                             <button className="close-btn" onClick={() => setShowAddModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
-                        <form onSubmit={handleAddDoctor}>
-                            <div className="form-section">
-                                <h4>Account Information</h4>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Email</label>
-                                        <input 
-                                            type="email" 
-                                            name="email" 
-                                            value={formData.email} 
-                                            onChange={handleInputChange} 
-                                            required 
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Password</label>
-                                        <input 
-                                            type="password" 
-                                            name="password" 
-                                            value={formData.password} 
-                                            onChange={handleInputChange} 
-                                            required 
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="form-section">
-                                <h4>Personal Information</h4>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>First Name</label>
-                                        <input 
-                                            type="text" 
-                                            name="firstName" 
-                                            value={formData.firstName} 
-                                            onChange={handleInputChange} 
-                                            required 
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Last Name</label>
-                                        <input 
-                                            type="text" 
-                                            name="lastName" 
-                                            value={formData.lastName} 
-                                            onChange={handleInputChange} 
-                                            required 
-                                        />
+                        <div className="modal-body">
+                            <form onSubmit={handleAddDoctor}>
+                                <div className="form-section">
+                                    <h4>Account Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="email">Email*</label>
+                                            <input 
+                                                type="email" 
+                                                id="email"
+                                                name="email" 
+                                                value={formData.email} 
+                                                onChange={handleInputChange} 
+                                                required 
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="password">Password*</label>
+                                            <input 
+                                                type="password" 
+                                                id="password"
+                                                name="password" 
+                                                value={formData.password} 
+                                                onChange={handleInputChange} 
+                                                required 
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Phone Number</label>
-                                        <input 
-                                            type="tel" 
-                                            name="phoneNumber" 
-                                            value={formData.phoneNumber} 
-                                            onChange={handleInputChange} 
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Date of Birth</label>
-                                        <input 
-                                            type="date" 
-                                            name="dateOfBirth" 
-                                            value={formData.dateOfBirth} 
-                                            onChange={handleInputChange} 
-                                        />
-                                    </div>
-                                </div>
-                                
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Gender</label>
-                                        <select 
-                                            name="gender" 
-                                            value={formData.gender} 
-                                            onChange={handleInputChange}
-                                        >
-                                            <option value="">Select Gender</option>
-                                            <option value="MALE">Male</option>
-                                            <option value="FEMALE">Female</option>
-                                            <option value="OTHER">Other</option>
-                                        </select>
-                                    </div>
-                                    <div className="form-group wide">
-                                        <label>Address</label>
-                                        <textarea 
-                                            name="address" 
-                                            value={formData.address} 
-                                            onChange={handleInputChange} 
-                                            rows="2"
-                                        ></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="form-section">
-                                <h4>Professional Information</h4>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Department</label>
-                                        <select 
-                                            name="departmentId" 
-                                            value={formData.departmentId} 
-                                            onChange={handleInputChange}
-                                        >
-                                            <option value="">Select Department</option>
-                                            {departments.map(dept => (
-                                                <option key={dept.departmentId} value={dept.departmentId}>
-                                                    {dept.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Specialization</label>
-                                        <input 
-                                            type="text" 
-                                            name="specialization" 
-                                            value={formData.specialization} 
-                                            onChange={handleInputChange} 
-                                            required
-                                        />
+                                <div className="form-section">
+                                    <h4>Personal Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="firstName">First Name*</label>
+                                            <input 
+                                                type="text" 
+                                                id="firstName"
+                                                name="firstName" 
+                                                value={formData.firstName} 
+                                                onChange={handleInputChange} 
+                                                required 
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="lastName">Last Name*</label>
+                                            <input 
+                                                type="text" 
+                                                id="lastName"
+                                                name="lastName" 
+                                                value={formData.lastName} 
+                                                onChange={handleInputChange} 
+                                                required 
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="gender">Gender</label>
+                                            <select
+                                                id="gender"
+                                                name="gender"
+                                                value={formData.gender}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Gender</option>
+                                                <option value="MALE">Male</option>
+                                                <option value="FEMALE">Female</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="dateOfBirth">Date of Birth</label>
+                                            <input 
+                                                type="date"
+                                                id="dateOfBirth"
+                                                name="dateOfBirth"
+                                                value={formData.dateOfBirth}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="phoneNumber">Phone Number</label>
+                                            <input
+                                                type="text"
+                                                id="phoneNumber"
+                                                name="phoneNumber" 
+                                                value={formData.phoneNumber} 
+                                                onChange={handleInputChange} 
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="address">Address</label>
+                                            <input 
+                                                type="text"
+                                                id="address"
+                                                name="address"
+                                                value={formData.address}
+                                                onChange={handleInputChange} 
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>License Number</label>
-                                        <input 
-                                            type="text" 
-                                            name="licenseNumber" 
-                                            value={formData.licenseNumber} 
-                                            onChange={handleInputChange} 
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Qualification</label>
-                                        <input 
-                                            type="text" 
-                                            name="qualification" 
-                                            value={formData.qualification} 
-                                            onChange={handleInputChange} 
-                                            required
-                                        />
+                                <div className="form-section">
+                                    <h4>Professional Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="departmentId">Department</label>
+                                            <select 
+                                                id="departmentId"
+                                                name="departmentId" 
+                                                value={formData.departmentId} 
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Department</option>
+                                                {departments.map(dept => (
+                                                    <option key={dept.departmentId} value={dept.departmentId}>
+                                                        {dept.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="specialization">Specialization*</label>
+                                            <input 
+                                                type="text" 
+                                                id="specialization"
+                                                name="specialization" 
+                                                value={formData.specialization} 
+                                                onChange={handleInputChange} 
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="licenseNumber">License Number*</label>
+                                            <input 
+                                                type="text" 
+                                                id="licenseNumber"
+                                                name="licenseNumber" 
+                                                value={formData.licenseNumber} 
+                                                onChange={handleInputChange} 
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="qualification">Qualification*</label>
+                                            <input 
+                                                type="text" 
+                                                id="qualification"
+                                                name="qualification" 
+                                                value={formData.qualification} 
+                                                onChange={handleInputChange} 
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="experience">Years of Experience</label>
+                                            <input 
+                                                type="number" 
+                                                id="experience"
+                                                name="experience" 
+                                                value={formData.experience} 
+                                                onChange={handleInputChange} 
+                                                min="0"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Years of Experience</label>
-                                        <input 
-                                            type="number" 
-                                            name="experience" 
-                                            value={formData.experience} 
-                                            onChange={handleInputChange} 
-                                            min="0"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        {/* Empty space for alignment */}
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn" 
+                                        onClick={() => setShowAddModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        <i className="fas fa-save"></i> Add Doctor
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Edit Doctor Modal */}
+            {showEditModal && selectedDoctor && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Edit Doctor</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleUpdateDoctor}>
+                                <div className="form-section">
+                                    <h4>Account Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="email">Email*</label>
+                                            <input 
+                                                type="email" 
+                                                id="edit-email"
+                                                name="email" 
+                                                value={formData.email} 
+                                                onChange={handleInputChange} 
+                                                required 
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="password">New Password (leave blank to keep current)</label>
+                                            <input 
+                                                type="password" 
+                                                id="edit-password"
+                                                name="password" 
+                                                value={formData.password} 
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
+                                
+                                <div className="form-section">
+                                    <h4>Personal Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="firstName">First Name*</label>
+                                            <input 
+                                                type="text" 
+                                                id="edit-firstName"
+                                                name="firstName" 
+                                                value={formData.firstName} 
+                                                onChange={handleInputChange} 
+                                                required 
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="lastName">Last Name*</label>
+                                            <input 
+                                                type="text" 
+                                                id="edit-lastName"
+                                                name="lastName" 
+                                                value={formData.lastName} 
+                                                onChange={handleInputChange} 
+                                                required 
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="gender">Gender</label>
+                                            <select
+                                                id="edit-gender"
+                                                name="gender"
+                                                value={formData.gender}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Gender</option>
+                                                <option value="MALE">Male</option>
+                                                <option value="FEMALE">Female</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="dateOfBirth">Date of Birth</label>
+                                            <input 
+                                                type="date"
+                                                id="edit-dateOfBirth"
+                                                name="dateOfBirth"
+                                                value={formData.dateOfBirth}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="phoneNumber">Phone Number</label>
+                                            <input
+                                                type="text"
+                                                id="edit-phoneNumber"
+                                                name="phoneNumber" 
+                                                value={formData.phoneNumber} 
+                                                onChange={handleInputChange} 
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="address">Address</label>
+                                            <input 
+                                                type="text"
+                                                id="edit-address"
+                                                name="address"
+                                                value={formData.address}
+                                                onChange={handleInputChange} 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-section">
+                                    <h4>Professional Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="departmentId">Department</label>
+                                            <select 
+                                                id="edit-departmentId"
+                                                name="departmentId" 
+                                                value={formData.departmentId} 
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Department</option>
+                                                {departments.map(dept => (
+                                                    <option key={dept.departmentId} value={dept.departmentId}>
+                                                        {dept.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="specialization">Specialization*</label>
+                                            <input 
+                                                type="text" 
+                                                id="edit-specialization"
+                                                name="specialization" 
+                                                value={formData.specialization} 
+                                                onChange={handleInputChange} 
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="licenseNumber">License Number*</label>
+                                            <input 
+                                                type="text" 
+                                                id="edit-licenseNumber"
+                                                name="licenseNumber" 
+                                                value={formData.licenseNumber} 
+                                                onChange={handleInputChange} 
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="qualification">Qualification*</label>
+                                            <input 
+                                                type="text" 
+                                                id="edit-qualification"
+                                                name="qualification" 
+                                                value={formData.qualification} 
+                                                onChange={handleInputChange} 
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="experience">Years of Experience</label>
+                                            <input 
+                                                type="number" 
+                                                id="edit-experience"
+                                                name="experience" 
+                                                value={formData.experience} 
+                                                onChange={handleInputChange} 
+                                                min="0"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn" 
+                                        onClick={() => setShowEditModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        <i className="fas fa-save"></i> Update Doctor
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* View Doctor Modal */}
+            {showViewModal && selectedDoctor && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Doctor Details</h3>
+                            <button className="close-btn" onClick={() => setShowViewModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="detail-sections">
+                                <div className="profile-header">
+                                    <div className="profile-avatar">
+                                        <i className="fas fa-user-md fa-3x"></i>
+                                    </div>
+                                    <div className="profile-info">
+                                        <h3>Dr. {selectedDoctor.firstName} {selectedDoctor.lastName}</h3>
+                                        <p className="specialization">{selectedDoctor.specialization || 'No Specialization'}</p>
+                                        {selectedDoctor.department && (
+                                            <span className="department-badge">{selectedDoctor.department.name}</span>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-id-card"></i> Basic Information</h4>
+                                    <div className="details-grid">
+                                        <div className="detail-item">
+                                            <span className="detail-label">Doctor ID:</span>
+                                            <span className="detail-value">{selectedDoctor.doctorId}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Email:</span>
+                                            <span className="detail-value">{selectedDoctor.email}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Phone:</span>
+                                            <span className="detail-value">{selectedDoctor.phoneNumber || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Address:</span>
+                                            <span className="detail-value">{selectedDoctor.address || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Date of Birth:</span>
+                                            <span className="detail-value">{selectedDoctor.dateOfBirth ? formatDate(selectedDoctor.dateOfBirth) : 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Gender:</span>
+                                            <span className="detail-value">{selectedDoctor.gender || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-stethoscope"></i> Professional Information</h4>
+                                    <div className="details-grid">
+                                        <div className="detail-item">
+                                            <span className="detail-label">Department:</span>
+                                            <span className="detail-value">{selectedDoctor.department ? selectedDoctor.department.name : 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Specialization:</span>
+                                            <span className="detail-value">{selectedDoctor.specialization || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">License Number:</span>
+                                            <span className="detail-value">{selectedDoctor.licenseNumber || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Qualification:</span>
+                                            <span className="detail-value">{selectedDoctor.qualification || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Years of Experience:</span>
+                                            <span className="detail-value">{selectedDoctor.experienceYears || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Consultation Fee:</span>
+                                            <span className="detail-value">{selectedDoctor.consultationFee ? `$${selectedDoctor.consultationFee}` : 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {selectedDoctor.bio && (
+                                    <div className="detail-section">
+                                        <h4><i className="fas fa-book-open"></i> Biography</h4>
+                                        <p className="bio-text">{selectedDoctor.bio}</p>
+                                    </div>
+                                )}
                             </div>
                             
                             <div className="modal-actions">
-                                <button type="button" className="cancel-btn" onClick={() => setShowAddModal(false)}>
-                                    Cancel
+                                <button 
+                                    className="cancel-btn"
+                                    onClick={() => setShowViewModal(false)}
+                                >
+                                    Close
                                 </button>
-                                <button type="submit" className="save-btn">
-                                    <i className="fas fa-save"></i> Add Doctor
+                                <button 
+                                    className="edit-btn"
+                                    onClick={() => {
+                                        setShowViewModal(false);
+                                        openEditModal(selectedDoctor);
+                                    }}
+                                >
+                                    <i className="fas fa-edit"></i> Edit Doctor
                                 </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             )}
@@ -1601,6 +2162,7 @@ const PatientManagement = () => {
     const [error, setError] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [formData, setFormData] = useState({
         email: '',
@@ -1685,6 +2247,19 @@ const PatientManagement = () => {
 
     const openEditModal = (patient) => {
         setSelectedPatient(patient);
+        let dateOfBirth = '';
+        
+        try {
+            if (patient.dateOfBirth) {
+                const dobDate = new Date(patient.dateOfBirth);
+                if (!isNaN(dobDate.getTime())) {
+                    dateOfBirth = dobDate.toISOString().split('T')[0];
+                }
+            }
+        } catch (error) {
+            console.error("Date parsing error:", error);
+        }
+        
         setFormData({
             email: patient.email || '',
             firstName: patient.firstName || '',
@@ -1692,7 +2267,7 @@ const PatientManagement = () => {
             phoneNumber: patient.phoneNumber || '',
             address: patient.address || '',
             gender: patient.gender || '',
-            dateOfBirth: patient.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split('T')[0] : '',
+            dateOfBirth: dateOfBirth,
             bloodGroup: patient.bloodGroup || '',
             height: patient.height || '',
             weight: patient.weight || '',
@@ -1703,6 +2278,11 @@ const PatientManagement = () => {
             insuranceId: patient.insuranceId || ''
         });
         setShowEditModal(true);
+    };
+
+    const openViewModal = (patient) => {
+        setSelectedPatient(patient);
+        setShowViewModal(true);
     };
 
     const handleAddPatient = async (e) => {
@@ -1760,6 +2340,18 @@ const PatientManagement = () => {
         }
     };
 
+    // Format date for display
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'N/A';
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric'
+        });
+    };
+
     if (isLoading) {
         return (
             <div className="loading-container">
@@ -1770,7 +2362,7 @@ const PatientManagement = () => {
     }
 
     return (
-        <div className="management-container">
+        <div className="management-section">
             <div className="management-header">
                 <h2>Patient Management</h2>
                 <button className="add-btn" onClick={openAddModal}>
@@ -1823,6 +2415,7 @@ const PatientManagement = () => {
                                         <button 
                                             className="action-btn view-btn" 
                                             title="View Details"
+                                            onClick={() => openViewModal(patient)}
                                         >
                                         <i className="fas fa-eye"></i>
                                     </button>
@@ -2276,12 +2869,12 @@ const PatientManagement = () => {
                                     <div className="form-grid">
                                         <div className="form-group">
                                             <label htmlFor="insuranceProvider">Insurance Provider</label>
-                                            <input
-                                                type="text"
+                                        <input 
+                                            type="text" 
                                                 id="insuranceProvider"
                                                 name="insuranceProvider"
                                                 value={formData.insuranceProvider}
-                                        onChange={handleInputChange} 
+                                            onChange={handleInputChange} 
                                             />
                                         </div>
                                         <div className="form-group">
@@ -2294,9 +2887,9 @@ const PatientManagement = () => {
                                                 onChange={handleInputChange}
                                             />
                                         </div>
+                                    </div>
                                 </div>
-                            </div>
-                            
+                                
                                 <div className="form-actions">
                                     <button 
                                         type="button" 
@@ -2310,6 +2903,130 @@ const PatientManagement = () => {
                                 </button>
                             </div>
                         </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* View Patient Modal */}
+            {showViewModal && selectedPatient && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Patient Details</h3>
+                            <button className="close-btn" onClick={() => setShowViewModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="detail-sections">
+                                <div className="profile-header">
+                                    <div className="profile-avatar">
+                                        <i className="fas fa-user fa-3x"></i>
+                                    </div>
+                                    <div className="profile-info">
+                                        <h3>{selectedPatient.firstName} {selectedPatient.lastName}</h3>
+                                        <p>Patient ID: {selectedPatient.patientId}</p>
+                                        {selectedPatient.bloodGroup && (
+                                            <span className="blood-group-badge">Blood Group: {selectedPatient.bloodGroup}</span>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-id-card"></i> Basic Information</h4>
+                                    <div className="details-grid">
+                                        <div className="detail-item">
+                                            <span className="detail-label">Email:</span>
+                                            <span className="detail-value">{selectedPatient.email}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Phone:</span>
+                                            <span className="detail-value">{selectedPatient.phoneNumber || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Address:</span>
+                                            <span className="detail-value">{selectedPatient.address || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Date of Birth:</span>
+                                            <span className="detail-value">{selectedPatient.dateOfBirth ? formatDate(selectedPatient.dateOfBirth) : 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Gender:</span>
+                                            <span className="detail-value">{selectedPatient.gender || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-notes-medical"></i> Medical Information</h4>
+                                    <div className="details-grid">
+                                        <div className="detail-item">
+                                            <span className="detail-label">Blood Group:</span>
+                                            <span className="detail-value">{selectedPatient.bloodGroup || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Height:</span>
+                                            <span className="detail-value">{selectedPatient.height ? `${selectedPatient.height} cm` : 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Weight:</span>
+                                            <span className="detail-value">{selectedPatient.weight ? `${selectedPatient.weight} kg` : 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item wide">
+                                            <span className="detail-label">Allergies:</span>
+                                            <span className="detail-value">{selectedPatient.allergies || 'None reported'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-phone-alt"></i> Emergency Contact</h4>
+                                    <div className="details-grid">
+                                        <div className="detail-item">
+                                            <span className="detail-label">Name:</span>
+                                            <span className="detail-value">{selectedPatient.emergencyContactName || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Phone:</span>
+                                            <span className="detail-value">{selectedPatient.emergencyContactPhone || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-file-medical"></i> Insurance Information</h4>
+                                    <div className="details-grid">
+                                        <div className="detail-item">
+                                            <span className="detail-label">Provider:</span>
+                                            <span className="detail-value">{selectedPatient.insuranceProvider || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Policy Number:</span>
+                                            <span className="detail-value">{selectedPatient.insuranceId || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="modal-actions">
+                                <button 
+                                    className="cancel-btn"
+                                    onClick={() => setShowViewModal(false)}
+                                >
+                                    Close
+                                </button>
+                                <button 
+                                    className="edit-btn"
+                                    onClick={() => {
+                                        setShowViewModal(false);
+                                        openEditModal(selectedPatient);
+                                    }}
+                                >
+                                    <i className="fas fa-edit"></i> Edit Patient
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2339,7 +3056,9 @@ const AppointmentManagement = () => {
         appointmentTime: '',
         status: 'SCHEDULED',
         reason: '',
-        notes: ''
+        notes: '',
+        appointmentFee: '',
+        isPaid: false
     });
     
     // Selected appointment for view/edit/delete operations
@@ -2348,6 +3067,10 @@ const AppointmentManagement = () => {
     // Filter states
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [dateFilter, setDateFilter] = useState('');
+
+    // Add these new state variables within the AppointmentManagement component
+    const [patientSearchTerm, setPatientSearchTerm] = useState('');
+    const [doctorSearchTerm, setDoctorSearchTerm] = useState('');
 
     useEffect(() => {
         fetchAppointments();
@@ -2360,10 +3083,22 @@ const AppointmentManagement = () => {
         try {
             let response;
             try {
-                response = await axios.get('http://localhost:8080/api/appointments');
+                response = await axios.get('http://localhost:8080/api/appointments', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
             } catch (err) {
-                // Try alternate endpoint if the first one fails
-                response = await axios.get('http://localhost:8080/appointments');
+                // Fall back to without /api prefix if needed
+                response = await axios.get('http://localhost:8080/appointments', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
             }
             
             if (response.data) {
@@ -2398,9 +3133,23 @@ const AppointmentManagement = () => {
         try {
             let response;
             try {
-                response = await axios.get('http://localhost:8080/api/patients');
+                // First try with /api prefix
+                response = await axios.get('http://localhost:8080/api/patients', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
             } catch (err) {
-                response = await axios.get('http://localhost:8080/patients');
+                // Fall back to without /api prefix if needed
+                response = await axios.get('http://localhost:8080/patients', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
             }
             
             if (response.data) {
@@ -2408,6 +3157,7 @@ const AppointmentManagement = () => {
             }
         } catch (err) {
             console.error('Error fetching patients:', err);
+            // Don't set error state here to avoid UI disruption in payment management
         }
     };
 
@@ -2428,26 +3178,45 @@ const AppointmentManagement = () => {
             appointmentTime: '',
             status: 'SCHEDULED',
             reason: '',
-            notes: ''
+            notes: '',
+            appointmentFee: '',
+            isPaid: false
         });
+        // Reset search terms
+        setPatientSearchTerm('');
+        setDoctorSearchTerm('');
         setShowAddModal(true);
     };
 
     const handleOpenEditModal = (appointment) => {
         setSelectedAppointment(appointment);
-        // Format date and time for form
-        const appointmentDateTime = new Date(appointment.appointmentDateTime);
-        const date = appointmentDateTime.toISOString().split('T')[0];
-        const time = appointmentDateTime.toTimeString().slice(0, 5);
+        
+        // Parse dates properly
+        let date = '';
+        let time = '';
+        
+        try {
+            if (appointment.appointmentDate) {
+                date = appointment.appointmentDate;
+            }
+            
+            if (appointment.startTime) {
+                time = appointment.startTime;
+            }
+        } catch (error) {
+            console.error("Date parsing error:", error);
+        }
         
         setFormData({
-            patientId: appointment.patient?.patientId || '',
-            doctorId: appointment.doctor?.doctorId || '',
+            patientId: appointment.patientId || '',
+            doctorId: appointment.doctorId || '',
             appointmentDate: date,
             appointmentTime: time,
-            status: appointment.status,
+            status: appointment.status || 'SCHEDULED',
             reason: appointment.reason || '',
-            notes: appointment.notes || ''
+            notes: appointment.notes || '',
+            appointmentFee: appointment.appointmentFee ? appointment.appointmentFee.toString() : '',
+            isPaid: appointment.isPaid || false
         });
         setShowEditModal(true);
     };
@@ -2463,10 +3232,14 @@ const AppointmentManagement = () => {
             const appointmentData = {
                 patientId: formData.patientId,
                 doctorId: formData.doctorId,
-                appointmentDateTime: `${formData.appointmentDate}T${formData.appointmentTime}:00`,
+                appointmentDate: formData.appointmentDate,
+                startTime: formData.appointmentTime,
+                endTime: formData.appointmentTime, // For simplicity, setting end time same as start time
                 status: formData.status,
                 reason: formData.reason,
-                notes: formData.notes
+                notes: formData.notes,
+                appointmentFee: formData.appointmentFee ? parseFloat(formData.appointmentFee) : null,
+                isPaid: Boolean(formData.isPaid)
             };
             
             let response;
@@ -2495,10 +3268,14 @@ const AppointmentManagement = () => {
             const appointmentData = {
                 patientId: formData.patientId,
                 doctorId: formData.doctorId,
-                appointmentDateTime: `${formData.appointmentDate}T${formData.appointmentTime}:00`,
+                appointmentDate: formData.appointmentDate,
+                startTime: formData.appointmentTime,
+                endTime: formData.appointmentTime, // For simplicity, setting end time same as start time
                 status: formData.status,
                 reason: formData.reason,
-                notes: formData.notes
+                notes: formData.notes,
+                appointmentFee: formData.appointmentFee ? parseFloat(formData.appointmentFee) : null,
+                isPaid: Boolean(formData.isPaid)
             };
             
             let response;
@@ -2541,11 +3318,22 @@ const AppointmentManagement = () => {
     };
 
     const formatDateTime = (dateTimeStr) => {
-        const dateTime = new Date(dateTimeStr);
-        return {
-            date: dateTime.toLocaleDateString(),
-            time: dateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
+        if (!dateTimeStr) {
+            return { date: 'Not set', time: 'Not set' };
+        }
+        try {
+            const dateTime = new Date(dateTimeStr);
+            if (isNaN(dateTime.getTime())) {
+                return { date: 'Invalid Date', time: 'Invalid Time' };
+            }
+            return {
+                date: dateTime.toLocaleDateString(),
+                time: dateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+        } catch (error) {
+            console.error('Error formatting date/time:', error);
+            return { date: 'Invalid Date', time: 'Invalid Time' };
+        }
     };
 
     const getStatusClass = (status) => {
@@ -2573,9 +3361,8 @@ const AppointmentManagement = () => {
             }
             
             // Filter by date
-            if (dateFilter) {
-                const appointmentDate = new Date(appointment.appointmentDateTime).toISOString().split('T')[0];
-                if (appointmentDate !== dateFilter) {
+            if (dateFilter && appointment.appointmentDate) {
+                if (appointment.appointmentDate !== dateFilter) {
                     return false;
                 }
             }
@@ -2594,31 +3381,55 @@ const AppointmentManagement = () => {
         );
     }
 
+    // Add these helper functions to filter patients and doctors
+    const getFilteredPatients = () => {
+        if (!patientSearchTerm) return patients;
+        
+        return patients.filter(patient => 
+            patient.patientId.toLowerCase().includes(patientSearchTerm.toLowerCase()) ||
+            `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(patientSearchTerm.toLowerCase())
+        );
+    };
+
+    const getFilteredDoctors = () => {
+        if (!doctorSearchTerm) return doctors;
+        
+        return doctors.filter(doctor => 
+            doctor.doctorId.toLowerCase().includes(doctorSearchTerm.toLowerCase()) ||
+            `${doctor.firstName} ${doctor.lastName}`.toLowerCase().includes(doctorSearchTerm.toLowerCase())
+        );
+    };
+
     return (
         <div className="management-section">
             <div className="management-header">
-                <div className="filters">
-                    <div className="filter-group">
-                        <label>Status:</label>
-                        <select 
-                            value={statusFilter} 
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                            <option value="ALL">All Statuses</option>
-                            <option value="SCHEDULED">Scheduled</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="CANCELLED">Cancelled</option>
-                            <option value="NO_SHOW">No Show</option>
-                        </select>
-                    </div>
-                    <div className="filter-group">
-                        <label>Date:</label>
-                        <input 
-                            type="date" 
-                            value={dateFilter} 
-                            onChange={(e) => setDateFilter(e.target.value)}
-                        />
+                <div className="filters-container">
+                    <h3>Filters</h3>
+                    <div className="filters">
+                        <div className="filter-group">
+                            <label>Status:</label>
+                            <select 
+                                className="filter-select"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="ALL">All Statuses</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="REFUNDED">Refunded</option>
+                                <option value="FAILED">Failed</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                        </div>
+                        <div className="filter-group">
+                            <label>Date:</label>
+                            <input 
+                                type="date" 
+                                className="filter-date"
+                                value={dateFilter}
+                                onChange={(e) => setDateFilter(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
                 <button className="add-btn" onClick={handleOpenAddModal}>
@@ -2646,20 +3457,63 @@ const AppointmentManagement = () => {
                     <tbody>
                         {getFilteredAppointments().length > 0 ? (
                             getFilteredAppointments().map(appointment => {
-                                const { date, time } = formatDateTime(appointment.appointmentDateTime);
+                                let date = 'Not set';
+                                let time = 'Not set';
+                                
+                                // Format date correctly if it exists
+                                if (appointment.appointmentDate) {
+                                    try {
+                                        const dateObj = new Date(appointment.appointmentDate);
+                                        if (!isNaN(dateObj.getTime())) {
+                                            date = dateObj.toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                            });
+                                        } else {
+                                            date = appointment.appointmentDate;
+                                        }
+                                    } catch (err) {
+                                        date = appointment.appointmentDate;
+                                    }
+                                }
+                                
+                                // Format time correctly if it exists
+                                if (appointment.startTime) {
+                                    try {
+                                        // If it's just a time string like "13:45"
+                                        if (appointment.startTime.includes(':')) {
+                                            time = appointment.startTime;
+                                        } else {
+                                            // If it's a full datetime string
+                                            const timeObj = new Date(`2000-01-01T${appointment.startTime}`);
+                                            if (!isNaN(timeObj.getTime())) {
+                                                time = timeObj.toLocaleTimeString('en-US', {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                });
+                                            } else {
+                                                time = appointment.startTime;
+                                            }
+                                        }
+                                    } catch (err) {
+                                        time = appointment.startTime;
+                                    }
+                                }
+                                
                                 return (
                                     <tr key={appointment.appointmentId}>
                                         <td>{appointment.appointmentId}</td>
-                                        <td>{appointment.patient && `${appointment.patient.firstName || ''} ${appointment.patient.lastName || ''}`}</td>
-                                        <td>{appointment.doctor && `Dr. ${appointment.doctor.firstName || ''} ${appointment.doctor.lastName || ''}`}</td>
+                                        <td>{appointment.patientName || 'Unknown Patient'}</td>
+                                        <td>{appointment.doctorName || 'Unknown Doctor'}</td>
                                         <td>{date}</td>
                                         <td>{time}</td>
                                         <td>
                                             <span className={`status-badge ${getStatusClass(appointment.status)}`}>
-                                                {appointment.status}
+                                                {appointment.status || 'Unknown'}
                                             </span>
                                         </td>
-                                        <td>{appointment.reason}</td>
+                                        <td>{appointment.reason || ''}</td>
                                         <td className="actions-cell">
                                             <button 
                                                 className="action-btn view" 
@@ -2706,60 +3560,92 @@ const AppointmentManagement = () => {
                             <form onSubmit={handleAddAppointment}>
                                 <div className="form-section">
                                     <div className="form-group">
-                                        <label htmlFor="patientId">Patient*</label>
-                                        <select
-                                            id="patientId"
-                                            name="patientId"
-                                            value={formData.patientId}
-                                            onChange={handleInputChange}
-                                            required
-                                        >
-                                            <option value="">Select Patient</option>
-                                            {patients.map(patient => (
-                                                <option key={patient.patientId} value={patient.patientId}>
-                                                    {patient.firstName} {patient.lastName}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <label htmlFor="patientSearch">Patient* (ID or Name)</label>
+                                        <div className="searchable-dropdown">
+                                            <div className="search-input-container">
+                                                <input
+                                                    type="text"
+                                                    id="patientSearch"
+                                                    placeholder="Search by patient ID or name..."
+                                                    value={patientSearchTerm}
+                                                    onChange={(e) => setPatientSearchTerm(e.target.value)}
+                                                    className="search-input"
+                                                />
+                                                <i className="fas fa-search search-icon"></i>
+                                            </div>
+                                            <select
+                                                id="patientId"
+                                                name="patientId"
+                                                value={formData.patientId}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="dropdown-select"
+                                            >
+                                                <option value="">Select Patient</option>
+                                                {getFilteredPatients().map(patient => (
+                                                    <option key={patient.patientId} value={patient.patientId}>
+                                                        {patient.patientId} - {patient.firstName} {patient.lastName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
                                     <div className="form-group">
-                                        <label htmlFor="doctorId">Doctor*</label>
-                                        <select
-                                            id="doctorId"
-                                            name="doctorId"
-                                            value={formData.doctorId}
-                                            onChange={handleInputChange}
-                                            required
-                                        >
-                                            <option value="">Select Doctor</option>
-                                            {doctors.map(doctor => (
-                                                <option key={doctor.doctorId} value={doctor.doctorId}>
-                                                    Dr. {doctor.firstName} {doctor.lastName}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <label htmlFor="doctorSearch">Doctor* (ID or Name)</label>
+                                        <div className="searchable-dropdown">
+                                            <div className="search-input-container">
+                                                <input
+                                                    type="text"
+                                                    id="doctorSearch"
+                                                    placeholder="Search by doctor ID or name..."
+                                                    value={doctorSearchTerm}
+                                                    onChange={(e) => setDoctorSearchTerm(e.target.value)}
+                                                    className="search-input"
+                                                />
+                                                <i className="fas fa-search search-icon"></i>
+                                            </div>
+                                            <select
+                                                id="doctorId"
+                                                name="doctorId"
+                                                value={formData.doctorId}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="dropdown-select"
+                                            >
+                                                <option value="">Select Doctor</option>
+                                                {getFilteredDoctors().map(doctor => (
+                                                    <option key={doctor.doctorId} value={doctor.doctorId}>
+                                                        {doctor.doctorId} - Dr. {doctor.firstName} {doctor.lastName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="form-group">
-                                        <label htmlFor="appointmentDate">Date*</label>
-                                        <input
-                                            type="date"
-                                            id="appointmentDate"
-                                            name="appointmentDate"
-                                            value={formData.appointmentDate}
-                                            onChange={handleInputChange}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="appointmentTime">Time*</label>
-                                        <input
-                                            type="time"
-                                            id="appointmentTime"
-                                            name="appointmentTime"
-                                            value={formData.appointmentTime}
-                                            onChange={handleInputChange}
-                                            required
-                                        />
+                                <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="appointmentDate">Date*</label>
+                                            <input
+                                                type="date"
+                                                id="appointmentDate"
+                                                name="appointmentDate"
+                                                value={formData.appointmentDate}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="date-input"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="appointmentTime">Time*</label>
+                                            <input
+                                                type="time"
+                                                id="appointmentTime"
+                                                name="appointmentTime"
+                                                value={formData.appointmentTime}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="time-input"
+                                            />
+                                        </div>
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="status">Status*</label>
@@ -2769,6 +3655,7 @@ const AppointmentManagement = () => {
                                             value={formData.status}
                                             onChange={handleInputChange}
                                             required
+                                            className="status-select"
                                         >
                                             <option value="SCHEDULED">Scheduled</option>
                                             <option value="COMPLETED">Completed</option>
@@ -2779,13 +3666,14 @@ const AppointmentManagement = () => {
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="reason">Reason*</label>
-                                        <input
-                                            type="text"
+                                        <input 
+                                            type="text" 
                                             id="reason"
                                             name="reason"
                                             value={formData.reason}
-                                            onChange={handleInputChange}
+                                            onChange={handleInputChange} 
                                             required
+                                            className="text-input"
                                         />
                                     </div>
                                     <div className="form-group">
@@ -2796,7 +3684,38 @@ const AppointmentManagement = () => {
                                             value={formData.notes}
                                             onChange={handleInputChange}
                                             rows="3"
+                                            className="textarea-input"
                                         ></textarea>
+                                </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="appointmentFee">Fee ($)</label>
+                                            <input
+                                                type="number"
+                                                id="appointmentFee"
+                                                name="appointmentFee"
+                                                value={formData.appointmentFee || ''}
+                                                onChange={handleInputChange}
+                                                min="0"
+                                                step="0.01"
+                                                className="number-input"
+                                            />
+                                        </div>
+                                        <div className="form-group checkbox-group">
+                                            <label className="checkbox-label">
+                                                <input
+                                                    type="checkbox"
+                                                    name="isPaid"
+                                                    checked={formData.isPaid || false}
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
+                                                        isPaid: e.target.checked
+                                                    })}
+                                                    className="checkbox-input"
+                                                />
+                                                <span>Paid</span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="form-actions">
@@ -2895,11 +3814,11 @@ const AppointmentManagement = () => {
                                             onChange={handleInputChange}
                                             required
                                         >
-                                            <option value="SCHEDULED">Scheduled</option>
                                             <option value="COMPLETED">Completed</option>
-                                            <option value="IN_PROGRESS">In Progress</option>
+                                            <option value="PENDING">Pending</option>
+                                            <option value="REFUNDED">Refunded</option>
+                                            <option value="FAILED">Failed</option>
                                             <option value="CANCELLED">Cancelled</option>
-                                            <option value="NO_SHOW">No Show</option>
                                         </select>
                                     </div>
                                     <div className="form-group">
@@ -2915,28 +3834,28 @@ const AppointmentManagement = () => {
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="notes">Notes</label>
-                                        <textarea
+                                    <textarea 
                                             id="notes"
                                             name="notes"
                                             value={formData.notes}
-                                            onChange={handleInputChange}
-                                            rows="3"
-                                        ></textarea>
-                                    </div>
+                                        onChange={handleInputChange} 
+                                        rows="3"
+                                    ></textarea>
                                 </div>
+                            </div>
                                 <div className="form-actions">
                                     <button 
                                         type="button" 
                                         className="cancel-btn"
                                         onClick={() => setShowEditModal(false)}
                                     >
-                                        Cancel
-                                    </button>
+                                    Cancel
+                                </button>
                                     <button type="submit" className="submit-btn">
                                         Update Appointment
-                                    </button>
-                                </div>
-                            </form>
+                                </button>
+                            </div>
+                        </form>
                         </div>
                     </div>
                 </div>
@@ -2945,7 +3864,7 @@ const AppointmentManagement = () => {
             {/* View Appointment Modal */}
             {showViewModal && selectedAppointment && (
                 <div className="modal-overlay">
-                    <div className="modal-container">
+                    <div className="modal-container view-appointment-modal">
                         <div className="modal-header">
                             <h3>Appointment Details</h3>
                             <button className="close-btn" onClick={() => setShowViewModal(false)}>
@@ -2954,93 +3873,94 @@ const AppointmentManagement = () => {
                         </div>
                         <div className="modal-body">
                             <div className="appointment-details">
+                                <div className="appointment-id-section">
+                                    <span className="appointment-id">Appointment ID: {selectedAppointment.appointmentId}</span>
+                                    <span className={`status-badge large ${getStatusClass(selectedAppointment.status)}`}>
+                                        {selectedAppointment.status || 'Not set'}
+                                    </span>
+                                </div>
+
                                 <div className="detail-section">
-                                    <h4>Appointment Information</h4>
-                                    <div className="detail-row">
-                                        <span className="detail-label">Appointment ID:</span>
-                                        <span className="detail-value">{selectedAppointment.appointmentId}</span>
-                                    </div>
-                                    <div className="detail-row">
-                                        <span className="detail-label">Status:</span>
-                                        <span className={`status-badge ${getStatusClass(selectedAppointment.status)}`}>
-                                            {selectedAppointment.status}
-                                        </span>
-                                    </div>
-                                    <div className="detail-row">
-                                        <span className="detail-label">Date & Time:</span>
-                                        <span className="detail-value">
-                                            {formatDateTime(selectedAppointment.appointmentDateTime).date} at {formatDateTime(selectedAppointment.appointmentDateTime).time}
-                                        </span>
-                                    </div>
-                                    <div className="detail-row">
-                                        <span className="detail-label">Reason:</span>
-                                        <span className="detail-value">{selectedAppointment.reason || 'N/A'}</span>
-                                    </div>
-                                    <div className="detail-row">
-                                        <span className="detail-label">Notes:</span>
-                                        <span className="detail-value">{selectedAppointment.notes || 'N/A'}</span>
+                                    <h4 className="section-title"><i className="fas fa-calendar-alt"></i> Appointment Information</h4>
+                                    <div className="detail-content">
+                                        <div className="detail-row">
+                                            <span className="detail-label">Date:</span>
+                                            <span className="detail-value">
+                                                {formatDateTime(selectedAppointment.appointmentDate).date || 'Not set'}
+                                            </span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Time:</span>
+                                            <span className="detail-value">
+                                                {formatDateTime(selectedAppointment.startTime).time || 'Not set'}
+                                            </span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Reason:</span>
+                                            <span className="detail-value">{selectedAppointment.reason || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Notes:</span>
+                                            <span className="detail-value">{selectedAppointment.notes || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Fee:</span>
+                                            <span className="detail-value">{selectedAppointment.appointmentFee ? `$${selectedAppointment.appointmentFee}` : 'Not set'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Payment Status:</span>
+                                            <span className="detail-value">
+                                                <span className={`payment-badge ${selectedAppointment.isPaid ? 'paid' : 'unpaid'}`}>
+                                                    {selectedAppointment.isPaid ? 'Paid' : 'Unpaid'}
+                                                </span>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 <div className="detail-section">
-                                    <h4>Patient Information</h4>
-                                    {selectedAppointment.patient ? (
-                                        <>
-                                            <div className="detail-row">
-                                                <span className="detail-label">Patient ID:</span>
-                                                <span className="detail-value">{selectedAppointment.patient.patientId}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="detail-label">Name:</span>
-                                                <span className="detail-value">{selectedAppointment.patient.firstName} {selectedAppointment.patient.lastName}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="detail-label">Email:</span>
-                                                <span className="detail-value">{selectedAppointment.patient.email}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="detail-label">Phone:</span>
-                                                <span className="detail-value">{selectedAppointment.patient.phoneNumber || 'N/A'}</span>
-                                            </div>
-                                        </>
-                                    ) : (
+                                    <h4 className="section-title"><i className="fas fa-user-injured"></i> Patient Information</h4>
+                                    <div className="detail-content">
                                         <div className="detail-row">
-                                            <span className="detail-value">Patient information not available</span>
+                                            <span className="detail-label">Patient ID:</span>
+                                            <span className="detail-value">{selectedAppointment.patientId || 'N/A'}</span>
                                         </div>
-                                    )}
+                                        <div className="detail-row">
+                                            <span className="detail-label">Name:</span>
+                                            <span className="detail-value">{selectedAppointment.patientName || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Email:</span>
+                                            <span className="detail-value">{selectedAppointment.patientEmail || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Phone:</span>
+                                            <span className="detail-value">{selectedAppointment.patientPhone || 'N/A'}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div className="detail-section">
-                                    <h4>Doctor Information</h4>
-                                    {selectedAppointment.doctor ? (
-                                        <>
-                                            <div className="detail-row">
-                                                <span className="detail-label">Doctor ID:</span>
-                                                <span className="detail-value">{selectedAppointment.doctor.doctorId}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="detail-label">Name:</span>
-                                                <span className="detail-value">Dr. {selectedAppointment.doctor.firstName} {selectedAppointment.doctor.lastName}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="detail-label">Email:</span>
-                                                <span className="detail-value">{selectedAppointment.doctor.email}</span>
-                                            </div>
-                                            <div className="detail-row">
-                                                <span className="detail-label">Specialization:</span>
-                                                <span className="detail-value">{selectedAppointment.doctor.specialization || 'N/A'}</span>
-                                            </div>
-                                        </>
-                                    ) : (
+                                    <h4 className="section-title"><i className="fas fa-user-md"></i> Doctor Information</h4>
+                                    <div className="detail-content">
                                         <div className="detail-row">
-                                            <span className="detail-value">Doctor information not available</span>
+                                            <span className="detail-label">Doctor ID:</span>
+                                            <span className="detail-value">{selectedAppointment.doctorId || 'N/A'}</span>
                                         </div>
-                                    )}
+                                        <div className="detail-row">
+                                            <span className="detail-label">Name:</span>
+                                            <span className="detail-value">{selectedAppointment.doctorName || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-row">
+                                            <span className="detail-label">Specialization:</span>
+                                            <span className="detail-value">{selectedAppointment.doctorSpecialization || 'N/A'}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="modal-actions">
                                 <button 
-                                    className="action-btn edit"
+                                    className="edit-appointment-btn"
                                     onClick={() => {
                                         setShowViewModal(false);
                                         handleOpenEditModal(selectedAppointment);
@@ -3049,10 +3969,10 @@ const AppointmentManagement = () => {
                                     <i className="fas fa-edit"></i> Edit Appointment
                                 </button>
                                 <button 
-                                    className="action-btn close"
+                                    className="close-button"
                                     onClick={() => setShowViewModal(false)}
                                 >
-                                    Close
+                                    <i className="fas fa-times"></i> Close
                                 </button>
                             </div>
                         </div>
@@ -3062,7 +3982,958 @@ const AppointmentManagement = () => {
         </div>
     );
 };
-const PaymentManagement = () => <div className="placeholder-section">Payment Management coming soon...</div>;
+
+const PaymentManagement = () => {
+    const [payments, setPayments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [selectedPayment, setSelectedPayment] = useState(null);
+    const [patients, setPatients] = useState([]);
+    const [appointments, setAppointments] = useState([]);
+    
+    // Form data for adding/editing payments
+    const [formData, setFormData] = useState({
+        appointmentId: '',
+        amount: '',
+        paymentDate: '',
+        paymentMethod: 'CASH',
+        status: 'COMPLETED',
+        type: 'CONSULTATION', // Add payment type
+        notes: ''
+    });
+    
+    // Filter states
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [dateFilter, setDateFilter] = useState('');
+    
+    // Add appointment search state
+    const [appointmentSearchTerm, setAppointmentSearchTerm] = useState('');
+    
+    useEffect(() => {
+        fetchPayments();
+        fetchPatients();
+        fetchAppointments();
+    }, []);
+    
+    const fetchPayments = async () => {
+        setLoading(true);
+        try {
+            let response;
+            try {
+                // First try with /api prefix
+                response = await axios.get('http://localhost:8080/api/payments', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
+            } catch (err) {
+                // Fall back to without /api prefix if needed
+                response = await axios.get('http://localhost:8080/payments', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+            }
+            
+            if (response.data) {
+                // Process the payments to ensure dates are properly formatted
+                const processedPayments = response.data.map(payment => {
+                    // For Dec 13, 2005 format as in the screenshot
+                    if (payment.paymentDate && payment.paymentDate.includes("urkee")) {
+                        // This is likely a string like "Dec 13, 2005 - urkee"
+                        return {
+                            ...payment,
+                            // Keep the original format for display
+                            displayDate: payment.paymentDate
+                        };
+                    }
+                    return payment;
+                });
+                
+                setPayments(processedPayments);
+            }
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching payments:', err);
+            setError('Failed to load payments. Please try again later.');
+            setLoading(false);
+        }
+    };
+    
+    const fetchPatients = async () => {
+        try {
+            let response;
+            try {
+                // First try with /api prefix
+                response = await axios.get('http://localhost:8080/api/patients', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
+            } catch (err) {
+                // Fall back to without /api prefix if needed
+                response = await axios.get('http://localhost:8080/patients', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+            }
+            
+            if (response.data) {
+                setPatients(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching patients:', err);
+            // Don't set error state here to avoid UI disruption in payment management
+        }
+    };
+    
+    const fetchAppointments = async () => {
+        try {
+            let response;
+            try {
+                // First try with /api prefix
+                response = await axios.get('http://localhost:8080/api/appointments', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
+            } catch (err) {
+                // Fall back to without /api prefix if needed
+                response = await axios.get('http://localhost:8080/appointments', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+            }
+            
+            if (response.data) {
+                setAppointments(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching appointments:', err);
+        }
+    };
+    
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
+    
+    const openAddModal = () => {
+        setFormData({
+            appointmentId: '',
+            amount: '',
+            paymentDate: new Date().toISOString().split('T')[0],
+            paymentMethod: 'CASH',
+            status: 'COMPLETED',
+            type: 'CONSULTATION', // Add payment type
+            notes: ''
+        });
+        setShowAddModal(true);
+    };
+    
+    const openEditModal = (payment) => {
+        setSelectedPayment(payment);
+        
+        // Safely format date with validation
+        let formattedDate = '';
+        if (payment.paymentDate) {
+            const dateObj = new Date(payment.paymentDate);
+            // Check if the date is valid before using toISOString
+            formattedDate = !isNaN(dateObj.getTime()) ? dateObj.toISOString().split('T')[0] : '';
+        }
+        
+        setFormData({
+            appointmentId: payment.appointmentId || '',
+            amount: payment.amount ? payment.amount.toString() : '',
+            paymentDate: formattedDate,
+            paymentMethod: payment.paymentMethod || 'CASH',
+            status: payment.status || 'COMPLETED',
+            type: payment.type || 'CONSULTATION', // Add payment type
+            notes: payment.notes || ''
+        });
+        setShowEditModal(true);
+    };
+    
+    const openViewModal = (payment) => {
+        setSelectedPayment(payment);
+        setShowViewModal(true);
+    };
+    
+    const handleAddPayment = async (e) => {
+        e.preventDefault();
+        
+        // Get the selected appointment
+        const selectedAppointment = appointments.find(a => a.appointmentId.toString() === formData.appointmentId.toString());
+        if (!selectedAppointment) {
+            alert('Please select a valid appointment');
+            return;
+        }
+        
+        try {
+            const paymentData = {
+                patientId: selectedAppointment.patientId,  // Get patientId from the selected appointment
+                appointmentId: formData.appointmentId,
+                amount: parseFloat(formData.amount),
+                paymentDate: formData.paymentDate ? `${formData.paymentDate}T00:00:00` : null, // Add time component
+                paymentMethod: formData.paymentMethod,
+                status: formData.status,
+                type: formData.type || 'CONSULTATION', // Add payment type
+                notes: formData.notes
+            };
+            
+            let response;
+            try {
+                response = await axios.post('http://localhost:8080/api/payments', paymentData, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch (err) {
+                response = await axios.post('http://localhost:8080/payments', paymentData, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+            
+            if (response.status === 201 || response.status === 200) {
+                alert('Payment added successfully!');
+                fetchPayments();
+                setShowAddModal(false);
+            }
+        } catch (err) {
+            console.error('Error adding payment:', err);
+            alert('Failed to add payment: ' + (err.response?.data?.message || err.message || 'Please try again.'));
+        }
+    };
+    
+    const handleUpdatePayment = async (e) => {
+        e.preventDefault();
+        if (!selectedPayment) return;
+        
+        // Get the selected appointment
+        const selectedAppointment = appointments.find(a => a.appointmentId.toString() === formData.appointmentId.toString());
+        if (!selectedAppointment) {
+            alert('Please select a valid appointment');
+            return;
+        }
+        
+        try {
+            // Safely format the payment date
+            let formattedPaymentDate = null;
+            if (formData.paymentDate) {
+                formattedPaymentDate = `${formData.paymentDate}T00:00:00`;
+            }
+            
+            const paymentData = {
+                patientId: selectedAppointment.patientId,  // Get patientId from the selected appointment
+                appointmentId: formData.appointmentId,
+                amount: parseFloat(formData.amount),
+                paymentDate: formattedPaymentDate, // Use safely formatted date
+                paymentMethod: formData.paymentMethod,
+                status: formData.status,
+                type: formData.type || 'CONSULTATION', // Add payment type 
+                notes: formData.notes
+            };
+            
+            let response;
+            try {
+                response = await axios.put(`http://localhost:8080/api/payments/${selectedPayment.paymentId}`, paymentData, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+            } catch (err) {
+                response = await axios.put(`http://localhost:8080/payments/${selectedPayment.paymentId}`, paymentData, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+            
+            if (response.status === 200) {
+                alert('Payment updated successfully!');
+                fetchPayments();
+                setShowEditModal(false);
+            }
+        } catch (err) {
+            console.error('Error updating payment:', err);
+            alert('Failed to update payment: ' + (err.response?.data?.message || err.message || 'Please try again.'));
+        }
+    };
+    
+    const handleDeletePayment = async (paymentId) => {
+        if (window.confirm('Are you sure you want to delete this payment?')) {
+            try {
+                let response;
+                try {
+                    response = await axios.delete(`http://localhost:8080/api/payments/${paymentId}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } catch (err) {
+                    response = await axios.delete(`http://localhost:8080/payments/${paymentId}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+                
+                if (response.status === 200 || response.status === 204) {
+                    alert('Payment deleted successfully!');
+                    fetchPayments();
+                }
+            } catch (err) {
+                console.error('Error deleting payment:', err);
+                alert('Failed to delete payment: ' + (err.response?.data?.message || err.message || 'Please try again.'));
+            }
+        }
+    };
+    
+    const formatDateTime = (dateTimeStr) => {
+        // If it's null or undefined
+        if (!dateTimeStr) {
+            return { date: 'N/A', time: 'N/A' };
+        }
+        
+        try {
+            // Try to parse the date
+            const date = new Date(dateTimeStr);
+            
+            // Check if the date is valid
+            if (isNaN(date.getTime())) {
+                return { date: 'N/A', time: 'N/A' };
+            }
+            
+            // Format the date and time
+            const formattedDate = date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            const formattedTime = date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            return { date: formattedDate, time: formattedTime };
+        } catch (error) {
+            console.error("Error formatting date/time:", error);
+            return { date: 'N/A', time: 'N/A' };
+        }
+    };
+    
+    const getStatusClass = (status) => {
+        switch (status) {
+            case 'COMPLETED':
+                return 'status-badge payment-badge paid';
+            case 'PENDING':
+                return 'status-badge payment-badge status-scheduled';
+            case 'REFUNDED':
+                return 'status-badge payment-badge status-cancelled';
+            case 'FAILED':
+                return 'status-badge payment-badge status-no-show';
+            case 'CANCELLED':
+                return 'status-badge payment-badge status-cancelled';
+            default:
+                return 'status-badge';
+        }
+    };
+    
+    const getPatientName = (patientId) => {
+        const patient = patients.find(p => p.patientId === patientId);
+        return patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
+    };
+    
+    const getAppointmentDetails = (appointmentId) => {
+        const appointment = appointments.find(a => a.appointmentId === appointmentId);
+        if (!appointment) return 'N/A';
+        
+        let dateStr = 'N/A';
+        if (appointment.appointmentDate) {
+            try {
+                const date = new Date(appointment.appointmentDate);
+                // Check if date is valid
+                if (!isNaN(date.getTime())) {
+                    dateStr = date.toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'short', 
+                        day: 'numeric' 
+                    });
+                }
+            } catch (error) {
+                console.error("Error formatting appointment date:", error);
+            }
+        }
+            
+        return `${dateStr} - ${appointment.reason || 'No reason provided'}`;
+    };
+    
+    const getFilteredPayments = () => {
+        let filtered = [...payments];
+        
+        // Filter by status
+        if (statusFilter !== 'ALL') {
+            filtered = filtered.filter(payment => payment.status === statusFilter);
+        }
+        
+        // Filter by date
+        if (dateFilter) {
+            filtered = filtered.filter(payment => {
+                if (!payment.paymentDate) return false;
+                return payment.paymentDate.includes(dateFilter);
+            });
+        }
+        
+        return filtered;
+    };
+    
+    if (loading) {
+        return (
+            <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Loading payments...</p>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="management-section">
+            <div className="management-header">
+                <div className="filters-container">
+                    <h3>Filters</h3>
+                    <div className="filters">
+                        <div className="filter-group">
+                            <label>Status:</label>
+                            <select 
+                                className="filter-select"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="ALL">All Statuses</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="REFUNDED">Refunded</option>
+                                <option value="FAILED">Failed</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                        </div>
+                        <div className="filter-group">
+                            <label>Date:</label>
+                            <input 
+                                type="date" 
+                                className="filter-date"
+                                value={dateFilter}
+                                onChange={(e) => setDateFilter(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <button className="add-btn" onClick={openAddModal}>
+                    <i className="fas fa-plus"></i>
+                    New Payment
+                </button>
+            </div>
+            
+            {error && <div className="error-message">{error}</div>}
+            
+            <div className="table-responsive">
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient</th>
+                            <th>Appointment</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {getFilteredPayments().length > 0 ? (
+                            getFilteredPayments().map(payment => (
+                                <tr key={payment.paymentId}>
+                                    <td>{payment.paymentId}</td>
+                                    <td>{getPatientName(payment.patientId)}</td>
+                                    <td>{getAppointmentDetails(payment.appointmentId)}</td>
+                                    <td>${payment.amount?.toFixed(2) || '0.00'}</td>
+                                    <td>{formatDateTime(payment.paymentDate).date}</td>
+                                    <td>{payment.paymentMethod}</td>
+                                    <td>
+                                        <span className={getStatusClass(payment.status)}>
+                                            {payment.status}
+                                        </span>
+                                    </td>
+                                    <td className="actions-cell">
+                                        <button 
+                                            className="action-btn view-btn" 
+                                            title="View"
+                                            onClick={() => openViewModal(payment)}
+                                        >
+                                            <i className="fas fa-eye"></i>
+                                        </button>
+                                        <button 
+                                            className="action-btn edit-btn" 
+                                            title="Edit"
+                                            onClick={() => openEditModal(payment)}
+                                        >
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                        <button 
+                                            className="action-btn delete-btn" 
+                                            title="Delete"
+                                            onClick={() => handleDeletePayment(payment.paymentId)}
+                                        >
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="8" className="no-data">No payments found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            
+            {/* Add Payment Modal */}
+            {showAddModal && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Add New Payment</h3>
+                            <button className="close-btn" onClick={() => setShowAddModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleAddPayment}>
+                                <div className="form-section">
+                                    <h4>Payment Details</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="appointmentSearch">Appointment* (ID, Patient, or Reason)</label>
+                                            <div className="searchable-dropdown">
+                                                <div className="search-input-container">
+                                                    <input
+                                                        type="text"
+                                                        id="appointmentSearch"
+                                                        placeholder="Search by ID, patient, or reason..."
+                                                        value={appointmentSearchTerm}
+                                                        onChange={(e) => setAppointmentSearchTerm(e.target.value)}
+                                                        className="search-input"
+                                                    />
+                                                    <i className="fas fa-search search-icon"></i>
+                                                </div>
+                                                <select
+                                                    id="appointmentId"
+                                                    name="appointmentId"
+                                                    value={formData.appointmentId}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                    className="dropdown-select"
+                                                >
+                                                    <option value="">Select Appointment</option>
+                                                    {appointments.map(appointment => (
+                                                        <option key={appointment.appointmentId} value={appointment.appointmentId}>
+                                                            {appointment.appointmentId} - {appointment.patientName || 'Unknown'} - {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.reason || 'No reason'}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Amount ($)</label>
+                                            <input 
+                                                type="number" 
+                                                name="amount" 
+                                                value={formData.amount} 
+                                                onChange={handleInputChange}
+                                                min="0.01" 
+                                                step="0.01" 
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Payment Date</label>
+                                            <input 
+                                                type="date" 
+                                                name="paymentDate" 
+                                                value={formData.paymentDate} 
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Payment Method</label>
+                                            <select 
+                                                name="paymentMethod" 
+                                                value={formData.paymentMethod} 
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="CASH">Cash</option>
+                                                <option value="CREDIT_CARD">Credit Card</option>
+                                                <option value="DEBIT_CARD">Debit Card</option>
+                                                <option value="INSURANCE">Insurance</option>
+                                                <option value="BANK_TRANSFER">Bank Transfer</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Payment Status</label>
+                                            <select 
+                                                name="status" 
+                                                value={formData.status} 
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="COMPLETED">Completed</option>
+                                                <option value="PENDING">Pending</option>
+                                                <option value="REFUNDED">Refunded</option>
+                                                <option value="FAILED">Failed</option>
+                                                <option value="CANCELLED">Cancelled</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Payment Type</label>
+                                            <select 
+                                                name="type" 
+                                                value={formData.type} 
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="CONSULTATION">Consultation</option>
+                                                <option value="PROCEDURE">Procedure</option>
+                                                <option value="MEDICATION">Medication</option>
+                                                <option value="LABORATORY">Laboratory</option>
+                                                <option value="IMAGING">Imaging</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Notes</label>
+                                        <textarea 
+                                            name="notes" 
+                                            value={formData.notes} 
+                                            onChange={handleInputChange}
+                                            rows="3"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn" 
+                                        onClick={() => setShowAddModal(false)}
+                                    >
+                                    Cancel
+                                </button>
+                                    <button type="submit" className="submit-btn">
+                                        Add Payment
+                                </button>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Edit Payment Modal */}
+            {showEditModal && selectedPayment && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Edit Payment</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleUpdatePayment}>
+                                <div className="form-section">
+                                    <h4>Payment Details</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="appointmentSearch">Appointment* (ID, Patient, or Reason)</label>
+                                            <div className="searchable-dropdown">
+                                                <div className="search-input-container">
+                                                    <input
+                                                        type="text"
+                                                        id="appointmentSearch"
+                                                        placeholder="Search by ID, patient, or reason..."
+                                                        value={appointmentSearchTerm}
+                                                        onChange={(e) => setAppointmentSearchTerm(e.target.value)}
+                                                        className="search-input"
+                                                    />
+                                                    <i className="fas fa-search search-icon"></i>
+                                                </div>
+                                                <select
+                                                    id="appointmentId"
+                                                    name="appointmentId"
+                                                    value={formData.appointmentId}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                    className="dropdown-select"
+                                                >
+                                                    <option value="">Select Appointment</option>
+                                                    {appointments.map(appointment => (
+                                                        <option key={appointment.appointmentId} value={appointment.appointmentId}>
+                                                            {appointment.appointmentId} - {appointment.patientName || 'Unknown'} - {new Date(appointment.appointmentDate).toLocaleDateString()} - {appointment.reason || 'No reason'}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Amount ($)</label>
+                                            <input 
+                                                type="number" 
+                                                name="amount" 
+                                                value={formData.amount} 
+                                                onChange={handleInputChange}
+                                                min="0.01" 
+                                                step="0.01" 
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Payment Date</label>
+                                            <input 
+                                                type="date" 
+                                                name="paymentDate" 
+                                                value={formData.paymentDate} 
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Payment Method</label>
+                                            <select 
+                                                name="paymentMethod" 
+                                                value={formData.paymentMethod} 
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="CASH">Cash</option>
+                                                <option value="CREDIT_CARD">Credit Card</option>
+                                                <option value="DEBIT_CARD">Debit Card</option>
+                                                <option value="INSURANCE">Insurance</option>
+                                                <option value="BANK_TRANSFER">Bank Transfer</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Payment Status</label>
+                                            <select 
+                                                name="status" 
+                                                value={formData.status} 
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="COMPLETED">Completed</option>
+                                                <option value="PENDING">Pending</option>
+                                                <option value="REFUNDED">Refunded</option>
+                                                <option value="FAILED">Failed</option>
+                                                <option value="CANCELLED">Cancelled</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Payment Type</label>
+                                            <select 
+                                                name="type" 
+                                                value={formData.type} 
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="CONSULTATION">Consultation</option>
+                                                <option value="PROCEDURE">Procedure</option>
+                                                <option value="MEDICATION">Medication</option>
+                                                <option value="LABORATORY">Laboratory</option>
+                                                <option value="IMAGING">Imaging</option>
+                                                <option value="OTHER">Other</option>
+                                            </select>
+                                        </div>
+                                        </div>
+                                        <div className="form-group">
+                                        <label>Notes</label>
+                                        <textarea 
+                                            name="notes" 
+                                            value={formData.notes} 
+                                            onChange={handleInputChange}
+                                            rows="3"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn" 
+                                        onClick={() => setShowEditModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        Update Payment
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* View Payment Modal */}
+            {showViewModal && selectedPayment && (
+                <div className="modal-overlay">
+                    <div className="modal-container view-appointment-modal">
+                        <div className="modal-header">
+                            <h3>Payment Details</h3>
+                            <button className="close-btn" onClick={() => setShowViewModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="appointment-id-section">
+                                <span className="appointment-id">Payment ID: {selectedPayment.paymentId}</span>
+                                <span className={getStatusClass(selectedPayment.status) + " large"}>
+                                    {selectedPayment.status}
+                                </span>
+                            </div>
+                            
+                            <div className="detail-section">
+                                <h4 className="section-title">
+                                    <i className="fas fa-money-bill-wave"></i> Payment Information
+                                </h4>
+                                <div className="detail-content">
+                                    <div className="detail-row">
+                                        <span className="detail-label">Amount:</span>
+                                        <span className="detail-value">
+                                            ${selectedPayment.amount?.toFixed(2) || '0.00'}
+                                        </span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Payment Date:</span>
+                                        <span className="detail-value">
+                                            {formatDateTime(selectedPayment.paymentDate).date || 'Not set'}
+                                        </span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Payment Method:</span>
+                                        <span className="detail-value">
+                                            {selectedPayment.paymentMethod || 'Not specified'}
+                                        </span>
+                                    </div>
+                                    <div className="detail-row">
+                                        <span className="detail-label">Payment Type:</span>
+                                        <span className="detail-value">
+                                            {selectedPayment.type || 'Consultation'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="detail-section">
+                                <h4 className="section-title">
+                                    <i className="fas fa-user"></i> Patient Information
+                                </h4>
+                                <div className="detail-content">
+                                    <div className="detail-row">
+                                        <span className="detail-label">Patient:</span>
+                                        <span className="detail-value">
+                                            {getPatientName(selectedPayment.patientId)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="detail-section">
+                                <h4 className="section-title">
+                                    <i className="fas fa-calendar-check"></i> Appointment Information
+                                </h4>
+                                <div className="detail-content">
+                                    <div className="detail-row">
+                                        <span className="detail-label">Appointment:</span>
+                                        <span className="detail-value">
+                                            {getAppointmentDetails(selectedPayment.appointmentId)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {selectedPayment.notes && (
+                                <div className="detail-section">
+                                    <h4 className="section-title">
+                                        <i className="fas fa-sticky-note"></i> Notes
+                                    </h4>
+                                    <div className="detail-content">
+                                        <div className="detail-row">
+                                            <span className="detail-value">
+                                                {selectedPayment.notes}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className="modal-actions">
+                                <button 
+                                    className="close-button"
+                                    onClick={() => setShowViewModal(false)}
+                                >
+                                    <i className="fas fa-times"></i> Close
+                                </button>
+                                <button 
+                                    className="edit-appointment-btn"
+                                    onClick={() => {
+                                        setShowViewModal(false);
+                                        openEditModal(selectedPayment);
+                                    }}
+                                >
+                                    <i className="fas fa-edit"></i> Edit Payment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const DepartmentManagement = () => {
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -3203,7 +5074,7 @@ const DepartmentManagement = () => {
     }
 
     return (
-        <div className="management-container">
+        <div className="management-section">
             <div className="management-header">
                 <h2>Department Management</h2>
                 <button className="add-btn" onClick={openAddModal}>
@@ -3297,7 +5168,7 @@ const DepartmentManagement = () => {
                                     </div>
                                     <div className="form-group">
                                         <label htmlFor="headDoctorId">Head Doctor</label>
-                                        <select
+                                            <select 
                                             id="headDoctorId"
                                             name="headDoctorId"
                                             value={formData.headDoctorId}
@@ -3318,13 +5189,13 @@ const DepartmentManagement = () => {
                                         className="cancel-btn"
                                         onClick={() => setShowAddModal(false)}
                                     >
-                                        Cancel
-                                    </button>
+                                    Cancel
+                                </button>
                                     <button type="submit" className="submit-btn">
                                         Add Department
-                                    </button>
-                                </div>
-                            </form>
+                                </button>
+                            </div>
+                        </form>
                         </div>
                     </div>
                 </div>
@@ -3403,7 +5274,1022 @@ const DepartmentManagement = () => {
         </div>
     );
 };
-const MedicalRecordManagement = () => <div className="placeholder-section">Medical Record Management coming soon...</div>;
+const MedicalRecordManagement = () => {
+    const [medicalRecords, setMedicalRecords] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [patients, setPatients] = useState([]);
+    const [doctors, setDoctors] = useState([]);
+    const [appointments, setAppointments] = useState([]);
+    
+    // Modal states
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState(null);
+    
+    // Filter states
+    const [patientFilter, setPatientFilter] = useState('');
+    const [recordTypeFilter, setRecordTypeFilter] = useState('ALL');
+    const [dateFilter, setDateFilter] = useState('');
+    
+    // Form data
+    const [formData, setFormData] = useState({
+        patientId: '',
+        doctorId: '',
+        appointmentId: '',
+        recordType: 'GENERAL_CHECKUP',
+        diagnosis: '',
+        symptoms: '',
+        treatment: '',
+        notes: '',
+        prescription: '',
+        testResults: '',
+        medicalHistory: '',
+        recordDate: new Date().toISOString().split('T')[0],
+        nextAppointment: ''
+    });
+    
+    useEffect(() => {
+        fetchMedicalRecords();
+        fetchPatients();
+        fetchDoctors();
+        fetchAppointments();
+    }, []);
+    
+    const fetchMedicalRecords = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/medical-records', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
+            } catch (err) {
+                // Try without /api prefix if first attempt fails
+                response = await axios.get('http://localhost:8080/medical-records', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: 10000
+                });
+            }
+            
+            console.log('Medical records data received:', response.data);
+            setMedicalRecords(response.data || []);
+            setError('');
+        } catch (err) {
+            console.error('Error fetching medical records:', err);
+            const errorMessage = err.response?.data?.message || 
+                                err.message || 
+                                'Failed to load medical records. Please try again later.';
+            setError(`Error: ${errorMessage}`);
+            setMedicalRecords([]); // Set empty array instead of undefined
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const fetchPatients = async () => {
+        try {
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/patients');
+            } catch (err) {
+                response = await axios.get('http://localhost:8080/patients');
+            }
+            
+            if (response.data) {
+                setPatients(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching patients:', err);
+        }
+    };
+    
+    const fetchDoctors = async () => {
+        try {
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/doctors');
+            } catch (err) {
+                response = await axios.get('http://localhost:8080/doctors');
+            }
+            
+            if (response.data) {
+                setDoctors(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching doctors:', err);
+        }
+    };
+    
+    const fetchAppointments = async () => {
+        try {
+            let response;
+            try {
+                response = await axios.get('http://localhost:8080/api/appointments');
+            } catch (err) {
+                response = await axios.get('http://localhost:8080/appointments');
+            }
+            
+            if (response.data) {
+                setAppointments(response.data);
+            }
+        } catch (err) {
+            console.error('Error fetching appointments:', err);
+        }
+    };
+    
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+    };
+    
+    const openAddModal = () => {
+        setFormData({
+            patientId: '',
+            doctorId: '',
+            appointmentId: '',
+            recordType: 'GENERAL_CHECKUP',
+            diagnosis: '',
+            symptoms: '',
+            treatment: '',
+            notes: '',
+            prescription: '',
+            testResults: '',
+            medicalHistory: '',
+            recordDate: new Date().toISOString().split('T')[0],
+            nextAppointment: ''
+        });
+        setShowAddModal(true);
+    };
+    
+    const openEditModal = (record) => {
+        setSelectedRecord(record);
+        
+        let recordDate = '';
+        let nextAppointment = '';
+        
+        try {
+            if (record.recordDate) {
+                const recordDateObj = new Date(record.recordDate);
+                if (!isNaN(recordDateObj.getTime())) {
+                    recordDate = recordDateObj.toISOString().split('T')[0];
+                }
+            }
+            
+            if (record.nextAppointment) {
+                const nextAppointmentObj = new Date(record.nextAppointment);
+                if (!isNaN(nextAppointmentObj.getTime())) {
+                    nextAppointment = nextAppointmentObj.toISOString().split('T')[0];
+                }
+            }
+        } catch (error) {
+            console.error("Date parsing error:", error);
+        }
+        
+        setFormData({
+            patientId: record.patientId || '',
+            doctorId: record.doctorId || '',
+            appointmentId: record.appointmentId || '',
+            recordType: record.recordType || 'GENERAL_CHECKUP',
+            diagnosis: record.diagnosis || '',
+            symptoms: record.symptoms || '',
+            treatment: record.treatment || '',
+            notes: record.notes || '',
+            prescription: record.prescription || '',
+            testResults: record.testResults || '',
+            medicalHistory: record.medicalHistory || '',
+            recordDate: recordDate,
+            nextAppointment: nextAppointment
+        });
+        setShowEditModal(true);
+    };
+    
+    const openViewModal = (record) => {
+        setSelectedRecord(record);
+        setShowViewModal(true);
+    };
+    
+    const handleAddRecord = async (e) => {
+        e.preventDefault();
+        // Format dates to include time component for LocalDateTime
+        const formattedData = {
+            ...formData,
+            recordDate: formData.recordDate ? `${formData.recordDate}T00:00:00` : null,
+            nextAppointment: formData.nextAppointment ? `${formData.nextAppointment}T00:00:00` : null
+        };
+        
+        try {
+            let response;
+            try {
+                response = await axios.post('http://localhost:8080/api/medical-records', formattedData);
+            } catch (err) {
+                response = await axios.post('http://localhost:8080/medical-records', formattedData);
+            }
+            
+            if (response.status === 201 || response.status === 200) {
+                fetchMedicalRecords();
+                setShowAddModal(false);
+                alert('Medical record added successfully!');
+            }
+        } catch (err) {
+            console.error('Error adding medical record:', err);
+            alert(err.response?.data?.message || 'Failed to add medical record. Please try again.');
+        }
+    };
+    
+    const handleUpdateRecord = async (e) => {
+        e.preventDefault();
+        if (!selectedRecord || !selectedRecord.recordId) {
+            console.error('Cannot update record: No record selected or record ID is missing');
+            alert('Error: Cannot update medical record - record ID is missing.');
+            return;
+        }
+        
+        // Format dates to include time component for LocalDateTime
+        const formattedData = {
+            ...formData,
+            recordDate: formData.recordDate ? `${formData.recordDate}T00:00:00` : null,
+            nextAppointment: formData.nextAppointment ? `${formData.nextAppointment}T00:00:00` : null
+        };
+        
+        try {
+            console.log(`Updating medical record with ID: ${selectedRecord.recordId}`);
+            let response;
+            try {
+                response = await axios.put(`http://localhost:8080/api/medical-records/${selectedRecord.recordId}`, formattedData);
+            } catch (err) {
+                response = await axios.put(`http://localhost:8080/medical-records/${selectedRecord.recordId}`, formattedData);
+            }
+            
+            if (response.status === 200) {
+                fetchMedicalRecords();
+                setShowEditModal(false);
+                alert('Medical record updated successfully!');
+            }
+        } catch (err) {
+            console.error('Error updating medical record:', err);
+            alert(err.response?.data?.message || 'Failed to update medical record. Please try again.');
+        }
+    };
+    
+    const handleDeleteRecord = async (recordId) => {
+        if (window.confirm('Are you sure you want to delete this medical record? This action cannot be undone.')) {
+            try {
+                let response;
+                try {
+                    response = await axios.delete(`http://localhost:8080/api/medical-records/${recordId}`);
+                } catch (err) {
+                    response = await axios.delete(`http://localhost:8080/medical-records/${recordId}`);
+                }
+                
+                if (response.status === 204 || response.status === 200) {
+                    fetchMedicalRecords();
+                    alert('Medical record deleted successfully!');
+                }
+            } catch (err) {
+                console.error('Error deleting medical record:', err);
+                alert(err.response?.data?.message || 'Failed to delete medical record. Please try again.');
+            }
+        }
+    };
+    
+    // Format date for display
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'N/A';
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric'
+        });
+    };
+    
+    const getRecordTypeClass = (recordType) => {
+        const classes = {
+            'GENERAL_CHECKUP': 'status-pending',
+            'EMERGENCY': 'status-rejected',
+            'FOLLOW_UP': 'status-completed',
+            'SURGERY': 'status-rejected',
+            'LAB_TEST': 'status-pending',
+            'IMAGING': 'status-pending',
+            'VACCINATION': 'status-completed',
+            'CONSULTATION': 'status-completed'
+        };
+        return classes[recordType] || 'status-pending';
+    };
+    
+    const getPatientName = (patientId) => {
+        const patient = patients.find(p => p.patientId === patientId);
+        return patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
+    };
+    
+    const getDoctorName = (doctorId) => {
+        const doctor = doctors.find(d => d.doctorId === doctorId);
+        return doctor ? `Dr. ${doctor.firstName} ${doctor.lastName}` : 'Unknown Doctor';
+    };
+    
+    const getFilteredRecords = () => {
+        return medicalRecords.filter(record => {
+            // Filter by patient
+            if (patientFilter && record.patientId !== patientFilter) {
+                return false;
+            }
+            
+            // Filter by record type
+            if (recordTypeFilter !== 'ALL' && record.recordType !== recordTypeFilter) {
+                return false;
+            }
+            
+            // Filter by date
+            if (dateFilter && record.recordDate) {
+                const recordDate = new Date(record.recordDate).toISOString().split('T')[0];
+                if (recordDate !== dateFilter) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+    };
+    
+    if (isLoading) {
+        return (
+            <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Loading medical records...</p>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="management-section">
+            <div className="management-header">
+                <div className="filters-container">
+                    <h3>Filters</h3>
+                    <div className="filters">
+                        <div className="filter-group">
+                            <label>Patient:</label>
+                            <select 
+                                className="filter-select"
+                                value={patientFilter}
+                                onChange={(e) => setPatientFilter(e.target.value)}
+                            >
+                                <option value="">All Patients</option>
+                                {patients.map(patient => (
+                                    <option key={patient.patientId} value={patient.patientId}>
+                                        {patient.firstName} {patient.lastName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="filter-group">
+                            <label>Record Type:</label>
+                            <select 
+                                className="filter-select"
+                                value={recordTypeFilter}
+                                onChange={(e) => setRecordTypeFilter(e.target.value)}
+                            >
+                                <option value="ALL">All Types</option>
+                                <option value="GENERAL_CHECKUP">General Checkup</option>
+                                <option value="EMERGENCY">Emergency</option>
+                                <option value="FOLLOW_UP">Follow-up</option>
+                                <option value="SURGERY">Surgery</option>
+                                <option value="LAB_TEST">Lab Test</option>
+                                <option value="IMAGING">Imaging</option>
+                                <option value="VACCINATION">Vaccination</option>
+                                <option value="CONSULTATION">Consultation</option>
+                            </select>
+                        </div>
+                        <div className="filter-group">
+                            <label>Date:</label>
+                            <input 
+                                type="date" 
+                                className="filter-date"
+                                value={dateFilter}
+                                onChange={(e) => setDateFilter(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <button className="add-btn" onClick={openAddModal}>
+                    <i className="fas fa-plus"></i>
+                    New Medical Record
+                </button>
+            </div>
+            
+            {error && (
+                <div className="error-container">
+                    <div className="error-message">
+                        <i className="fas fa-exclamation-circle"></i>
+                        <span>{error}</span>
+                    </div>
+                    <button 
+                        className="retry-btn" 
+                        onClick={() => {
+                            setError('');
+                            fetchMedicalRecords();
+                        }}
+                    >
+                        <i className="fas fa-sync"></i> Retry
+                    </button>
+                </div>
+            )}
+            
+            <div className="table-responsive">
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>Record ID</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Record Type</th>
+                            <th>Diagnosis</th>
+                            <th>Record Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {getFilteredRecords().length > 0 ? (
+                            getFilteredRecords().map(record => (
+                                <tr key={record.recordId}>
+                                    <td>{record.recordId}</td>
+                                    <td>{getPatientName(record.patientId)}</td>
+                                    <td>{getDoctorName(record.doctorId)}</td>
+                                    <td>
+                                        <span className={`status-badge ${getRecordTypeClass(record.recordType)}`}>
+                                            {record.recordType?.replace('_', ' ')}
+                                        </span>
+                                    </td>
+                                    <td>{record.diagnosis || 'N/A'}</td>
+                                    <td>{formatDate(record.recordDate)}</td>
+                                    <td className="actions-cell">
+                                        <button 
+                                            className="action-btn view" 
+                                            onClick={() => openViewModal(record)}
+                                            title="View Details"
+                                        >
+                                            <i className="fas fa-eye"></i>
+                                        </button>
+                                        <button 
+                                            className="action-btn edit" 
+                                            onClick={() => openEditModal(record)}
+                                            title="Edit"
+                                        >
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                        <button 
+                                            className="action-btn delete" 
+                                            onClick={() => handleDeleteRecord(record.recordId)}
+                                            title="Delete"
+                                        >
+                                            <i className="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="7" className="no-data">No medical records found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+            
+            {/* Add Medical Record Modal */}
+            {showAddModal && (
+                <div className="modal-overlay">
+                    <div className="modal-container large-modal">
+                        <div className="modal-header">
+                            <h3>Add New Medical Record</h3>
+                            <button className="close-btn" onClick={() => setShowAddModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleAddRecord}>
+                                <div className="form-section">
+                                    <h4>Basic Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="patientId">Patient*</label>
+                                            <select
+                                                id="patientId"
+                                                name="patientId"
+                                                value={formData.patientId}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="">Select Patient</option>
+                                                {patients.map(patient => (
+                                                    <option key={patient.patientId} value={patient.patientId}>
+                                                        {patient.firstName} {patient.lastName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="doctorId">Doctor*</label>
+                                            <select
+                                                id="doctorId"
+                                                name="doctorId"
+                                                value={formData.doctorId}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="">Select Doctor</option>
+                                                {doctors.map(doctor => (
+                                                    <option key={doctor.doctorId} value={doctor.doctorId}>
+                                                        Dr. {doctor.firstName} {doctor.lastName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="appointmentId">Related Appointment</label>
+                                            <select
+                                                id="appointmentId"
+                                                name="appointmentId"
+                                                value={formData.appointmentId}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Appointment</option>
+                                                {appointments.map(appointment => (
+                                                    <option key={appointment.appointmentId} value={appointment.appointmentId}>
+                                                        {formatDate(appointment.appointmentDate)} - {appointment.reason?.substring(0, 30)}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="recordType">Record Type*</label>
+                                            <select
+                                                id="recordType"
+                                                name="recordType"
+                                                value={formData.recordType}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="GENERAL_CHECKUP">General Checkup</option>
+                                                <option value="EMERGENCY">Emergency</option>
+                                                <option value="FOLLOW_UP">Follow-up</option>
+                                                <option value="SURGERY">Surgery</option>
+                                                <option value="LAB_TEST">Lab Test</option>
+                                                <option value="IMAGING">Imaging</option>
+                                                <option value="VACCINATION">Vaccination</option>
+                                                <option value="CONSULTATION">Consultation</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="recordDate">Record Date*</label>
+                                            <input
+                                                type="date"
+                                                id="recordDate"
+                                                name="recordDate"
+                                                value={formData.recordDate}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="nextAppointment">Next Appointment</label>
+                                            <input
+                                                type="date"
+                                                id="nextAppointment"
+                                                name="nextAppointment"
+                                                value={formData.nextAppointment}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-section">
+                                    <h4>Medical Details</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="diagnosis">Diagnosis</label>
+                                            <input
+                                                type="text"
+                                                id="diagnosis"
+                                                name="diagnosis"
+                                                value={formData.diagnosis}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="symptoms">Symptoms</label>
+                                            <textarea
+                                                id="symptoms"
+                                                name="symptoms"
+                                                value={formData.symptoms}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="treatment">Treatment</label>
+                                            <textarea
+                                                id="treatment"
+                                                name="treatment"
+                                                value={formData.treatment}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="prescription">Prescription</label>
+                                            <textarea
+                                                id="prescription"
+                                                name="prescription"
+                                                value={formData.prescription}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="testResults">Test Results</label>
+                                            <textarea
+                                                id="testResults"
+                                                name="testResults"
+                                                value={formData.testResults}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="notes">Additional Notes</label>
+                                            <textarea
+                                                id="notes"
+                                                name="notes"
+                                                value={formData.notes}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="medicalHistory">Medical History</label>
+                                            <textarea
+                                                id="medicalHistory"
+                                                name="medicalHistory"
+                                                value={formData.medicalHistory}
+                                                onChange={handleInputChange}
+                                                rows="4"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowAddModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        <i className="fas fa-save"></i> Add Medical Record
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* Edit Medical Record Modal */}
+            {showEditModal && selectedRecord && (
+                <div className="modal-overlay">
+                    <div className="modal-container large-modal">
+                        <div className="modal-header">
+                            <h3>Edit Medical Record</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleUpdateRecord}>
+                                <div className="form-section">
+                                    <h4>Basic Information</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="patientId">Patient*</label>
+                                            <select
+                                                id="patientId"
+                                                name="patientId"
+                                                value={formData.patientId}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="">Select Patient</option>
+                                                {patients.map(patient => (
+                                                    <option key={patient.patientId} value={patient.patientId}>
+                                                        {patient.firstName} {patient.lastName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="doctorId">Doctor*</label>
+                                            <select
+                                                id="doctorId"
+                                                name="doctorId"
+                                                value={formData.doctorId}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="">Select Doctor</option>
+                                                {doctors.map(doctor => (
+                                                    <option key={doctor.doctorId} value={doctor.doctorId}>
+                                                        Dr. {doctor.firstName} {doctor.lastName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="appointmentId">Related Appointment</label>
+                                            <select
+                                                id="appointmentId"
+                                                name="appointmentId"
+                                                value={formData.appointmentId}
+                                                onChange={handleInputChange}
+                                            >
+                                                <option value="">Select Appointment</option>
+                                                {appointments.map(appointment => (
+                                                    <option key={appointment.appointmentId} value={appointment.appointmentId}>
+                                                        {formatDate(appointment.appointmentDate)} - {appointment.reason?.substring(0, 30)}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="recordType">Record Type*</label>
+                                            <select
+                                                id="recordType"
+                                                name="recordType"
+                                                value={formData.recordType}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="GENERAL_CHECKUP">General Checkup</option>
+                                                <option value="EMERGENCY">Emergency</option>
+                                                <option value="FOLLOW_UP">Follow-up</option>
+                                                <option value="SURGERY">Surgery</option>
+                                                <option value="LAB_TEST">Lab Test</option>
+                                                <option value="IMAGING">Imaging</option>
+                                                <option value="VACCINATION">Vaccination</option>
+                                                <option value="CONSULTATION">Consultation</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="recordDate">Record Date*</label>
+                                            <input
+                                                type="date"
+                                                id="recordDate"
+                                                name="recordDate"
+                                                value={formData.recordDate}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="nextAppointment">Next Appointment</label>
+                                            <input
+                                                type="date"
+                                                id="nextAppointment"
+                                                name="nextAppointment"
+                                                value={formData.nextAppointment}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-section">
+                                    <h4>Medical Details</h4>
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="diagnosis">Diagnosis</label>
+                                            <input
+                                                type="text"
+                                                id="diagnosis"
+                                                name="diagnosis"
+                                                value={formData.diagnosis}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="symptoms">Symptoms</label>
+                                            <textarea
+                                                id="symptoms"
+                                                name="symptoms"
+                                                value={formData.symptoms}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="treatment">Treatment</label>
+                                            <textarea
+                                                id="treatment"
+                                                name="treatment"
+                                                value={formData.treatment}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="prescription">Prescription</label>
+                                            <textarea
+                                                id="prescription"
+                                                name="prescription"
+                                                value={formData.prescription}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="testResults">Test Results</label>
+                                            <textarea
+                                                id="testResults"
+                                                name="testResults"
+                                                value={formData.testResults}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="notes">Additional Notes</label>
+                                            <textarea
+                                                id="notes"
+                                                name="notes"
+                                                value={formData.notes}
+                                                onChange={handleInputChange}
+                                                rows="3"
+                                            ></textarea>
+                                        </div>
+                                        <div className="form-group wide">
+                                            <label htmlFor="medicalHistory">Medical History</label>
+                                            <textarea
+                                                id="medicalHistory"
+                                                name="medicalHistory"
+                                                value={formData.medicalHistory}
+                                                onChange={handleInputChange}
+                                                rows="4"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="form-actions">
+                                    <button 
+                                        type="button" 
+                                        className="cancel-btn"
+                                        onClick={() => setShowEditModal(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">
+                                        <i className="fas fa-save"></i> Update Medical Record
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* View Medical Record Modal */}
+            {showViewModal && selectedRecord && (
+                <div className="modal-overlay">
+                    <div className="modal-container large-modal">
+                        <div className="modal-header">
+                            <h3>Medical Record Details</h3>
+                            <button className="close-btn" onClick={() => setShowViewModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="detail-sections">
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-info-circle"></i> Basic Information</h4>
+                                    <div className="details-grid">
+                                        <div className="detail-item">
+                                            <span className="detail-label">Record ID:</span>
+                                            <span className="detail-value">{selectedRecord.recordId}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Patient:</span>
+                                            <span className="detail-value">{getPatientName(selectedRecord.patientId)}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Doctor:</span>
+                                            <span className="detail-value">{getDoctorName(selectedRecord.doctorId)}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Record Type:</span>
+                                            <span className="detail-value">
+                                                <span className={`status-badge ${getRecordTypeClass(selectedRecord.recordType)}`}>
+                                                    {selectedRecord.recordType?.replace('_', ' ')}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Record Date:</span>
+                                            <span className="detail-value">{formatDate(selectedRecord.recordDate)}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Next Appointment:</span>
+                                            <span className="detail-value">{formatDate(selectedRecord.nextAppointment)}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Created At:</span>
+                                            <span className="detail-value">{formatDate(selectedRecord.createdAt)}</span>
+                                        </div>
+                                        <div className="detail-item">
+                                            <span className="detail-label">Last Updated:</span>
+                                            <span className="detail-value">{formatDate(selectedRecord.updatedAt)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-stethoscope"></i> Medical Details</h4>
+                                    <div className="details-grid">
+                                        <div className="detail-item wide">
+                                            <span className="detail-label">Diagnosis:</span>
+                                            <span className="detail-value">{selectedRecord.diagnosis || 'N/A'}</span>
+                                        </div>
+                                        <div className="detail-item wide">
+                                            <span className="detail-label">Symptoms:</span>
+                                            <div className="detail-text">{selectedRecord.symptoms || 'N/A'}</div>
+                                        </div>
+                                        <div className="detail-item wide">
+                                            <span className="detail-label">Treatment:</span>
+                                            <div className="detail-text">{selectedRecord.treatment || 'N/A'}</div>
+                                        </div>
+                                        <div className="detail-item wide">
+                                            <span className="detail-label">Prescription:</span>
+                                            <div className="detail-text">{selectedRecord.prescription || 'N/A'}</div>
+                                        </div>
+                                        <div className="detail-item wide">
+                                            <span className="detail-label">Test Results:</span>
+                                            <div className="detail-text">{selectedRecord.testResults || 'N/A'}</div>
+                                        </div>
+                                        <div className="detail-item wide">
+                                            <span className="detail-label">Additional Notes:</span>
+                                            <div className="detail-text">{selectedRecord.notes || 'N/A'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="detail-section">
+                                    <h4><i className="fas fa-history"></i> Medical History</h4>
+                                    <div className="detail-text">
+                                        {selectedRecord.medicalHistory || 'No medical history information available.'}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="modal-actions">
+                                <button 
+                                    className="cancel-btn"
+                                    onClick={() => setShowViewModal(false)}
+                                >
+                                    Close
+                                </button>
+                                <button 
+                                    className="edit-btn"
+                                    onClick={() => {
+                                        setShowViewModal(false);
+                                        openEditModal(selectedRecord);
+                                    }}
+                                >
+                                    <i className="fas fa-edit"></i> Edit Record
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const PrescriptionManagement = () => <div className="placeholder-section">Prescription Management coming soon...</div>;
 const MedicationManagement = () => {
     const [medications, setMedications] = useState([]);
