@@ -8,6 +8,7 @@ import AppointmentManagement from "./AppointmentManagement";
 import MedicalRecordView from "./MedicalRecordView";
 import PrescriptionView from "./PrescriptionView";
 import Profile from "./Profile";
+import NotificationManagement from "./NotificationManagement";
 
 const PatientPage = () => {
   const navigate = useNavigate();
@@ -55,6 +56,8 @@ const PatientPage = () => {
         return <MedicalRecordView patientId={userData?.roleId} />;
       case "prescriptions":
         return <PrescriptionView patientId={userData?.roleId} />;
+      case "notifications":
+        return <NotificationManagement patientId={userData?.roleId} />;
       case "profile":
         return <Profile userData={userData} />;
       default:
@@ -68,6 +71,7 @@ const PatientPage = () => {
       'appointments': 'fa-calendar-check',
       'medical-records': 'fa-file-medical',
       'prescriptions': 'fa-prescription',
+      'notifications': 'fa-bell',
       'profile': 'fa-user-circle'
     };
     return icons[section] || "fa-circle";
@@ -110,6 +114,7 @@ const PatientPage = () => {
           { name: "Appointments", icon: "fa-calendar-check" },
           { name: "Medical Records", icon: "fa-file-medical" },
           { name: "Prescriptions", icon: "fa-prescription" },
+          { name: "Notifications", icon: "fa-bell" },
           { name: "Profile", icon: "fa-user-circle" }
         ].map((item) => (
           <button

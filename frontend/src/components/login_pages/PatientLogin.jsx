@@ -68,6 +68,20 @@ const PatientLogin = () => {
     setSuccessMessage('This feature is under implementation. Please contact support if you need assistance.');
   };
 
+  const recordLoginHistory = async ({ username, success, failureReason }) => {
+    try {
+      await axios.post('http://localhost:8080/api/login-history', {
+        username,
+        ipAddress: '',
+        userAgent: navigator.userAgent,
+        loginSuccess: success,
+        failureReason: failureReason || null,
+      });
+    } catch (err) {
+      console.error('Failed to record login history', err);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -87,6 +101,7 @@ const PatientLogin = () => {
       }
       
       if (response.data.authenticated === true) {
+        await recordLoginHistory({ username: formData.identifier, success: true });
         // Store user data in localStorage for session management
         const userData = {
           ...response.data,
@@ -104,11 +119,13 @@ const PatientLogin = () => {
           navigate('/patient-dashboard');
         }, 1500);
       } else {
+        await recordLoginHistory({ username: formData.identifier, success: false, failureReason: response.data.message });
         console.log('Authentication failed:', response.data.message);
         setShowLoginOverlay(false);
         setError(response.data.message || 'Authentication failed');
       }
     } catch (err) {
+      await recordLoginHistory({ username: formData.identifier, success: false, failureReason: err.response?.data?.message || 'Failed to connect to the server' });
       console.error('Login error:', err);
       setShowLoginOverlay(false);
       setError(err.response?.data?.message || 'Failed to connect to the server');

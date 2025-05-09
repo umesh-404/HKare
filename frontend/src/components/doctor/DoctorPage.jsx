@@ -10,6 +10,7 @@ import MedicalRecordManagement from "./MedicalRecordManagement";
 import PrescriptionManagement from "./PrescriptionManagement";
 import MedicationManagement from "./MedicationManagement";
 import Profile from "./Profile";
+import NotificationManagement from "./NotificationManagement";
 
 const DoctorPage = () => {
   const navigate = useNavigate();
@@ -61,6 +62,8 @@ const DoctorPage = () => {
         return <PrescriptionManagement doctorId={userData?.roleId} />;
       case "medications":
         return <MedicationManagement />;
+      case "notifications":
+        return <NotificationManagement doctorId={userData?.roleId} />;
       case "profile":
         return <Profile userData={userData} />;
       default:
@@ -76,6 +79,7 @@ const DoctorPage = () => {
       'medical-records': 'fa-file-medical',
       'prescriptions': 'fa-prescription',
       'medications': 'fa-pills',
+      'notifications': 'fa-bell',
       'profile': 'fa-user-circle'
     };
     return icons[section] || "fa-circle";
@@ -120,6 +124,7 @@ const DoctorPage = () => {
           { name: "Medical Records", icon: "fa-file-medical" },
           { name: "Prescriptions", icon: "fa-prescription" },
           { name: "Medications", icon: "fa-pills" },
+          { name: "Notifications", icon: "fa-bell" },
           { name: "Profile", icon: "fa-user-circle" }
         ].map((item) => (
           <button

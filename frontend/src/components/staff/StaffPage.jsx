@@ -33,7 +33,6 @@ import MedicalRecordManagement from './MedicalRecordManagement';
 import MedicationManagement from './MedicationManagement';
 import NotificationManagement from './NotificationManagement';
 import PaymentManagement from './PaymentManagement';
-import Profile from './Profile';
 import DepartmentManagement from './DepartmentManagement';
 
 const StaffPage = () => {

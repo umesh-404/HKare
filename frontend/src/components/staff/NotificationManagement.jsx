@@ -1,380 +1,385 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { FaSearch, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
+import './StaffPage.css';
 
-const NotificationManagement = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-
-  // Form data state
-  const [formData, setFormData] = useState({
-    title: '',
-    message: '',
-    type: 'GENERAL',
-    priority: 'NORMAL',
-    recipientType: 'ALL',
-    recipientId: '',
-    scheduledTime: ''
-  });
-
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const fetchNotifications = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get('http://localhost:8080/api/notifications');
-      setNotifications(response.data);
-      setError('');
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-      setError('Failed to load notifications. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleAddNotification = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post('http://localhost:8080/api/notifications', formData);
-      setShowAddModal(false);
-      fetchNotifications();
-      setFormData({
+const NotificationManagement = ({ staffId }) => {
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [filter, setFilter] = useState('all');
+    const [recipientType, setRecipientType] = useState('STAFF');
+    const [recipientId, setRecipientId] = useState('');
+    const [senderUsername, setSenderUsername] = useState('');
+    const [priority, setPriority] = useState('');
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [formData, setFormData] = useState({
         title: '',
         message: '',
-        type: 'GENERAL',
-        priority: 'NORMAL',
-        recipientType: 'ALL',
+        recipientType: 'STAFF',
         recipientId: '',
-        scheduledTime: ''
-      });
-    } catch (err) {
-      console.error('Error adding notification:', err);
-      setError('Failed to add notification. Please try again.');
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "N/A";
-      
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return "N/A";
-    }
-  };
-
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'SENT':
-        return 'status-completed';
-      case 'PENDING':
-        return 'status-pending';
-      case 'FAILED':
-        return 'status-rejected';
-      default:
-        return '';
-    }
-  };
-
-  const getPriorityClass = (priority) => {
-    switch (priority) {
-      case 'HIGH':
-        return 'priority-high';
-      case 'NORMAL':
-        return 'priority-normal';
-      case 'LOW':
-        return 'priority-low';
-      default:
-        return '';
-    }
-  };
-
-  const getFilteredNotifications = () => {
-    return notifications.filter(notification => {
-      // Filter by type
-      if (typeFilter !== 'ALL' && notification.type !== typeFilter) {
-        return false;
-      }
-      
-      // Filter by status
-      if (statusFilter !== 'ALL' && notification.status !== statusFilter) {
-        return false;
-      }
-      
-      // Search term filter
-      if (searchTerm) {
-        const searchString = `${notification.title} ${notification.message} ${notification.recipientType}`.toLowerCase();
-        return searchString.includes(searchTerm.toLowerCase());
-      }
-      
-      return true;
+        senderUsername: staffId || '',
+        priority: 'NORMAL',
     });
-  };
 
-  if (loading) {
+    const fetchNotifications = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            let url = 'http://localhost:8080/api/notifications';
+            if (filter === 'recipient' && recipientId) {
+                url = `http://localhost:8080/api/notifications/recipient/${recipientType}/${recipientId}`;
+            } else if (filter === 'sender' && senderUsername) {
+                url = `http://localhost:8080/api/notifications/sender/${senderUsername}`;
+            } else if (filter === 'priority' && priority) {
+                url = `http://localhost:8080/api/notifications/priority/${priority}`;
+            }
+            const response = await axios.get(url);
+            setNotifications(Array.isArray(response.data) ? response.data : []);
+        } catch (err) {
+            setError('Failed to fetch notifications. Please try again later.');
+            setNotifications([]);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, [filter]);
+
+    const handleFilterChange = (newFilter) => {
+        setFilter(newFilter);
+        if (newFilter === 'all') {
+            setRecipientId('');
+            setSenderUsername('');
+            setPriority('');
+        }
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        fetchNotifications();
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleCreateNotification = async (e) => {
+        e.preventDefault();
+        try {
+            const notificationData = {
+                ...formData,
+                senderUsername: staffId,
+                createdAt: new Date().toISOString(),
+                isRead: false
+            };
+            await axios.post('http://localhost:8080/api/notifications', notificationData);
+            setShowAddModal(false);
+            setFormData({
+                title: '',
+                message: '',
+                recipientType: 'STAFF',
+                recipientId: '',
+                senderUsername: staffId || '',
+                priority: 'NORMAL',
+            });
+            fetchNotifications();
+        } catch (err) {
+            setError('Failed to create notification. Please try again.');
+            console.error('Error creating notification:', err);
+        }
+    };
+
+    const handleMarkAsRead = async (notificationId) => {
+        try {
+            await axios.put(`http://localhost:8080/api/notifications/${notificationId}/read`);
+            fetchNotifications();
+        } catch (err) {
+            setError('Failed to mark notification as read. Please try again.');
+            console.error('Error marking notification as read:', err);
+        }
+    };
+
+    const handleDeleteNotification = async (notificationId) => {
+        if (window.confirm('Are you sure you want to delete this notification?')) {
+            try {
+                await axios.delete(`http://localhost:8080/api/notifications/${notificationId}`);
+                fetchNotifications();
+            } catch (err) {
+                setError('Failed to delete notification. Please try again.');
+                console.error('Error deleting notification:', err);
+            }
+        }
+    };
+
+    if (loading) {
+        return <div className="loading-container"><div className="loading-spinner"></div><p>Loading notifications...</p></div>;
+    }
+
     return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading notifications...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="management-section">
-      <div className="management-header">
-        <div className="filters-container">
-          <h3>Filters</h3>
-          <div className="filters">
-            <div className="filter-group">
-              <label>Type:</label>
-              <select 
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="ALL">All Types</option>
-                <option value="GENERAL">General</option>
-                <option value="APPOINTMENT">Appointment</option>
-                <option value="PRESCRIPTION">Prescription</option>
-                <option value="MEDICAL_RECORD">Medical Record</option>
-                <option value="PAYMENT">Payment</option>
-                <option value="SYSTEM">System</option>
-              </select>
-            </div>
-            <div className="filter-group">
-              <label>Status:</label>
-              <select 
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="ALL">All Status</option>
-                <option value="SENT">Sent</option>
-                <option value="PENDING">Pending</option>
-                <option value="FAILED">Failed</option>
-              </select>
-            </div>
-            <div className="filter-group">
-              <label>Search:</label>
-              <div className="search-input-container">
-                <input
-                  type="text"
-                  placeholder="Search notifications..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input"
-                />
-                <i className="fas fa-search search-icon"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button className="add-btn" onClick={() => setShowAddModal(true)}>
-          <i className="fas fa-plus"></i> Send Notification
-        </button>
-      </div>
-
-      {error && <div className="error-message">{error}</div>}
-      
-      <div className="table-container">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Title</th>
-              <th>Type</th>
-              <th>Priority</th>
-              <th>Recipient</th>
-              <th>Scheduled Time</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {getFilteredNotifications().length === 0 ? (
-              <tr>
-                <td colSpan="7" className="no-data">No notifications found</td>
-              </tr>
-            ) : (
-              getFilteredNotifications().map(notification => (
-                <tr key={notification.notificationId}>
-                  <td>{notification.notificationId}</td>
-                  <td>
-                    <div className="notification-title">
-                      {notification.title}
-                      <div className="notification-message">{notification.message}</div>
+        <div className="management-section">
+            <div className="management-header">
+                <div className="filters-container">
+                    <h3>Filters</h3>
+                    <div className="filters">
+                        <div className="filter-group">
+                            <label>Filter Type:</label>
+                            <select
+                                className="filter-select"
+                                value={filter}
+                                onChange={(e) => handleFilterChange(e.target.value)}
+                            >
+                                <option value="all">All Notifications</option>
+                                <option value="recipient">By Recipient</option>
+                                <option value="sender">By Sender</option>
+                                <option value="priority">By Priority</option>
+                            </select>
+                        </div>
                     </div>
-                  </td>
-                  <td>{notification.type}</td>
-                  <td>
-                    <span className={`priority-badge ${getPriorityClass(notification.priority)}`}>
-                      {notification.priority}
-                    </span>
-                  </td>
-                  <td>
-                    {notification.recipientType === 'ALL' ? 'All Users' : `${notification.recipientType}: ${notification.recipientId}`}
-                  </td>
-                  <td>{formatDate(notification.scheduledTime)}</td>
-                  <td>
-                    <span className={`status-badge ${getStatusClass(notification.status)}`}>
-                      {notification.status}
-                    </span>
-                  </td>
-                </tr>
-              ))
+                </div>
+                <button className="add-btn" onClick={() => setShowAddModal(true)}>
+                    <i className="fas fa-plus"></i>
+                    New Notification
+                </button>
+            </div>
+
+            {error && (
+                <div className="error-container">
+                    <div className="error-message">
+                        <i className="fas fa-exclamation-circle"></i>
+                        <span>{error}</span>
+                    </div>
+                    <button className="submit-btn" onClick={() => { setError(''); fetchNotifications(); }}>
+                        <i className="fas fa-sync"></i> Retry
+                    </button>
+                </div>
             )}
-          </tbody>
-        </table>
-      </div>
 
-      {/* Add Notification Modal */}
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h3>Send New Notification</h3>
-              <button className="close-btn" onClick={() => setShowAddModal(false)}>
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="modal-body">
-              <form onSubmit={handleAddNotification}>
-                <div className="form-section">
-                  <div className="form-group">
-                    <label>Title*</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Enter notification title..."
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Message*</label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      required
-                      rows="4"
-                      placeholder="Enter notification message..."
-                    ></textarea>
-                  </div>
-                  
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Type*</label>
-                      <select
-                        name="type"
-                        value={formData.type}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="GENERAL">General</option>
-                        <option value="APPOINTMENT">Appointment</option>
-                        <option value="PRESCRIPTION">Prescription</option>
-                        <option value="MEDICAL_RECORD">Medical Record</option>
-                        <option value="PAYMENT">Payment</option>
-                        <option value="SYSTEM">System</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Priority*</label>
-                      <select
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="NORMAL">Normal</option>
-                        <option value="HIGH">High</option>
-                        <option value="LOW">Low</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Recipient Type*</label>
-                      <select
-                        name="recipientType"
-                        value={formData.recipientType}
-                        onChange={handleInputChange}
-                        required
-                      >
-                        <option value="ALL">All Users</option>
-                        <option value="PATIENT">Patient</option>
-                        <option value="DOCTOR">Doctor</option>
-                        <option value="STAFF">Staff</option>
-                      </select>
-                    </div>
-                    {formData.recipientType !== 'ALL' && (
-                      <div className="form-group">
-                        <label>Recipient ID</label>
+            <div className="filter-controls">
+                {filter === 'recipient' && (
+                    <form onSubmit={handleSearch} className="search-form">
+                        <select
+                            value={recipientType}
+                            onChange={(e) => setRecipientType(e.target.value)}
+                            className="search-input"
+                        >
+                            <option value="ADMIN">Admin</option>
+                            <option value="DOCTOR">Doctor</option>
+                            <option value="PATIENT">Patient</option>
+                            <option value="STAFF">Staff</option>
+                        </select>
                         <input
-                          type="text"
-                          name="recipientId"
-                          value={formData.recipientId}
-                          onChange={handleInputChange}
-                          placeholder="Enter recipient ID..."
+                            type="text"
+                            placeholder="Enter recipient ID"
+                            value={recipientId}
+                            onChange={(e) => setRecipientId(e.target.value)}
+                            className="search-input"
                         />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Schedule Time (Optional)</label>
-                    <input
-                      type="datetime-local"
-                      name="scheduledTime"
-                      value={formData.scheduledTime}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                </div>
-                
-                <div className="modal-actions">
-                  <button type="button" className="cancel-btn" onClick={() => setShowAddModal(false)}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="save-btn">
-                    <i className="fas fa-paper-plane"></i> Send Notification
-                  </button>
-                </div>
-              </form>
+                        <button type="submit" className="submit-btn">
+                            <FaSearch /> Search
+                        </button>
+                    </form>
+                )}
+
+                {filter === 'sender' && (
+                    <form onSubmit={handleSearch} className="search-form">
+                        <input
+                            type="text"
+                            placeholder="Enter sender username"
+                            value={senderUsername}
+                            onChange={(e) => setSenderUsername(e.target.value)}
+                            className="search-input"
+                        />
+                        <button type="submit" className="submit-btn">
+                            <FaSearch /> Search
+                        </button>
+                    </form>
+                )}
+
+                {filter === 'priority' && (
+                    <form onSubmit={handleSearch} className="search-form">
+                        <select
+                            value={priority}
+                            onChange={(e) => setPriority(e.target.value)}
+                            className="search-input"
+                        >
+                            <option value="">Select Priority</option>
+                            <option value="HIGH">High</option>
+                            <option value="NORMAL">Normal</option>
+                            <option value="LOW">Low</option>
+                        </select>
+                        <button type="submit" className="submit-btn">
+                            <FaSearch /> Search
+                        </button>
+                    </form>
+                )}
             </div>
-          </div>
+
+            <div className="table-responsive">
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>Created At</th>
+                            <th>Recipient Type</th>
+                            <th>Recipient ID</th>
+                            <th>Sender</th>
+                            <th>Title</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Array.isArray(notifications) && notifications.length > 0 ? (
+                            notifications.map((notification) => (
+                                <tr key={notification.id}>
+                                    <td>{new Date(notification.createdAt).toLocaleString()}</td>
+                                    <td>{notification.recipientType}</td>
+                                    <td>{notification.recipientId}</td>
+                                    <td>{notification.senderUsername}</td>
+                                    <td>{notification.title}</td>
+                                    <td>
+                                        <span className={`status-badge ${notification.priority.toLowerCase()}`}>
+                                            {notification.priority}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span className={`status-badge ${notification.isRead ? 'status-completed' : 'status-pending'}`}>
+                                            {notification.isRead ? 'Read' : 'Unread'}
+                                        </span>
+                                    </td>
+                                    <td className="actions-cell">
+                                        <button
+                                            className="action-btn view"
+                                            onClick={() => handleMarkAsRead(notification.id)}
+                                            title="Mark as Read"
+                                            disabled={notification.isRead}
+                                        >
+                                            <i className="fas fa-check"></i>
+                                        </button>
+                                        <button
+                                            className="action-btn delete"
+                                            onClick={() => handleDeleteNotification(notification.id)}
+                                            title="Delete"
+                                        >
+                                            <i className="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="8" className="no-data">No notifications found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Add Notification Modal */}
+            {showAddModal && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <div className="modal-header">
+                            <h3>Create New Notification</h3>
+                            <button className="close-btn" onClick={() => setShowAddModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleCreateNotification}>
+                                <div className="form-section">
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="recipientType">Recipient Type*</label>
+                                            <select
+                                                id="recipientType"
+                                                name="recipientType"
+                                                value={formData.recipientType}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="ADMIN">Admin</option>
+                                                <option value="DOCTOR">Doctor</option>
+                                                <option value="PATIENT">Patient</option>
+                                                <option value="STAFF">Staff</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="recipientId">Recipient ID*</label>
+                                            <input
+                                                type="text"
+                                                id="recipientId"
+                                                name="recipientId"
+                                                value={formData.recipientId}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="senderUsername">Sender Username</label>
+                                            <input
+                                                type="text"
+                                                id="senderUsername"
+                                                name="senderUsername"
+                                                value={formData.senderUsername}
+                                                onChange={handleInputChange}
+                                                disabled
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="title">Title*</label>
+                                            <input
+                                                type="text"
+                                                id="title"
+                                                name="title"
+                                                value={formData.title}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="priority">Priority*</label>
+                                            <select
+                                                id="priority"
+                                                name="priority"
+                                                value={formData.priority}
+                                                onChange={handleInputChange}
+                                                required
+                                            >
+                                                <option value="HIGH">High</option>
+                                                <option value="NORMAL">Normal</option>
+                                                <option value="LOW">Low</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group full-width">
+                                            <label htmlFor="message">Message*</label>
+                                            <textarea
+                                                id="message"
+                                                name="message"
+                                                value={formData.message}
+                                                onChange={handleInputChange}
+                                                required
+                                                rows="4"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button type="button" className="cancel-btn" onClick={() => setShowAddModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="submit-btn">Send Notification</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 };
 
 export default NotificationManagement; 
