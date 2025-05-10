@@ -137,7 +137,7 @@ const AdminPage = () => {
             {/* Header */}
             <header className="admin-header">
                 <div className="header-left">
-                    <img src="/vite.svg" alt="Hospital Logo" className="header-logo" />
+                    <img src="/main-logo.png" alt="Hospital Logo" className="header-logo" />
                 </div>
                 <div className="header-right">
                     <div className="user-info" onClick={() => setActiveSection("profile")} style={{ cursor: 'pointer' }}>

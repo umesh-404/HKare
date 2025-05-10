@@ -49,10 +49,12 @@ body.admin-page-body {
 }
 
 .header-logo {
-    height: 35px;
+    height: 56px;
     width: auto;
-    margin-right: 15px; /* Add space after logo */
-    display: block; /* Ensure proper display */
+    margin-right: 18px;
+    display: block;
+    object-fit: contain;
+    max-width: 180px;
 }
 
 /* User info styles */

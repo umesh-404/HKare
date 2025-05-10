@@ -83,7 +83,7 @@ const PatientPage = () => {
       <header className="patient-header">
         <div className="header-left">
           <img 
-            src="/vite.svg" 
+            src="/main-logo.png" 
             alt="Hospital Logo" 
             className="header-logo"
           />
