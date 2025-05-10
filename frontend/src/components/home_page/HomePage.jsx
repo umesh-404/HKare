@@ -196,7 +196,7 @@ const HomePage = () => {
                 <div className={`homepage-wrapper ${isScrolled ? 'scrolled' : ''}`}>
                     <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
                         <div className="header-content">
-                            <img src="vite.svg" alt="Hospital Logo" className="logo" />
+                            <img src="/main-logo.png" alt="Hospital Logo" className="logo" />
                             <div className="login-buttons">
                                 <div className="DOCTOR" onClick={handleDoctorLogin}>
                                     <img src="doctor-image.svg" alt="Doctor" className="card-image" />

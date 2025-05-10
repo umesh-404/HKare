@@ -380,9 +380,12 @@ body.doctor-page-body {
 
 /* Header Logo */
 .header-logo {
-    height: 40px;
+    height: 56px;
     width: auto;
+    margin-right: 18px;
+    display: block;
     object-fit: contain;
+    max-width: 180px;
 }
 
 /* Logout Popup */

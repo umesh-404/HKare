@@ -91,19 +91,23 @@ body {
 
 /* Logo Styles */
 .logo {
-  height: 110px;
+  height: 110px !important;
+  max-width: 220px !important;
+  width: auto !important;
+  margin-bottom: 0 !important;
+  margin-top: -50px !important;
+  position: static !important;
+  top: 0 !important;
+  display: block !important;
+  object-fit: contain !important;
   transition: all 0.8s ease;
   will-change: transform, height;
   backface-visibility: hidden;
   transform: translateZ(0);
-  margin-bottom: 40px;
-  opacity: 1z;
-  position: relative;
-  top: -40px;
 }
 
 .header-scrolled .logo {
-  display: none;
+  display: none !important;
 }
 
 /* Login Buttons Container */

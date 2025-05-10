@@ -257,7 +257,7 @@ const StaffLogin = () => {
   return (
     <>
       <header className="login-header">
-        <img src="/vite.svg" alt="Hospital Logo" className="header-logo" />
+        <img src="/main-logo.png" alt="Hospital Logo" className="header-logo" />
         <a href="#" onClick={handleGoBack} className="home-link">
           Go Back to Home
           <i className="fa-solid fa-right-from-bracket"></i>
