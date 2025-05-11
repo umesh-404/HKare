@@ -2,6 +2,7 @@ import './StaffLogin.css';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import SimpleCaptcha from './SimpleCaptcha';
 
 const StaffLogin = () => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const StaffLogin = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isCaptchaValid, setIsCaptchaValid] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -94,6 +96,12 @@ const StaffLogin = () => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
+    
+    if (!isCaptchaValid) {
+      setError('Please complete the captcha verification');
+      return;
+    }
+    
     setShowLoginOverlay(true);
     setOverlayMessage('Logging in...');
     
@@ -267,8 +275,10 @@ const StaffLogin = () => {
       {/* Login Overlay */}
       {showLoginOverlay && (
         <div className="login-overlay">
-          <div className="loading-spinner"></div>
-          <p>{overlayMessage}</p>
+          <div className="overlay-content">
+            <div className="spinner"></div>
+            <p>{overlayMessage}</p>
+          </div>
         </div>
       )}
 
@@ -348,14 +358,14 @@ const StaffLogin = () => {
               // Login Form
               <form onSubmit={handleSubmit} className="login-form">
                 <div className="form-group">
-                  <label htmlFor="identifier">Staff ID</label>
+                  <label htmlFor="identifier">Staff ID or Email</label>
                   <input 
                     type="text" 
                     id="identifier" 
                     name="identifier" 
                     value={formData.identifier}
                     onChange={handleChange}
-                    placeholder="Enter your Staff ID" 
+                    placeholder="Enter your Staff ID or Email" 
                     required 
                   />
                 </div>
@@ -372,6 +382,8 @@ const StaffLogin = () => {
                     required 
                   />
                 </div>
+
+                <SimpleCaptcha onCaptchaChange={setIsCaptchaValid} />
 
                 <div className="form-links">
                   <a href="#" onClick={handleForgotPassword}>Forgot Password?</a>
