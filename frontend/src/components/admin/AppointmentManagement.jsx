@@ -46,26 +46,13 @@ const AppointmentManagement = () => {
     const fetchAppointments = async () => {
         setLoading(true);
         try {
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/appointments', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 second timeout
-                });
-            } catch (err) {
-                // Fall back to without /api prefix if needed
-                response = await axios.get('http://localhost:8080/appointments', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
-            }
-            
+            const response = await axios.get('http://localhost:8080/api/appointments', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000 // 10 second timeout
+            });
             if (response.data) {
                 setAppointments(response.data);
             }
@@ -194,70 +181,65 @@ const AppointmentManagement = () => {
     const handleAddAppointment = async (e) => {
         e.preventDefault();
         try {
-            const appointmentData = {
-                patientId: formData.patientId,
-                doctorId: formData.doctorId,
-                appointmentDate: formData.appointmentDate,
-                startTime: formData.appointmentTime,
-                endTime: formData.appointmentTime, // For simplicity, setting end time same as start time
-                status: formData.status,
-                reason: formData.reason,
-                notes: formData.notes,
-                appointmentFee: formData.appointmentFee ? parseFloat(formData.appointmentFee) : null,
-                isPaid: Boolean(formData.isPaid)
-            };
-            
-            let response;
-            try {
-                response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
-            } catch (err) {
-                response = await axios.post('http://localhost:8080/appointments', appointmentData);
+            // Format date and time to correct string formats
+            let formattedDate = formData.appointmentDate;
+            let formattedTime = formData.appointmentTime;
+            // If date is a Date object, convert to yyyy-MM-dd
+            if (formattedDate instanceof Date) {
+                formattedDate = formattedDate.toISOString().split('T')[0];
             }
-            
+            // If time is a Date object, convert to HH:mm
+            if (formattedTime instanceof Date) {
+                formattedTime = formattedTime.toTimeString().slice(0,5);
+            }
+            const appointmentData = {
+                ...formData,
+                appointmentDate: formattedDate,
+                startTime: formattedTime,
+                endTime: formattedTime // For simplicity, setting end time same as start time
+            };
+            const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
             if (response.status === 201 || response.status === 200) {
-                alert('Appointment added successfully!');
-                fetchAppointments();
                 setShowAddModal(false);
+                fetchAppointments();
+                alert('Appointment added successfully!');
             }
         } catch (err) {
             console.error('Error adding appointment:', err);
-            alert('Failed to add appointment. Please try again.');
+            alert(err.response?.data?.message || 'Failed to add appointment. Please try again.');
         }
     };
 
     const handleUpdateAppointment = async (e) => {
         e.preventDefault();
         if (!selectedAppointment) return;
-        
         try {
-            const appointmentData = {
-                patientId: formData.patientId,
-                doctorId: formData.doctorId,
-                appointmentDate: formData.appointmentDate,
-                startTime: formData.appointmentTime,
-                endTime: formData.appointmentTime, // For simplicity, setting end time same as start time
-                status: formData.status,
-                reason: formData.reason,
-                notes: formData.notes,
-                appointmentFee: formData.appointmentFee ? parseFloat(formData.appointmentFee) : null,
-                isPaid: Boolean(formData.isPaid)
-            };
-            
-            let response;
-            try {
-                response = await axios.put(`http://localhost:8080/api/appointments/${selectedAppointment.appointmentId}`, appointmentData);
-            } catch (err) {
-                response = await axios.put(`http://localhost:8080/appointments/${selectedAppointment.appointmentId}`, appointmentData);
+            // Format date and time to correct string formats
+            let formattedDate = formData.appointmentDate;
+            let formattedTime = formData.appointmentTime;
+            // If date is a Date object, convert to yyyy-MM-dd
+            if (formattedDate instanceof Date) {
+                formattedDate = formattedDate.toISOString().split('T')[0];
             }
-            
+            // If time is a Date object, convert to HH:mm
+            if (formattedTime instanceof Date) {
+                formattedTime = formattedTime.toTimeString().slice(0,5);
+            }
+            const appointmentData = {
+                ...formData,
+                appointmentDate: formattedDate,
+                startTime: formattedTime,
+                endTime: formattedTime // For simplicity, setting end time same as start time
+            };
+            const response = await axios.put(`http://localhost:8080/api/appointments/${selectedAppointment.appointmentId}`, appointmentData);
             if (response.status === 200) {
-                alert('Appointment updated successfully!');
-                fetchAppointments();
                 setShowEditModal(false);
+                fetchAppointments();
+                alert('Appointment updated successfully!');
             }
         } catch (err) {
             console.error('Error updating appointment:', err);
-            alert('Failed to update appointment. Please try again.');
+            alert(err.response?.data?.message || 'Failed to update appointment. Please try again.');
         }
     };
 
@@ -379,11 +361,11 @@ const AppointmentManagement = () => {
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
                                 <option value="ALL">All Statuses</option>
+                                <option value="SCHEDULED">Scheduled</option>
                                 <option value="COMPLETED">Completed</option>
-                                <option value="PENDING">Pending</option>
-                                <option value="REFUNDED">Refunded</option>
-                                <option value="FAILED">Failed</option>
+                                <option value="IN_PROGRESS">In Progress</option>
                                 <option value="CANCELLED">Cancelled</option>
+                                <option value="NO_SHOW">No Show</option>
                             </select>
                         </div>
                         <div className="filter-group">
@@ -780,9 +762,6 @@ const AppointmentManagement = () => {
                                             required
                                         >
                                             <option value="COMPLETED">Completed</option>
-                                            <option value="PENDING">Pending</option>
-                                            <option value="REFUNDED">Refunded</option>
-                                            <option value="FAILED">Failed</option>
                                             <option value="CANCELLED">Cancelled</option>
                                         </select>
                                     </div>

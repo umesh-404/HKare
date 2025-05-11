@@ -42,6 +42,7 @@ const PaymentManagement = () => {
             let response;
             try {
                 // First try with /api prefix
+                console.log('Attempting to fetch payments from /api/payments');
                 response = await axios.get('http://localhost:8080/api/payments', {
                     headers: {
                         'Accept': 'application/json',
@@ -49,7 +50,9 @@ const PaymentManagement = () => {
                     },
                     timeout: 10000 // 10 second timeout
                 });
+                console.log('Successfully fetched payments from /api/payments:', response.data);
             } catch (err) {
+                console.log('Failed to fetch from /api/payments, trying without prefix');
                 // Fall back to without /api prefix if needed
                 response = await axios.get('http://localhost:8080/payments', {
                     headers: {
@@ -58,6 +61,7 @@ const PaymentManagement = () => {
                     },
                     timeout: 10000
                 });
+                console.log('Successfully fetched payments from /payments:', response.data);
             }
             
             if (response.data) {
@@ -80,6 +84,19 @@ const PaymentManagement = () => {
             setLoading(false);
         } catch (err) {
             console.error('Error fetching payments:', err);
+            if (err.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                console.error('Error response data:', err.response.data);
+                console.error('Error response status:', err.response.status);
+                console.error('Error response headers:', err.response.headers);
+            } else if (err.request) {
+                // The request was made but no response was received
+                console.error('Error request:', err.request);
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                console.error('Error message:', err.message);
+            }
             setError('Failed to load payments. Please try again later.');
             setLoading(false);
         }

@@ -210,21 +210,28 @@ const DoctorManagement = () => {
         if (window.confirm('Are you sure you want to delete this doctor?')) {
             try {
                 console.log(`Deleting doctor: ${doctorId}`);
-                try {
-                    await axios.delete(`http://localhost:8080/api/doctors/${doctorId}`);
+                const response = await axios.delete(`http://localhost:8080/api/doctors/${doctorId}`);
+                
+                if (response.status === 200 || response.status === 204) {
                     console.log(`Doctor ${doctorId} deleted successfully`);
                     fetchDoctors(); // Refresh the list
                     alert('Doctor deleted successfully!');
-                } catch (apiError) {
-                    console.log("Trying alternate URL without /api prefix");
-                    await axios.delete(`http://localhost:8080/doctors/${doctorId}`);
-                    console.log(`Doctor ${doctorId} deleted successfully (alternate URL)`);
-                    fetchDoctors(); // Refresh the list
-                    alert('Doctor deleted successfully!');
+                } else {
+                    throw new Error('Unexpected response status');
                 }
             } catch (err) {
                 console.error('Error deleting doctor:', err);
-                alert(err.response?.data?.message || 'Failed to delete doctor. Please try again.');
+                if (err.response) {
+                    // The request was made and the server responded with a status code
+                    // that falls out of the range of 2xx
+                    alert(err.response.data?.error || err.response.data?.message || 'Failed to delete doctor. Please try again.');
+                } else if (err.request) {
+                    // The request was made but no response was received
+                    alert('No response from server. Please check your connection and try again.');
+                } else {
+                    // Something happened in setting up the request that triggered an Error
+                    alert('Error setting up the request. Please try again.');
+                }
             }
         }
     };

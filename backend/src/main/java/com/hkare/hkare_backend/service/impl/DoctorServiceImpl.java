@@ -3,12 +3,8 @@ package com.hkare.hkare_backend.service.impl;
 import com.hkare.hkare_backend.dto.DoctorResponse;
 import com.hkare.hkare_backend.dto.RegistrationResponse;
 import com.hkare.hkare_backend.dto.DoctorRegistrationRequest;
-import com.hkare.hkare_backend.model.Department;
-import com.hkare.hkare_backend.model.Doctor;
-import com.hkare.hkare_backend.model.Users;
-import com.hkare.hkare_backend.repository.DepartmentRepository;
-import com.hkare.hkare_backend.repository.DoctorRepository;
-import com.hkare.hkare_backend.repository.UserRepository;
+import com.hkare.hkare_backend.model.*;
+import com.hkare.hkare_backend.repository.*;
 import com.hkare.hkare_backend.service.DoctorService;
 import com.hkare.hkare_backend.service.IDGeneratorService;
 import com.hkare.hkare_backend.service.PasswordService;
@@ -28,6 +24,10 @@ public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+    private final PatientRepository patientRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final MedicalRecordRepository medicalRecordRepository;
+    private final PrescriptionRepository prescriptionRepository;
     private final IDGeneratorService idGeneratorService;
     private final PasswordService passwordService;
 
@@ -187,9 +187,50 @@ public class DoctorServiceImpl implements DoctorService {
             Optional<Doctor> doctorOpt = doctorRepository.findByDoctorId(doctorId);
             if (doctorOpt.isPresent()) {
                 Doctor doctor = doctorOpt.get();
-                Users user = doctor.getUser();
                 
+                // 1. Remove doctor from department head position if they are a head
+                Department department = doctor.getDepartment();
+                if (department != null && department.getHeadDoctor() != null 
+                    && department.getHeadDoctor().getDoctorId().equals(doctorId)) {
+                    department.setHeadDoctor(null);
+                    departmentRepository.save(department);
+                }
+                
+                // 2. Remove doctor from patients' primary doctor
+                List<Patient> patients = patientRepository.findByPrimaryDoctor(doctor);
+                for (Patient patient : patients) {
+                    patient.setPrimaryDoctor(null);
+                    patientRepository.save(patient);
+                }
+                
+                // 3. Update appointments to remove doctor reference
+                List<Appointment> appointments = appointmentRepository.findByDoctor(doctor);
+                for (Appointment appointment : appointments) {
+                    appointment.setDoctor(null);
+                    appointment.setStatus(Appointment.AppointmentStatus.CANCELLED);
+                    appointmentRepository.save(appointment);
+                }
+                
+                // 4. Update medical records to remove doctor reference
+                List<MedicalRecord> medicalRecords = medicalRecordRepository.findByDoctor(doctor);
+                for (MedicalRecord record : medicalRecords) {
+                    record.setDoctor(null);
+                    medicalRecordRepository.save(record);
+                }
+                
+                // 5. Update prescriptions to remove doctor reference
+                List<Prescription> prescriptions = prescriptionRepository.findByDoctor(doctor);
+                for (Prescription prescription : prescriptions) {
+                    prescription.setDoctor(null);
+                    prescription.setStatus(Prescription.PrescriptionStatus.CANCELLED);
+                    prescriptionRepository.save(prescription);
+                }
+                
+                // 6. Delete the doctor
                 doctorRepository.delete(doctor);
+                
+                // 7. Delete the associated user
+                Users user = doctor.getUser();
                 if (user != null) {
                     userRepository.delete(user);
                 }
@@ -200,7 +241,7 @@ public class DoctorServiceImpl implements DoctorService {
         } catch (Exception e) {
             System.err.println("Error deleting doctor: " + e.getMessage());
             e.printStackTrace();
-            return false;
+            throw new RuntimeException("Error deleting doctor: " + e.getMessage());
         }
     }
 } 

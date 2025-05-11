@@ -124,7 +124,7 @@ const AppointmentManagement = () => {
 
   const handleStatusChange = async (appointmentId, newStatus) => {
     try {
-      await axios.put(`http://localhost:8080/api/appointments/${appointmentId}/status`, {
+      await axios.patch(`http://localhost:8080/api/appointments/${appointmentId}/status`, {
         status: newStatus
       });
       fetchAppointments();

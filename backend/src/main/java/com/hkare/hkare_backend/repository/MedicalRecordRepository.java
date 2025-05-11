@@ -38,4 +38,6 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
     
     @Query(value = "SELECT record_type, COUNT(*) as count FROM medical_records WHERE patient_id = ?1 GROUP BY record_type", nativeQuery = true)
     List<Object[]> countPatientRecordsByType(String patientId);
+
+    void deleteByAppointment_AppointmentId(Long appointmentId);
 } 

@@ -276,117 +276,112 @@ const PrescriptionView = ({ patientId }) => {
               </button>
             </div>
             <div className="modal-body">
-              <div className="detail-section">
-                <h4>Basic Information</h4>
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label>Prescription ID:</label>
-                    <p>{selectedPrescription.prescriptionId}</p>
+              <div className="prescription-details">
+                <div className="detail-section">
+                  <h4>Basic Information</h4>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label>Prescription ID:</label>
+                      <p>{selectedPrescription.prescriptionId}</p>
+                    </div>
+                    <div className="detail-group">
+                      <label>Status:</label>
+                      <span className={`status-badge ${getStatusClass(selectedPrescription.status)}`}>
+                        {selectedPrescription.status}
+                      </span>
+                    </div>
                   </div>
-                  <div className="detail-group">
-                    <label>Status:</label>
-                    <span className={`status-badge ${getStatusClass(selectedPrescription.status)}`}>
-                      {selectedPrescription.status}
-                    </span>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label>Prescribed By:</label>
+                      <p>{getDoctorName(selectedPrescription.doctorId)}</p>
+                    </div>
+                    <div className="detail-group">
+                      <label>Prescribed Date:</label>
+                      <p>{formatDate(selectedPrescription.prescriptionDate)}</p>
+                    </div>
+                  </div>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label>Expiry Date:</label>
+                      <p>{formatDate(selectedPrescription.expiryDate)}</p>
+                    </div>
+                    <div className="detail-group">
+                      <label>Refillable:</label>
+                      <p>
+                        {selectedPrescription.isRefillable ? (
+                          <span>Yes ({selectedPrescription.refillsRemaining}/{selectedPrescription.totalRefills})</span>
+                        ) : (
+                          <span>No</span>
+                        )}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label>Prescribed By:</label>
-                    <p>{getDoctorName(selectedPrescription.doctorId)}</p>
-                  </div>
-                  <div className="detail-group">
-                    <label>Prescribed Date:</label>
-                    <p>{formatDate(selectedPrescription.prescriptionDate)}</p>
-                  </div>
-                </div>
-                
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label>Expiry Date:</label>
-                    <p>{formatDate(selectedPrescription.expiryDate)}</p>
-                  </div>
-                  <div className="detail-group">
-                    <label>Refillable:</label>
-                    <p>
-                      {selectedPrescription.isRefillable ? (
-                        <span>Yes ({selectedPrescription.refillsRemaining}/{selectedPrescription.totalRefills})</span>
-                      ) : (
-                        <span>No</span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="detail-section">
-                <h4>Medications</h4>
-                {selectedPrescription.medications && selectedPrescription.medications.length > 0 ? (
-                  <div className="medications-list">
-                    {selectedPrescription.medications.map((medication, index) => (
-                      <div key={index} className="medication-item">
-                        <h5>{medication.medicationName}</h5>
-                        <div className="medication-details">
-                          <div className="detail-row">
-                            <div className="detail-group">
-                              <label>Dosage:</label>
-                              <p>{medication.dosage || 'Not specified'}</p>
+                <div className="detail-section">
+                  <h4>Medications</h4>
+                  {selectedPrescription.medications && selectedPrescription.medications.length > 0 ? (
+                    <div className="medications-list">
+                      {selectedPrescription.medications.map((medication, index) => (
+                        <div key={index} className="medication-item">
+                          <h5>{medication.medicationName}</h5>
+                          <div className="medication-details">
+                            <div className="detail-row">
+                              <div className="detail-group">
+                                <label>Dosage:</label>
+                                <p>{medication.dosage || 'Not specified'}</p>
+                              </div>
+                              <div className="detail-group">
+                                <label>Frequency:</label>
+                                <p>{medication.frequency || 'Not specified'}</p>
+                              </div>
                             </div>
-                            <div className="detail-group">
-                              <label>Frequency:</label>
-                              <p>{medication.frequency || 'Not specified'}</p>
+                            <div className="detail-row">
+                              <div className="detail-group">
+                                <label>Duration:</label>
+                                <p>{medication.duration || 'Not specified'}</p>
+                              </div>
+                              <div className="detail-group">
+                                <label>Quantity:</label>
+                                <p>{medication.quantity || 'Not specified'}</p>
+                              </div>
                             </div>
-                          </div>
-                          
-                          <div className="detail-row">
-                            <div className="detail-group">
-                              <label>Duration:</label>
-                              <p>{medication.duration || 'Not specified'}</p>
-                            </div>
-                            <div className="detail-group">
-                              <label>Quantity:</label>
-                              <p>{medication.quantity || 'Not specified'}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="detail-row">
-                            <div className="detail-group wide">
-                              <label>Instructions:</label>
-                              <p>{medication.instructions || 'No special instructions'}</p>
+                            <div className="detail-row">
+                              <div className="detail-group wide">
+                                <label>Instructions:</label>
+                                <p>{medication.instructions || 'No special instructions'}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p>No medications listed for this prescription.</p>
-                )}
-              </div>
-              
-              {selectedPrescription.notes && (
-                <div className="detail-section">
-                  <h4>Additional Notes</h4>
-                  <p>{selectedPrescription.notes}</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No medications listed for this prescription.</p>
+                  )}
                 </div>
-              )}
-              
-              <div className="modal-actions">
-                {canRequestRefill(selectedPrescription) && (
-                  <button 
-                    onClick={() => {
-                      setShowViewModal(false);
-                      setShowRefillModal(true);
-                    }} 
-                    className="primary-btn"
-                  >
-                    <i className="fas fa-sync"></i> Request Refill
-                  </button>
+                {selectedPrescription.notes && (
+                  <div className="detail-section">
+                    <h4>Additional Notes</h4>
+                    <p>{selectedPrescription.notes}</p>
+                  </div>
                 )}
-                <button onClick={() => setShowViewModal(false)} className="secondary-btn">
-                  Close
-                </button>
+                <div className="modal-actions">
+                  {canRequestRefill(selectedPrescription) && (
+                    <button 
+                      onClick={() => {
+                        setShowViewModal(false);
+                        setShowRefillModal(true);
+                      }} 
+                      className="primary-btn"
+                    >
+                      <i className="fas fa-sync"></i> Request Refill
+                    </button>
+                  )}
+                  <button onClick={() => setShowViewModal(false)} className="secondary-btn">
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

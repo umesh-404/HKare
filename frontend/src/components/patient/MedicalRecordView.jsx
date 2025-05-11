@@ -226,90 +226,82 @@ const MedicalRecordView = ({ patientId }) => {
               </button>
             </div>
             <div className="modal-body">
-              <div className="detail-section">
-                <h4>Basic Information</h4>
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label>Record ID:</label>
-                    <p>{selectedRecord.recordId}</p>
+              <div className="medical-record-details">
+                <div className="detail-section">
+                  <h4>Basic Information</h4>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label>Record ID:</label>
+                      <p>{selectedRecord.recordId}</p>
+                    </div>
+                    <div className="detail-group">
+                      <label>Doctor Name:</label>
+                      <p>{getDoctorName(selectedRecord.doctorId)}</p>
+                    </div>
                   </div>
-                  <div className="detail-group">
-                    <label>Doctor Name:</label>
-                    <p>{getDoctorName(selectedRecord.doctorId)}</p>
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label>Record Type:</label>
+                      <span className={`status-badge ${getRecordTypeClass(selectedRecord.recordType)}`}>
+                        {selectedRecord.recordType.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <div className="detail-group">
+                      <label>Record Date:</label>
+                      <p>{formatDate(selectedRecord.recordDate)}</p>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label>Record Type:</label>
-                    <span className={`status-badge ${getRecordTypeClass(selectedRecord.recordType)}`}>
-                      {selectedRecord.recordType.replace(/_/g, ' ')}
-                    </span>
-                  </div>
-                  <div className="detail-group">
-                    <label>Record Date:</label>
-                    <p>{formatDate(selectedRecord.recordDate)}</p>
-                  </div>
-                </div>
-
-                <div className="detail-row">
-                  <div className="detail-group wide">
-                    <label>Next Appointment:</label>
-                    <p>{formatDate(selectedRecord.nextAppointment)}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="detail-section">
-                <h4>Medical Details</h4>
-                <div className="medical-details-grid">
-                  <div className="detail-card">
-                    <label>Symptoms:</label>
-                    <p>{selectedRecord.symptoms || 'None recorded'}</p>
-                  </div>
-                  
-                  <div className="detail-card">
-                    <label>Diagnosis:</label>
-                    <p>{selectedRecord.diagnosis || 'None recorded'}</p>
+                  <div className="detail-row">
+                    <div className="detail-group wide">
+                      <label>Next Appointment:</label>
+                      <p>{formatDate(selectedRecord.nextAppointment)}</p>
+                    </div>
                   </div>
                 </div>
-
-                <div className="medical-details-grid">
-                  <div className="detail-card">
-                    <label>Treatment:</label>
-                    <p>{selectedRecord.treatment || 'None recorded'}</p>
+                <div className="detail-section">
+                  <h4>Medical Details</h4>
+                  <div className="medical-details-grid">
+                    <div className="detail-card">
+                      <label>Symptoms:</label>
+                      <p>{selectedRecord.symptoms || 'None recorded'}</p>
+                    </div>
+                    <div className="detail-card">
+                      <label>Diagnosis:</label>
+                      <p>{selectedRecord.diagnosis || 'None recorded'}</p>
+                    </div>
                   </div>
-                  
-                  <div className="detail-card">
-                    <label>Prescription:</label>
-                    <p>{selectedRecord.prescription || 'None recorded'}</p>
+                  <div className="medical-details-grid">
+                    <div className="detail-card">
+                      <label>Treatment:</label>
+                      <p>{selectedRecord.treatment || 'None recorded'}</p>
+                    </div>
+                    <div className="detail-card">
+                      <label>Prescription:</label>
+                      <p>{selectedRecord.prescription || 'None recorded'}</p>
+                    </div>
+                  </div>
+                  <div className="medical-details-grid">
+                    <div className="detail-card">
+                      <label>Test Results:</label>
+                      <p>{selectedRecord.testResults || 'None recorded'}</p>
+                    </div>
+                    <div className="detail-card">
+                      <label>Notes:</label>
+                      <p>{selectedRecord.notes || 'None recorded'}</p>
+                    </div>
+                  </div>
+                  <div className="detail-row">
+                    <div className="detail-group wide">
+                      <label>Medical History:</label>
+                      <p>{selectedRecord.medicalHistory || 'None recorded'}</p>
+                    </div>
                   </div>
                 </div>
-
-                <div className="medical-details-grid">
-                  <div className="detail-card">
-                    <label>Test Results:</label>
-                    <p>{selectedRecord.testResults || 'None recorded'}</p>
-                  </div>
-                  
-                  <div className="detail-card">
-                    <label>Notes:</label>
-                    <p>{selectedRecord.notes || 'None recorded'}</p>
-                  </div>
+                <div className="modal-actions">
+                  <button onClick={() => setShowViewModal(false)} className="secondary-btn">
+                    Close
+                  </button>
                 </div>
-
-                <div className="detail-row">
-                  <div className="detail-group wide">
-                    <label>Medical History:</label>
-                    <p>{selectedRecord.medicalHistory || 'None recorded'}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="modal-actions">
-                <button onClick={() => setShowViewModal(false)} className="secondary-btn">
-                  Close
-                </button>
               </div>
             </div>
           </div>

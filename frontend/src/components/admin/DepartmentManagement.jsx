@@ -13,6 +13,7 @@ const DepartmentManagement = () => {
         headDoctorId: ''
     });
     const [doctors, setDoctors] = useState([]);
+    const [selectedDepartmentId, setSelectedDepartmentId] = useState(null);
 
     useEffect(() => {
         fetchDepartments();
@@ -70,6 +71,7 @@ const DepartmentManagement = () => {
             description: department.description,
             headDoctorId: department.headDoctorId || ''
         });
+        setSelectedDepartmentId(department.departmentId);
         setShowEditModal(true);
     };
 
@@ -91,11 +93,13 @@ const DepartmentManagement = () => {
     };
 
     // Handle edit department form submission
-    const handleUpdateDepartment = async (e, departmentId) => {
+    const handleUpdateDepartment = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put(`http://localhost:8080/api/departments/${departmentId}`, formData);
-            
+            const response = await axios.put(
+                `http://localhost:8080/api/departments/${selectedDepartmentId}`,
+                formData
+            );
             if (response.status === 200) {
                 fetchDepartments();
                 setShowEditModal(false);
@@ -119,7 +123,9 @@ const DepartmentManagement = () => {
                 }
             } catch (err) {
                 console.error('Error deleting department:', err);
-                alert(err.response?.data || 'Failed to delete department. Please try again.');
+                // Show backend error message if available
+                const backendMsg = err.response?.data || 'Failed to delete department. Please try again.';
+                alert(typeof backendMsg === 'string' ? backendMsg : JSON.stringify(backendMsg));
             }
         }
     };
@@ -279,7 +285,7 @@ const DepartmentManagement = () => {
                             </button>
                         </div>
                         <div className="modal-body">
-                            <form onSubmit={(e) => handleUpdateDepartment(e, departments.find(d => d.name === formData.name)?.departmentId)}>
+                            <form onSubmit={handleUpdateDepartment}>
                                 <div className="form-section">
                                     <h4>Department Information</h4>
                                     <div className="form-group">

@@ -102,10 +102,28 @@ const MedicalRecordManagement = () => {
     }
   };
 
+  const cleanMedicalRecordData = (data) => {
+    const cleaned = {};
+    if (data.patientId) cleaned.patientId = data.patientId;
+    if (data.doctorId) cleaned.doctorId = data.doctorId;
+    if (data.recordType) cleaned.recordType = data.recordType;
+    if (data.recordDate) cleaned.recordDate = data.recordDate.length === 10 ? `${data.recordDate}T00:00:00` : data.recordDate;
+    if (data.symptoms) cleaned.symptoms = data.symptoms.trim();
+    if (data.diagnosis) cleaned.diagnosis = data.diagnosis.trim();
+    if (data.treatment) cleaned.treatment = data.treatment.trim();
+    if (data.prescription) cleaned.prescription = data.prescription.trim();
+    if (data.testResults) cleaned.testResults = data.testResults.trim();
+    if (data.notes) cleaned.notes = data.notes.trim();
+    if (data.nextAppointment) cleaned.nextAppointment = data.nextAppointment.length === 10 ? `${data.nextAppointment}T00:00:00` : data.nextAppointment;
+    if (data.medicalHistory) cleaned.medicalHistory = data.medicalHistory.trim();
+    return cleaned;
+  };
+
   const handleEditRecord = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:8080/api/medical-records/${currentRecord.recordId}`, formData);
+      const payload = cleanMedicalRecordData(formData);
+      await axios.put(`http://localhost:8080/api/medical-records/${currentRecord.recordId}`, payload);
       setShowEditModal(false);
       fetchMedicalRecords();
     } catch (err) {
@@ -274,7 +292,7 @@ const MedicalRecordManagement = () => {
                   <tr key={record.recordId}>
                     <td>{record.recordId}</td>
                     <td>{patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient'}</td>
-                    <td>{doctor ? `Dr. ${doctor.firstName} ${doctor.lastName}` : 'Unknown Doctor'}</td>
+                    <td>{doctor ? `Dr. ${doctor.firstName} ${doctor.lastName}` : 'Not Assigned'}</td>
                     <td>{formatDate(record.recordDate)}</td>
                     <td>
                       <span className={`status-badge ${getRecordTypeClass(record.recordType)}`}>

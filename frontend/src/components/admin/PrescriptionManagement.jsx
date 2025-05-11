@@ -444,6 +444,30 @@ const PrescriptionManagement = () => {
         });
     };
 
+    // Add this function to filter patients by search term
+    const getFilteredPatients = () => {
+        if (!patientSearchTerm.trim()) return patients;
+        const term = patientSearchTerm.toLowerCase();
+        return patients.filter(
+            p =>
+                (p.patientId && p.patientId.toLowerCase().includes(term)) ||
+                (p.firstName && p.firstName.toLowerCase().includes(term)) ||
+                (p.lastName && p.lastName.toLowerCase().includes(term))
+        );
+    };
+
+    // Add this function to filter doctors by search term
+    const getFilteredDoctors = () => {
+        if (!doctorSearchTerm.trim()) return doctors;
+        const term = doctorSearchTerm.toLowerCase();
+        return doctors.filter(
+            d =>
+                (d.doctorId && d.doctorId.toLowerCase().includes(term)) ||
+                (d.firstName && d.firstName.toLowerCase().includes(term)) ||
+                (d.lastName && d.lastName.toLowerCase().includes(term))
+        );
+    };
+
     // If data is still loading, show a loading spinner
     if (loading) {
         return (

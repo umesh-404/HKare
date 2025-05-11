@@ -34,6 +34,7 @@ import MedicationManagement from './MedicationManagement';
 import NotificationManagement from './NotificationManagement';
 import PaymentManagement from './PaymentManagement';
 import DepartmentManagement from './DepartmentManagement';
+import Profile from './Profile';
 
 const StaffPage = () => {
     const [activeSection, setActiveSection] = useState("dashboard");

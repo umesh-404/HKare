@@ -17,6 +17,7 @@ const PatientManagement = () => {
     firstName: '',
     lastName: '',
     email: '',
+    password: '',
     phoneNumber: '',
     address: '',
     dateOfBirth: '',
@@ -57,16 +58,51 @@ const PatientManagement = () => {
     }));
   };
 
+  const cleanPatientFormData = (data) => {
+    const cleaned = {};
+    if (data.firstName) cleaned.firstName = data.firstName.trim();
+    if (data.lastName) cleaned.lastName = data.lastName.trim();
+    if (data.email) cleaned.email = data.email.trim();
+    if (data.password) cleaned.password = data.password.trim();
+    if (data.phoneNumber) cleaned.phoneNumber = data.phoneNumber.trim();
+    if (data.address) cleaned.address = data.address.trim();
+    if (data.dateOfBirth) cleaned.dateOfBirth = data.dateOfBirth.length === 10 ? `${data.dateOfBirth}T00:00:00` : data.dateOfBirth;
+    if (data.gender) cleaned.gender = data.gender;
+    if (data.bloodGroup) cleaned.bloodGroup = data.bloodGroup;
+    if (data.height !== '' && data.height !== undefined && data.height !== null) cleaned.height = Number(data.height);
+    if (data.weight !== '' && data.weight !== undefined && data.weight !== null) cleaned.weight = Number(data.weight);
+    if (data.allergies) cleaned.allergies = data.allergies.trim();
+    if (data.emergencyContactName) cleaned.emergencyContactName = data.emergencyContactName.trim();
+    if (data.emergencyContactPhone) cleaned.emergencyContactPhone = data.emergencyContactPhone.trim();
+    if (data.insuranceProvider) cleaned.insuranceProvider = data.insuranceProvider.trim();
+    if (data.insuranceId) cleaned.insuranceId = data.insuranceId.trim();
+    return cleaned;
+  };
+
+  const validatePatientForm = (data) => {
+    if (!data.firstName.trim() || !data.lastName.trim() || !data.email.trim() || !data.password.trim()) {
+      return 'First name, last name, email, and password are required.';
+    }
+    return '';
+  };
+
   const handleAddPatient = async (e) => {
     e.preventDefault();
+    const validationError = validatePatientForm(formData);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    const payload = cleanPatientFormData(formData);
     try {
-      await axios.post('http://localhost:8080/api/patients', formData);
+      await axios.post('http://localhost:8080/api/patients', payload);
       setShowAddModal(false);
       fetchPatients();
       setFormData({
         firstName: '',
         lastName: '',
         email: '',
+        password: '',
         phoneNumber: '',
         address: '',
         dateOfBirth: '',
@@ -80,21 +116,45 @@ const PatientManagement = () => {
         insuranceProvider: '',
         insuranceId: ''
       });
+      setError('');
     } catch (err) {
       console.error('Error adding patient:', err);
-      setError('Failed to add patient. Please try again.');
+      setError(err.response?.data?.message || 'Failed to add patient. Please try again.');
     }
+  };
+
+  const cleanPatientUpdateData = (data) => {
+    const cleaned = {};
+    if (data.firstName) cleaned.firstName = data.firstName.trim();
+    if (data.lastName) cleaned.lastName = data.lastName.trim();
+    if (data.email) cleaned.email = data.email.trim();
+    if (data.password && data.password.trim()) cleaned.password = data.password.trim();
+    if (data.phoneNumber) cleaned.phoneNumber = data.phoneNumber.trim();
+    if (data.address) cleaned.address = data.address.trim();
+    if (data.dateOfBirth) cleaned.dateOfBirth = data.dateOfBirth.length === 10 ? `${data.dateOfBirth}T00:00:00` : data.dateOfBirth;
+    if (data.gender) cleaned.gender = data.gender;
+    if (data.bloodGroup) cleaned.bloodGroup = data.bloodGroup;
+    if (data.height !== '' && data.height !== undefined && data.height !== null) cleaned.height = Number(data.height);
+    if (data.weight !== '' && data.weight !== undefined && data.weight !== null) cleaned.weight = Number(data.weight);
+    if (data.allergies) cleaned.allergies = data.allergies.trim();
+    if (data.emergencyContactName) cleaned.emergencyContactName = data.emergencyContactName.trim();
+    if (data.emergencyContactPhone) cleaned.emergencyContactPhone = data.emergencyContactPhone.trim();
+    if (data.insuranceProvider) cleaned.insuranceProvider = data.insuranceProvider.trim();
+    if (data.insuranceId) cleaned.insuranceId = data.insuranceId.trim();
+    return cleaned;
   };
 
   const handleEditPatient = async (e) => {
     e.preventDefault();
+    const payload = cleanPatientUpdateData(formData);
     try {
-      await axios.put(`http://localhost:8080/api/patients/${currentPatient.patientId}`, formData);
+      await axios.put(`http://localhost:8080/api/patients/${currentPatient.patientId}`, payload);
       setShowEditModal(false);
       fetchPatients();
+      setError('');
     } catch (err) {
       console.error('Error updating patient:', err);
-      setError('Failed to update patient. Please try again.');
+      setError(err.response?.data?.message || 'Failed to update patient. Please try again.');
     }
   };
 
@@ -155,6 +215,13 @@ const PatientManagement = () => {
       
       return true;
     });
+  };
+
+  const safeDateInput = (dateVal) => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
   };
 
   if (loading) {
@@ -259,7 +326,7 @@ const PatientManagement = () => {
                           email: patient.email,
                           phoneNumber: patient.phoneNumber,
                           address: patient.address,
-                          dateOfBirth: patient.dateOfBirth ? new Date(patient.dateOfBirth).toISOString().split('T')[0] : '',
+                          dateOfBirth: safeDateInput(patient.dateOfBirth),
                           gender: patient.gender,
                           bloodGroup: patient.bloodGroup,
                           height: patient.height,
@@ -338,6 +405,19 @@ const PatientManagement = () => {
                         required
                       />
                     </div>
+                    <div className="form-group">
+                      <label>Password*</label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-row">
                     <div className="form-group">
                       <label>Phone Number</label>
                       <input

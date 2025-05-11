@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './PatientManagement.css';
 
 const PatientManagement = () => {
     const [patients, setPatients] = useState([]);

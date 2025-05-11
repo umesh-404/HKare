@@ -387,87 +387,83 @@ const AppointmentManagement = ({ patientId }) => {
               </button>
             </div>
             <div className="modal-body">
-              <div className="detail-section">
-                <h4>Basic Information</h4>
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label>Appointment ID:</label>
-                    <p>{selectedAppointment.appointmentId}</p>
-                  </div>
-                  <div className="detail-group">
-                    <label>Status:</label>
-                    <span className={`status-badge ${getStatusClass(selectedAppointment.status)}`}>
-                      {selectedAppointment.status}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label>Date:</label>
-                    <p>{formatDate(selectedAppointment.appointmentDate)}</p>
-                  </div>
-                  <div className="detail-group">
-                    <label>Time:</label>
-                    <p>{formatTime(selectedAppointment.appointmentTime)}</p>
-                  </div>
-                </div>
-                
-                <div className="detail-row">
-                  <div className="detail-group">
-                    <label>Doctor:</label>
-                    <p>{getDoctorName(selectedAppointment.doctorId)}</p>
-                  </div>
-                  <div className="detail-group">
-                    <label>Type:</label>
-                    <p>{selectedAppointment.appointmentType || 'General'}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="detail-section">
-                <h4>Additional Information</h4>
-                <div className="detail-row">
-                  <div className="detail-group wide">
-                    <label>Reason for Visit:</label>
-                    <p>{selectedAppointment.reasonForVisit || 'Not specified'}</p>
-                  </div>
-                </div>
-                
-                {selectedAppointment.status === 'CANCELLED' && (
+              <div className="appointment-details">
+                <div className="detail-section">
+                  <h4>Basic Information</h4>
                   <div className="detail-row">
-                    <div className="detail-group wide">
-                      <label>Cancellation Reason:</label>
-                      <p>{selectedAppointment.cancellationReason || 'Not specified'}</p>
+                    <div className="detail-group">
+                      <label>Appointment ID:</label>
+                      <p>{selectedAppointment.appointmentId}</p>
+                    </div>
+                    <div className="detail-group">
+                      <label>Status:</label>
+                      <span className={`status-badge ${getStatusClass(selectedAppointment.status)}`}>
+                        {selectedAppointment.status}
+                      </span>
                     </div>
                   </div>
-                )}
-                
-                {selectedAppointment.notes && (
                   <div className="detail-row">
-                    <div className="detail-group wide">
-                      <label>Notes:</label>
-                      <p>{selectedAppointment.notes}</p>
+                    <div className="detail-group">
+                      <label>Date:</label>
+                      <p>{formatDate(selectedAppointment.appointmentDate)}</p>
+                    </div>
+                    <div className="detail-group">
+                      <label>Time:</label>
+                      <p>{formatTime(selectedAppointment.appointmentTime)}</p>
                     </div>
                   </div>
-                )}
-              </div>
-              
-              <div className="modal-actions">
-                {canCancelAppointment(selectedAppointment) && (
-                  <button 
-                    onClick={() => {
-                      setShowViewModal(false);
-                      setShowCancelModal(true);
-                    }} 
-                    className="danger-btn"
-                  >
-                    <i className="fas fa-times"></i> Cancel Appointment
+                  <div className="detail-row">
+                    <div className="detail-group">
+                      <label>Doctor:</label>
+                      <p>{getDoctorName(selectedAppointment.doctorId)}</p>
+                    </div>
+                    <div className="detail-group">
+                      <label>Type:</label>
+                      <p>{selectedAppointment.appointmentType || 'General'}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="detail-section">
+                  <h4>Additional Information</h4>
+                  <div className="detail-row">
+                    <div className="detail-group wide">
+                      <label>Reason for Visit:</label>
+                      <p>{selectedAppointment.reasonForVisit || 'Not specified'}</p>
+                    </div>
+                  </div>
+                  {selectedAppointment.status === 'CANCELLED' && (
+                    <div className="detail-row">
+                      <div className="detail-group wide">
+                        <label>Cancellation Reason:</label>
+                        <p>{selectedAppointment.cancellationReason || 'Not specified'}</p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedAppointment.notes && (
+                    <div className="detail-row">
+                      <div className="detail-group wide">
+                        <label>Notes:</label>
+                        <p>{selectedAppointment.notes}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="modal-actions">
+                  {canCancelAppointment(selectedAppointment) && (
+                    <button 
+                      onClick={() => {
+                        setShowViewModal(false);
+                        setShowCancelModal(true);
+                      }} 
+                      className="danger-btn"
+                    >
+                      <i className="fas fa-times"></i> Cancel Appointment
+                    </button>
+                  )}
+                  <button onClick={() => setShowViewModal(false)} className="secondary-btn">
+                    Close
                   </button>
-                )}
-                <button onClick={() => setShowViewModal(false)} className="secondary-btn">
-                  Close
-                </button>
+                </div>
               </div>
             </div>
           </div>

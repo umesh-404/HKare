@@ -73,12 +73,21 @@ const MedicalRecordManagement = ({ doctorId }) => {
     });
   };
 
+  const formatToLocalDateTime = (dateStr) => {
+    if (!dateStr) return null;
+    // If already has time, return as is
+    if (dateStr.length > 10) return dateStr;
+    return dateStr + 'T00:00:00';
+  };
+
   const handleAddRecord = async (e) => {
     e.preventDefault();
     try {
       const newRecord = {
         ...formData,
-        doctorId: doctorId
+        doctorId: doctorId,
+        recordDate: formatToLocalDateTime(formData.recordDate),
+        nextAppointment: formatToLocalDateTime(formData.nextAppointment)
       };
       
       const response = await axios.post('http://localhost:8080/api/medical-records', newRecord);
@@ -91,12 +100,21 @@ const MedicalRecordManagement = ({ doctorId }) => {
     }
   };
 
+  const safeDateInput = (dateVal) => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
+  };
+
   const handleUpdateRecord = async (e) => {
     e.preventDefault();
     try {
       const updatedRecord = {
         ...formData,
-        doctorId: doctorId
+        doctorId: doctorId,
+        recordDate: formatToLocalDateTime(formData.recordDate),
+        nextAppointment: formatToLocalDateTime(formData.nextAppointment)
       };
       
       const response = await axios.put(`http://localhost:8080/api/medical-records/${selectedRecord.recordId}`, updatedRecord);
@@ -144,8 +162,8 @@ const MedicalRecordManagement = ({ doctorId }) => {
       prescription: record.prescription || '',
       testResults: record.testResults || '',
       medicalHistory: record.medicalHistory || '',
-      recordDate: record.recordDate ? new Date(record.recordDate).toISOString().split('T')[0] : '',
-      nextAppointment: record.nextAppointment ? new Date(record.nextAppointment).toISOString().split('T')[0] : ''
+      recordDate: safeDateInput(record.recordDate),
+      nextAppointment: safeDateInput(record.nextAppointment)
     });
     setShowEditModal(true);
   };

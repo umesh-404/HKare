@@ -18,12 +18,13 @@ const DoctorManagement = () => {
     firstName: '',
     lastName: '',
     email: '',
+    password: '',
     phoneNumber: '',
     specialization: '',
     departmentId: '',
     licenseNumber: '',
-    experience: '',
-    qualifications: '',
+    experienceYears: '',
+    qualification: '',
     availability: ''
   });
 
@@ -63,39 +64,76 @@ const DoctorManagement = () => {
     }));
   };
 
+  const cleanDoctorFormData = (data) => ({
+    ...data,
+    firstName: data.firstName.trim(),
+    lastName: data.lastName.trim(),
+    email: data.email.trim(),
+    password: data.password.trim(),
+    phoneNumber: data.phoneNumber ? data.phoneNumber.trim() : '',
+    specialization: data.specialization ? data.specialization.trim() : '',
+    departmentId: data.departmentId ? Number(data.departmentId) : '',
+    licenseNumber: data.licenseNumber.trim(),
+    experienceYears: data.experienceYears ? Number(data.experienceYears) : 0,
+    qualification: data.qualification ? data.qualification.trim() : '',
+    availability: data.availability ? data.availability.trim() : ''
+  });
+
+  const validateDoctorForm = (data) => {
+    if (!data.firstName.trim() || !data.lastName.trim() || !data.email.trim() || !data.licenseNumber.trim() || !data.password.trim()) {
+      return 'First name, last name, email, password, and license number are required.';
+    }
+    return '';
+  };
+
   const handleAddDoctor = async (e) => {
     e.preventDefault();
+    const validationError = validateDoctorForm(formData);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    const payload = cleanDoctorFormData(formData);
     try {
-      await axios.post('http://localhost:8080/api/doctors', formData);
+      await axios.post('http://localhost:8080/api/doctors', payload);
       setShowAddModal(false);
       fetchDoctors();
       setFormData({
         firstName: '',
         lastName: '',
         email: '',
+        password: '',
         phoneNumber: '',
         specialization: '',
         departmentId: '',
         licenseNumber: '',
-        experience: '',
-        qualifications: '',
+        experienceYears: '',
+        qualification: '',
         availability: ''
       });
+      setError('');
     } catch (err) {
       console.error('Error adding doctor:', err);
-      setError('Failed to add doctor. Please try again.');
+      setError(err.response?.data?.message || 'Failed to add doctor. Please try again.');
     }
   };
 
   const handleEditDoctor = async (e) => {
     e.preventDefault();
+    const validationError = validateDoctorForm(formData);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    const payload = cleanDoctorFormData(formData);
     try {
-      await axios.put(`http://localhost:8080/api/doctors/${currentDoctor.doctorId}`, formData);
+      await axios.put(`http://localhost:8080/api/doctors/${currentDoctor.doctorId}`, payload);
       setShowEditModal(false);
       fetchDoctors();
+      setError('');
     } catch (err) {
       console.error('Error updating doctor:', err);
-      setError('Failed to update doctor. Please try again.');
+      setError(err.response?.data?.message || 'Failed to update doctor. Please try again.');
     }
   };
 
@@ -237,12 +275,13 @@ const DoctorManagement = () => {
                           firstName: doctor.firstName,
                           lastName: doctor.lastName,
                           email: doctor.email,
+                          password: '',
                           phoneNumber: doctor.phoneNumber,
                           specialization: doctor.specialization,
                           departmentId: doctor.departmentId,
                           licenseNumber: doctor.licenseNumber,
-                          experience: doctor.experience,
-                          qualifications: doctor.qualifications,
+                          experienceYears: doctor.experience,
+                          qualification: doctor.qualifications,
                           availability: doctor.availability
                         });
                       }}
@@ -301,7 +340,6 @@ const DoctorManagement = () => {
                       />
                     </div>
                   </div>
-                  
                   <div className="form-row">
                     <div className="form-group">
                       <label>Email*</label>
@@ -313,6 +351,18 @@ const DoctorManagement = () => {
                         required
                       />
                     </div>
+                    <div className="form-group">
+                      <label>Password*</label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="form-row">
                     <div className="form-group">
                       <label>Phone Number</label>
                       <input
@@ -375,8 +425,8 @@ const DoctorManagement = () => {
                       <label>Years of Experience</label>
                       <input
                         type="number"
-                        name="experience"
-                        value={formData.experience}
+                        name="experienceYears"
+                        value={formData.experienceYears}
                         onChange={handleInputChange}
                         min="0"
                       />
@@ -384,13 +434,13 @@ const DoctorManagement = () => {
                   </div>
                   
                   <div className="form-group">
-                    <label>Qualifications</label>
+                    <label>Qualification</label>
                     <textarea
-                      name="qualifications"
-                      value={formData.qualifications}
+                      name="qualification"
+                      value={formData.qualification}
                       onChange={handleInputChange}
                       rows="2"
-                      placeholder="Enter doctor's qualifications..."
+                      placeholder="Enter doctor's qualification..."
                     ></textarea>
                   </div>
                   
@@ -469,12 +519,13 @@ const DoctorManagement = () => {
                       />
                     </div>
                     <div className="form-group">
-                      <label>Phone Number</label>
+                      <label>Password*</label>
                       <input
-                        type="tel"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
+                        type="password"
+                        name="password"
+                        value={formData.password}
                         onChange={handleInputChange}
+                        required
                       />
                     </div>
                   </div>
@@ -530,8 +581,8 @@ const DoctorManagement = () => {
                       <label>Years of Experience</label>
                       <input
                         type="number"
-                        name="experience"
-                        value={formData.experience}
+                        name="experienceYears"
+                        value={formData.experienceYears}
                         onChange={handleInputChange}
                         min="0"
                       />
@@ -539,13 +590,13 @@ const DoctorManagement = () => {
                   </div>
                   
                   <div className="form-group">
-                    <label>Qualifications</label>
+                    <label>Qualification</label>
                     <textarea
-                      name="qualifications"
-                      value={formData.qualifications}
+                      name="qualification"
+                      value={formData.qualification}
                       onChange={handleInputChange}
                       rows="2"
-                      placeholder="Enter doctor's qualifications..."
+                      placeholder="Enter doctor's qualification..."
                     ></textarea>
                   </div>
                   

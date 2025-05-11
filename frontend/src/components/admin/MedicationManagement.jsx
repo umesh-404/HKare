@@ -128,7 +128,7 @@ const MedicationManagement = () => {
     const openStockModal = (medication) => {
         setSelectedMedication(medication);
         setStockForm({
-            medicationId: medication.id,
+            medicationId: medication.medicationId,
             quantity: '',
             updateType: 'ADD'
         });
@@ -164,15 +164,15 @@ const MedicationManagement = () => {
         try {
             let response;
             try {
-                response = await axios.put(`http://localhost:8080/api/medications/${selectedMedication.id}`, formData);
+                response = await axios.put(`http://localhost:8080/api/medications/${selectedMedication.medicationId}`, formData);
             } catch (err) {
                 // Try alternate endpoint if the first one fails
-                response = await axios.put(`http://localhost:8080/medications/${selectedMedication.id}`, formData);
+                response = await axios.put(`http://localhost:8080/medications/${selectedMedication.medicationId}`, formData);
             }
             
             if (response.data) {
                 const updatedMedications = medications.map(med => 
-                    med.id === selectedMedication.id ? response.data : med
+                    med.medicationId === selectedMedication.medicationId ? response.data : med
                 );
                 setMedications(updatedMedications);
                 setShowEditModal(false);
@@ -189,8 +189,8 @@ const MedicationManagement = () => {
         if (!selectedMedication) return;
         
         try {
-            const endpoint = `http://localhost:8080/api/medications/${selectedMedication.id}/stock`;
-            const altEndpoint = `http://localhost:8080/medications/${selectedMedication.id}/stock`;
+            const endpoint = `http://localhost:8080/api/medications/${selectedMedication.medicationId}/stock`;
+            const altEndpoint = `http://localhost:8080/medications/${selectedMedication.medicationId}/stock`;
             const payload = {
                 quantity: parseInt(stockForm.quantity),
                 action: stockForm.updateType
@@ -206,7 +206,7 @@ const MedicationManagement = () => {
             
             if (response.data) {
                 const updatedMedications = medications.map(med => 
-                    med.id === selectedMedication.id ? response.data : med
+                    med.medicationId === selectedMedication.medicationId ? response.data : med
                 );
                 
                 setMedications(updatedMedications);
@@ -230,7 +230,7 @@ const MedicationManagement = () => {
                     response = await axios.delete(`http://localhost:8080/medications/${medicationId}`);
                 }
                 
-                setMedications(medications.filter(med => med.id !== medicationId));
+                setMedications(medications.filter(med => med.medicationId !== medicationId));
                 alert('Medication deleted successfully!');
             } catch (err) {
                 console.error('Error deleting medication:', err);
@@ -294,7 +294,7 @@ const MedicationManagement = () => {
                     <tbody>
                         {filteredMedications.length > 0 ? (
                             filteredMedications.map(med => (
-                                <tr key={med.id} className={med.stockQuantity < 10 ? "low-stock" : ""}>
+                                <tr key={med.medicationId} className={med.stockQuantity < 10 ? "low-stock" : ""}>
                                     <td>{med.name}</td>
                                     <td>{med.genericName || 'N/A'}</td>
                                     <td>{med.type || 'N/A'}</td>
@@ -331,7 +331,7 @@ const MedicationManagement = () => {
                                         <button 
                                             className="action-btn delete-btn" 
                                             title="Delete"
-                                            onClick={() => handleDeleteMedication(med.id)}
+                                            onClick={() => handleDeleteMedication(med.medicationId)}
                                         >
                                             <i className="fas fa-trash"></i>
                                         </button>

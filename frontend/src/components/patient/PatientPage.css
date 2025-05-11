@@ -2052,3 +2052,50 @@ select.profile-form-field {
   font-size: 1rem;
   max-width: 500px;
 }
+
+/* Appointment Details Modal Custom Styles */
+.appointment-details  {
+  font-size: 16px !important;
+  color: #222 !important;
+  padding: 0 8px !important;
+}
+.appointment-details .detail-section {
+  margin-bottom: 28px !important;
+  border-bottom: 1px solid #eee !important;
+  padding-bottom: 18px !important;
+}
+.appointment-details .detail-section:last-child {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+.appointment-details h4 {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 12px !important;
+  color: #222 !important;
+  text-align: center !important;
+}
+.appointment-details .detail-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 24px !important;
+  margin-bottom: 10px !important;
+}
+.appointment-details .detail-group {
+  min-width: 160px !important;
+  margin-bottom: 6px !important;
+}
+.appointment-details .detail-group.wide {
+  flex: 1 1 100% !important;
+}
+.appointment-details label {
+  font-weight: 600 !important;
+  margin-right: 4px !important;
+  color: #444 !important;
+}
+.appointment-details p {
+  display: inline !important;
+  margin: 0 !important;
+  color: #222 !important;
+}
