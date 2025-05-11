@@ -4,7 +4,7 @@ import com.hkare.hkare_backend.dto.DepartmentResponse;
 import com.hkare.hkare_backend.model.Department;
 import com.hkare.hkare_backend.repository.DepartmentRepository;
 import com.hkare.hkare_backend.service.DepartmentService;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,10 +14,14 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.hkare.hkare_backend.repository.DoctorRepository;
+import com.hkare.hkare_backend.model.Doctor;
+
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class DepartmentServiceImpl implements DepartmentService {
     private final DepartmentRepository departmentRepository;
+    private final DoctorRepository doctorRepository;
     
     @Override
     public List<Department> getAllDepartments() {
@@ -86,6 +90,14 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Transactional
     public boolean deleteDepartment(Long departmentId) {
         if (departmentRepository.existsById(departmentId)) {
+            Department department = departmentRepository.findById(departmentId)
+                .orElseThrow(() -> new NoSuchElementException("Department not found with id: " + departmentId));
+            // Remove department reference from all doctors
+            List<Doctor> doctors = doctorRepository.findAllByDepartment(department);
+            for (Doctor doctor : doctors) {
+                doctor.setDepartment(null);
+                doctorRepository.save(doctor);
+            }
             departmentRepository.deleteById(departmentId);
             return true;
         }

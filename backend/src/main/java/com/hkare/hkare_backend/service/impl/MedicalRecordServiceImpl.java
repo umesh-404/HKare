@@ -233,9 +233,6 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 .recordId(medicalRecord.getRecordId())
                 .patientId(medicalRecord.getPatient().getPatientId())
                 .patientName(medicalRecord.getPatient().getFirstName() + " " + medicalRecord.getPatient().getLastName())
-                .doctorId(medicalRecord.getDoctor().getDoctorId())
-                .doctorName("Dr. " + medicalRecord.getDoctor().getFirstName() + " " + medicalRecord.getDoctor().getLastName())
-                .doctorSpecialization(medicalRecord.getDoctor().getSpecialization())
                 .recordType(medicalRecord.getRecordType())
                 .diagnosis(medicalRecord.getDiagnosis())
                 .symptoms(medicalRecord.getSymptoms())
@@ -248,7 +245,20 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
                 .nextAppointment(medicalRecord.getNextAppointment())
                 .createdAt(medicalRecord.getCreatedAt())
                 .updatedAt(medicalRecord.getUpdatedAt());
+
+        // Handle doctor information if available
+        if (medicalRecord.getDoctor() != null) {
+            Doctor doctor = medicalRecord.getDoctor();
+            builder.doctorId(doctor.getDoctorId())
+                   .doctorName("Dr. " + doctor.getFirstName() + " " + doctor.getLastName())
+                   .doctorSpecialization(doctor.getSpecialization());
+        } else {
+            builder.doctorId(null)
+                   .doctorName("Not Assigned")
+                   .doctorSpecialization(null);
+        }
         
+        // Handle appointment information if available
         if (medicalRecord.getAppointment() != null) {
             Appointment appointment = medicalRecord.getAppointment();
             LocalDateTime appointmentDateTime = LocalDateTime.of(

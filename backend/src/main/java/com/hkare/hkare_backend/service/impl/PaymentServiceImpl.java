@@ -269,8 +269,6 @@ public class PaymentServiceImpl implements PaymentService {
     private PaymentResponse mapEntityToResponse(Payment payment) {
         PaymentResponse.PaymentResponseBuilder builder = PaymentResponse.builder()
                 .paymentId(payment.getPaymentId())
-                .patientId(payment.getPatient().getPatientId())
-                .patientName(payment.getPatient().getFirstName() + " " + payment.getPatient().getLastName())
                 .amount(payment.getAmount())
                 .type(payment.getType())
                 .status(payment.getStatus())
@@ -280,7 +278,14 @@ public class PaymentServiceImpl implements PaymentService {
                 .paymentDate(payment.getPaymentDate())
                 .createdAt(payment.getCreatedAt())
                 .updatedAt(payment.getUpdatedAt());
-        
+
+        // Handle patient information
+        if (payment.getPatient() != null) {
+            builder.patientId(payment.getPatient().getPatientId())
+                   .patientName(payment.getPatient().getFirstName() + " " + payment.getPatient().getLastName());
+        }
+
+        // Handle appointment information
         if (payment.getAppointment() != null) {
             Appointment appointment = payment.getAppointment();
             LocalDateTime appointmentDateTime = LocalDateTime.of(
@@ -289,16 +294,21 @@ public class PaymentServiceImpl implements PaymentService {
             );
             
             builder.appointmentId(appointment.getAppointmentId())
-                   .appointmentDateTime(appointmentDateTime)
-                   .doctorName("Dr. " + appointment.getDoctor().getFirstName() + " " + appointment.getDoctor().getLastName());
+                   .appointmentDateTime(appointmentDateTime);
+            
+            // Handle doctor information if available
+            if (appointment.getDoctor() != null) {
+                builder.doctorName("Dr. " + appointment.getDoctor().getFirstName() + " " + appointment.getDoctor().getLastName());
+            }
         }
-        
+
+        // Handle staff information
         if (payment.getReceivedBy() != null) {
             Staff staff = payment.getReceivedBy();
             builder.staffId(staff.getStaffId())
                    .staffName(staff.getFirstName() + " " + staff.getLastName());
         }
-        
+
         return builder.build();
     }
 } 

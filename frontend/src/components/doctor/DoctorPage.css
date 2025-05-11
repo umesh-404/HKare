@@ -380,9 +380,12 @@ body.doctor-page-body {
 
 /* Header Logo */
 .header-logo {
-    height: 40px;
+    height: 56px;
     width: auto;
+    margin-right: 18px;
+    display: block;
     object-fit: contain;
+    max-width: 180px;
 }
 
 /* Logout Popup */
@@ -2365,4 +2368,174 @@ select.profile-form-field {
 /* Make sure the new icon is properly styled like others */
 .fa-pills {
   color: black;
+}
+
+/* Patient Details Modal Custom Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-container {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  max-width: 600px;
+  width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px 32px 24px 32px;
+  position: relative;
+}
+
+.patient-details {
+  font-size: 16px;
+  color: #222;
+}
+
+.patient-details .detail-section {
+  margin-bottom: 28px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 18px;
+}
+
+.patient-details .detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.patient-details h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #222;
+}
+
+.patient-details .detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 10px;
+}
+
+.patient-details .detail-group {
+  min-width: 160px;
+  margin-bottom: 6px;
+}
+
+.patient-details .detail-group.wide {
+  flex: 1 1 100%;
+}
+
+.patient-details label {
+  font-weight: 600;
+  margin-right: 4px;
+  color: #444;
+}
+
+.patient-details p {
+  display: inline;
+  margin: 0;
+  color: #222;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.modal-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close-btn:hover {
+  color: #e60000;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.modal-actions .close-btn {
+  font-size: 16px;
+  color: #333;
+  background: #f2f2f2;
+  border-radius: 4px;
+  padding: 8px 18px;
+  border: none;
+  margin-left: 8px;
+}
+.modal-actions .close-btn:hover {
+  background: #e0e0e0;
+  color: #e60000;
+}
+
+/* Medical Record Details Modal Custom Styles */
+.medical-record-details {
+  font-size: 16px;
+  color: #222;
+  padding: 0 8px;
+}
+.medical-record-details .detail-section {
+  margin-bottom: 28px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 18px;
+}
+.medical-record-details .detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.medical-record-details h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #222;
+  text-align: center;
+}
+.medical-record-details .detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 10px;
+}
+.medical-record-details .detail-group {
+  min-width: 160px;
+  margin-bottom: 6px;
+}
+.medical-record-details .detail-group.wide {
+  flex: 1 1 100%;
+}
+.medical-record-details label {
+  font-weight: 600;
+  margin-right: 4px;
+  color: #444;
+}
+.medical-record-details p {
+  display: inline;
+  margin: 0;
+  color: #222;
 }

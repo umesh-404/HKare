@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,11 +102,19 @@ public class DepartmentController {
     
     @DeleteMapping("/{departmentId}")
     public ResponseEntity<?> deleteDepartment(@PathVariable Long departmentId) {
-        boolean deleted = departmentService.deleteDepartment(departmentId);
-        if (deleted) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.notFound().build();
+        try {
+            boolean deleted = departmentService.deleteDepartment(departmentId);
+            if (deleted) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (DataIntegrityViolationException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Cannot delete department: it is still referenced by other entities.");
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Failed to delete department: " + ex.getMessage());
         }
     }
 } 

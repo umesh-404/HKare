@@ -13,8 +13,13 @@
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  height: 56px;
+  width: auto;
+  margin-right: 18px;
+  display: block;
+  object-fit: contain;
+  max-width: 180px;
+  padding: 0;
   will-change: filter;
   transition: filter 300ms;
 }

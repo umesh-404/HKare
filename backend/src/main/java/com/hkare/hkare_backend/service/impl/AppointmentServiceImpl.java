@@ -9,6 +9,7 @@ import com.hkare.hkare_backend.model.Patient;
 import com.hkare.hkare_backend.repository.AppointmentRepository;
 import com.hkare.hkare_backend.repository.DepartmentRepository;
 import com.hkare.hkare_backend.repository.DoctorRepository;
+import com.hkare.hkare_backend.repository.MedicalRecordRepository;
 import com.hkare.hkare_backend.repository.PatientRepository;
 import com.hkare.hkare_backend.service.AppointmentService;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,6 +29,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
     private final DepartmentRepository departmentRepository;
+    private final MedicalRecordRepository medicalRecordRepository;
     
     @Override
     @Transactional
@@ -78,11 +80,20 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public boolean deleteAppointment(Long appointmentId) {
-        if (appointmentRepository.existsById(appointmentId)) {
-            appointmentRepository.deleteById(appointmentId);
-            return true;
+        try {
+            if (appointmentRepository.existsById(appointmentId)) {
+                // Delete all medical records related to this appointment first
+                medicalRecordRepository.deleteByAppointment_AppointmentId(appointmentId);
+                // Now delete the appointment
+                appointmentRepository.deleteById(appointmentId);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            System.err.println("Error deleting appointment: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
     
     @Override
@@ -184,15 +195,36 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
     
     private AppointmentResponse mapEntityToResponse(Appointment appointment) {
+        // Handle null doctor and patient references gracefully
+        String doctorId = null;
+        String doctorName = null;
+        String doctorSpecialization = null;
+        if (appointment.getDoctor() != null) {
+            doctorId = appointment.getDoctor().getDoctorId();
+            doctorName = "Dr. " + appointment.getDoctor().getFirstName() + " " + appointment.getDoctor().getLastName();
+            doctorSpecialization = appointment.getDoctor().getSpecialization();
+        }
+        String patientId = null;
+        String patientName = null;
+        String patientEmail = null;
+        String patientPhone = null;
+        if (appointment.getPatient() != null) {
+            patientId = appointment.getPatient().getPatientId();
+            patientName = appointment.getPatient().getFirstName() + " " + appointment.getPatient().getLastName();
+            if (appointment.getPatient().getUser() != null) {
+                patientEmail = appointment.getPatient().getUser().getEmail();
+                patientPhone = appointment.getPatient().getUser().getPhoneNumber();
+            }
+        }
         return AppointmentResponse.builder()
                 .appointmentId(appointment.getAppointmentId())
-                .patientId(appointment.getPatient().getPatientId())
-                .patientName(appointment.getPatient().getFirstName() + " " + appointment.getPatient().getLastName())
-                .patientEmail(appointment.getPatient().getUser().getEmail())
-                .patientPhone(appointment.getPatient().getUser().getPhoneNumber())
-                .doctorId(appointment.getDoctor().getDoctorId())
-                .doctorName("Dr. " + appointment.getDoctor().getFirstName() + " " + appointment.getDoctor().getLastName())
-                .doctorSpecialization(appointment.getDoctor().getSpecialization())
+                .patientId(patientId)
+                .patientName(patientName)
+                .patientEmail(patientEmail)
+                .patientPhone(patientPhone)
+                .doctorId(doctorId)
+                .doctorName(doctorName)
+                .doctorSpecialization(doctorSpecialization)
                 .departmentId(appointment.getDepartment() != null ? appointment.getDepartment().getDepartmentId() : null)
                 .departmentName(appointment.getDepartment() != null ? appointment.getDepartment().getName() : null)
                 .appointmentDate(appointment.getAppointmentDate())

@@ -407,3 +407,12 @@ body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+.header-logo {
+    height: 66px !important;
+    width: auto;
+    margin-right: 18px;
+    display: block;
+    object-fit: contain;
+    max-width: 180px;
+}

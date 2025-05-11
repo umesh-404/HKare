@@ -2,6 +2,7 @@ import './DoctorLogin.css';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import SimpleCaptcha from './SimpleCaptcha';
 
 const DoctorLogin = () => {
     const navigate = useNavigate();
@@ -29,6 +30,7 @@ const DoctorLogin = () => {
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
+    const [isCaptchaValid, setIsCaptchaValid] = useState(false);
 
     useEffect(() => {
         // Check if user is already logged in
@@ -72,10 +74,31 @@ const DoctorLogin = () => {
         setSuccessMessage('This feature is under implementation. Please contact support if you need assistance.');
     };
 
+    const recordLoginHistory = async ({ username, success, failureReason }) => {
+        try {
+            await axios.post('http://localhost:8080/api/login-history', {
+                username,
+                ipAddress: '',
+                userAgent: navigator.userAgent,
+                loginSuccess: success,
+                failureReason: failureReason || null,
+            });
+        } catch (err) {
+            console.error('Failed to record login history', err);
+        }
+    };
+    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccessMessage('');
+        
+        if (!isCaptchaValid) {
+            setError('Please complete the captcha verification');
+            return;
+        }
+        
         setShowLoginOverlay(true);
         setOverlayMessage('Logging in...');
         
@@ -91,6 +114,7 @@ const DoctorLogin = () => {
             }
             
             if (response.data.authenticated === true) {
+                await recordLoginHistory({ username: formData.identifier, success: true });
                 // Store user data in localStorage for session management
                 const userData = {
                     ...response.data,
@@ -108,11 +132,13 @@ const DoctorLogin = () => {
                     navigate('/doctor-dashboard');
                 }, 1500);
             } else {
+                await recordLoginHistory({ username: formData.identifier, success: false, failureReason: response.data.message });
                 console.log('Authentication failed:', response.data.message);
                 setShowLoginOverlay(false);
                 setError(response.data.message || 'Authentication failed');
             }
         } catch (err) {
+            await recordLoginHistory({ username: formData.identifier, success: false, failureReason: err.response?.data?.message || 'Failed to connect to the server' });
             console.error('Login error:', err);
             setShowLoginOverlay(false);
             setError(err.response?.data?.message || 'Failed to connect to the server');
@@ -184,7 +210,7 @@ const DoctorLogin = () => {
     return (
         <>
             <header className="login-header">
-                <img src="/vite.svg" alt="Hospital Logo" className="header-logo" />
+                <img src="/main-logo.png" alt="Hospital Logo" className="header-logo" />
                 <a href="#" onClick={() => navigate('/')} className="home-link">
                     Go Back to Home
                     <i className="fa-solid fa-right-from-bracket"></i>
@@ -194,8 +220,10 @@ const DoctorLogin = () => {
             {/* Login Overlay */}
             {showLoginOverlay && (
                 <div className="login-overlay">
-                    <div className="loading-spinner"></div>
-                    <p>{overlayMessage}</p>
+                    <div className="overlay-content">
+                        <div className="spinner"></div>
+                        <p>{overlayMessage}</p>
+                    </div>
                 </div>
             )}
 
@@ -261,14 +289,13 @@ const DoctorLogin = () => {
                             // Login Form
                             <form onSubmit={handleSubmit} className="login-form">
                                 <div className="form-group">
-                                    <label htmlFor="identifier">Doctor ID</label>
+                                    <label htmlFor="identifier">Doctor ID or Email</label>
                                     <input 
                                         type="text" 
                                         id="identifier" 
                                         name="identifier" 
                                         value={formData.identifier}
                                         onChange={handleChange}
-                                        placeholder="Enter your Doctor ID" 
                                         required 
                                     />
                                 </div>
@@ -281,10 +308,11 @@ const DoctorLogin = () => {
                                         name="password" 
                                         value={formData.password}
                                         onChange={handleChange}
-                                        placeholder="Enter your password" 
                                         required 
                                     />
                                 </div>
+
+                                <SimpleCaptcha onCaptchaChange={setIsCaptchaValid} />
 
                                 <div className="form-links">
                                     <a href="#" onClick={handleForgotPassword}>Forgot Password?</a>

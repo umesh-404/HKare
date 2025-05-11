@@ -2,6 +2,7 @@ import './StaffLogin.css';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import SimpleCaptcha from './SimpleCaptcha';
 
 const StaffLogin = () => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const StaffLogin = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isCaptchaValid, setIsCaptchaValid] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -76,16 +78,37 @@ const StaffLogin = () => {
     setSuccessMessage('This feature is under implementation. Please contact support if you need assistance.');
   };
 
+  const recordLoginHistory = async ({ username, success, failureReason }) => {
+    try {
+      await axios.post('http://localhost:8080/api/login-history', {
+        username,
+        ipAddress: '',
+        userAgent: navigator.userAgent,
+        loginSuccess: success,
+        failureReason: failureReason || null,
+      });
+    } catch (err) {
+      console.error('Failed to record login history', err);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
+    
+    if (!isCaptchaValid) {
+      setError('Please complete the captcha verification');
+      return;
+    }
+    
     setShowLoginOverlay(true);
     setOverlayMessage('Logging in...');
     
     try {
       // Check if this is the hardcoded admin login
       if (formData.identifier === 'admin' && formData.password === 'admin') {
+        await recordLoginHistory({ username: formData.identifier, success: true });
         // Hardcoded admin user
         const adminUserData = {
           roleId: 'ADMIN001',
@@ -121,6 +144,7 @@ const StaffLogin = () => {
       }
       
       if (response.data.authenticated === true) {
+        await recordLoginHistory({ username: formData.identifier, success: true });
         // Determine if admin based on ID prefix or userType
         const isAdmin = response.data.roleId.startsWith('A') || response.data.userType === 'ADMIN';
         
@@ -143,11 +167,13 @@ const StaffLogin = () => {
           navigate(dashboardPath);
         }, 1500);
       } else {
+        await recordLoginHistory({ username: formData.identifier, success: false, failureReason: response.data.message });
         console.log('Authentication failed:', response.data.message);
         setShowLoginOverlay(false);
         setError(response.data.message || 'Authentication failed');
       }
     } catch (err) {
+      await recordLoginHistory({ username: formData.identifier, success: false, failureReason: err.response?.data?.message || 'Failed to connect to the server' });
       console.error('Login error:', err);
       setShowLoginOverlay(false);
       setError(err.response?.data?.message || 'Failed to connect to the server');
@@ -239,7 +265,7 @@ const StaffLogin = () => {
   return (
     <>
       <header className="login-header">
-        <img src="/vite.svg" alt="Hospital Logo" className="header-logo" />
+        <img src="/main-logo.png" alt="Hospital Logo" className="header-logo" />
         <a href="#" onClick={handleGoBack} className="home-link">
           Go Back to Home
           <i className="fa-solid fa-right-from-bracket"></i>
@@ -249,8 +275,10 @@ const StaffLogin = () => {
       {/* Login Overlay */}
       {showLoginOverlay && (
         <div className="login-overlay">
-          <div className="loading-spinner"></div>
-          <p>{overlayMessage}</p>
+          <div className="overlay-content">
+            <div className="spinner"></div>
+            <p>{overlayMessage}</p>
+          </div>
         </div>
       )}
 
@@ -330,14 +358,14 @@ const StaffLogin = () => {
               // Login Form
               <form onSubmit={handleSubmit} className="login-form">
                 <div className="form-group">
-                  <label htmlFor="identifier">Staff ID</label>
+                  <label htmlFor="identifier">Staff ID or Email</label>
                   <input 
                     type="text" 
                     id="identifier" 
                     name="identifier" 
                     value={formData.identifier}
                     onChange={handleChange}
-                    placeholder="Enter your Staff ID" 
+                    placeholder="Enter your Staff ID or Email" 
                     required 
                   />
                 </div>
@@ -354,6 +382,8 @@ const StaffLogin = () => {
                     required 
                   />
                 </div>
+
+                <SimpleCaptcha onCaptchaChange={setIsCaptchaValid} />
 
                 <div className="form-links">
                   <a href="#" onClick={handleForgotPassword}>Forgot Password?</a>
