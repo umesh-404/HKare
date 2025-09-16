@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const PrescriptionManagement = ({ doctorId }) => {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -52,7 +52,7 @@ const PrescriptionManagement = ({ doctorId }) => {
   const fetchPrescriptions = async (doctorId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/prescriptions/doctor/${doctorId}`);
+      const response = await api.get(`/api/prescriptions/doctor/${doctorId}`);
       setPrescriptions(response.data);
       setError('');
     } catch (err) {
@@ -65,7 +65,7 @@ const PrescriptionManagement = ({ doctorId }) => {
 
   const fetchPatients = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/patients');
+      const response = await api.get('/api/patients');
       setPatients(response.data);
     } catch (err) {
       console.error('Error fetching patients:', err);
@@ -74,7 +74,7 @@ const PrescriptionManagement = ({ doctorId }) => {
 
   const fetchMedications = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/medications');
+      const response = await api.get('/api/medications');
       setMedications(response.data);
     } catch (err) {
       console.error('Error fetching medications:', err);
@@ -207,7 +207,7 @@ const PrescriptionManagement = ({ doctorId }) => {
         doctorId: doctorId
       };
       
-      const response = await axios.post('http://localhost:8080/api/prescriptions', prescriptionData);
+      const response = await api.post('/api/prescriptions', prescriptionData);
       
       setPrescriptions([...prescriptions, response.data]);
       setShowAddModal(false);
@@ -227,7 +227,7 @@ const PrescriptionManagement = ({ doctorId }) => {
         doctorId: doctorId
       };
       
-      const response = await axios.put(`http://localhost:8080/api/prescriptions/${selectedPrescription.prescriptionId}`, prescriptionData);
+      const response = await api.put(`/api/prescriptions/${selectedPrescription.prescriptionId}`, prescriptionData);
       
       setPrescriptions(prescriptions.map(p => 
         p.prescriptionId === selectedPrescription.prescriptionId ? response.data : p
@@ -246,7 +246,7 @@ const PrescriptionManagement = ({ doctorId }) => {
 
   const handleProcessRefill = async (prescriptionId) => {
     try {
-      await axios.post(`http://localhost:8080/api/prescriptions/${prescriptionId}/refill`);
+      await api.post(`/api/prescriptions/${prescriptionId}/refill`);
       
       // Refresh prescriptions after refill
       fetchPrescriptions(doctorId);

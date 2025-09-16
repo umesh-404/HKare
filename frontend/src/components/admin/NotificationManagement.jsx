@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { FaSearch, FaCalendar, FaExclamationTriangle, FaBell, FaEnvelope } from 'react-icons/fa';
 import './AdminPage.css';
 
@@ -26,15 +26,15 @@ const NotificationManagement = () => {
         setLoading(true);
         setError(null);
         try {
-            let url = 'http://localhost:8080/api/notifications';
+            let url = '/api/notifications';
             if (filter === 'recipient' && recipientId) {
-                url = `http://localhost:8080/api/notifications/recipient/${recipientType}/${recipientId}`;
+                url = `/api/notifications/recipient/${recipientType}/${recipientId}`;
             } else if (filter === 'sender' && senderUsername) {
-                url = `http://localhost:8080/api/notifications/sender/${senderUsername}`;
+                url = `/api/notifications/sender/${senderUsername}`;
             } else if (filter === 'priority' && priority) {
-                url = `http://localhost:8080/api/notifications/priority/${priority}`;
+                url = `/api/notifications/priority/${priority}`;
             }
-            const response = await axios.get(url);
+            const response = await api.get(url);
             setNotifications(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             setError('Failed to fetch notifications. Please try again later.');
@@ -78,7 +78,7 @@ const NotificationManagement = () => {
                 createdAt: new Date().toISOString(),
                 isRead: false
             };
-            await axios.post('http://localhost:8080/api/notifications', notificationData);
+            await api.post('/api/notifications', notificationData);
             setShowAddModal(false);
             setFormData({
                 title: '',
@@ -97,7 +97,7 @@ const NotificationManagement = () => {
 
     const handleMarkAsRead = async (notificationId) => {
         try {
-            await axios.put(`http://localhost:8080/api/notifications/${notificationId}/read`);
+            await api.put(`/api/notifications/${notificationId}/read`);
             fetchNotifications();
         } catch (err) {
             setError('Failed to mark notification as read. Please try again.');
@@ -108,7 +108,7 @@ const NotificationManagement = () => {
     const handleDeleteNotification = async (notificationId) => {
         if (window.confirm('Are you sure you want to delete this notification?')) {
             try {
-                await axios.delete(`http://localhost:8080/api/notifications/${notificationId}`);
+                await api.delete(`/api/notifications/${notificationId}`);
                 fetchNotifications();
             } catch (err) {
                 setError('Failed to delete notification. Please try again.');

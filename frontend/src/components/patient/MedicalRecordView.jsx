@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const MedicalRecordView = ({ patientId }) => {
   const [medicalRecords, setMedicalRecords] = useState([]);
@@ -22,7 +22,7 @@ const MedicalRecordView = ({ patientId }) => {
   const fetchMedicalRecords = async (patientId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/medical-records/patient/${patientId}`);
+      const response = await api.get(`/api/medical-records/patient/${patientId}`);
       setMedicalRecords(response.data);
       setError('');
     } catch (err) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const StaffManagement = () => {
     const [staff, setStaff] = useState([]);
@@ -37,25 +37,7 @@ const StaffManagement = () => {
         setError('');
         try {
             console.log('Fetching staff from API...');
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/staff/profiles', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 second timeout
-                });
-            } catch (err) {
-                // If first attempt fails, try without /api prefix
-                response = await axios.get('http://localhost:8080/staff/profiles', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
-            }
+            const response = await api.get('/api/staff/profiles');
             
             console.log('Staff data received:', response.data);
             setStaff(response.data || []);
@@ -75,25 +57,7 @@ const StaffManagement = () => {
     const fetchDepartments = async () => {
         try {
             console.log('Fetching departments from API...');
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/departments', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
-            } catch (err) {
-                // If first attempt fails, try without /api prefix
-                response = await axios.get('http://localhost:8080/departments', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
-            }
+            const response = await api.get('/api/departments');
             
             console.log('Departments data received:', response.data);
             setDepartments(response.data || []);
@@ -178,21 +142,7 @@ const StaffManagement = () => {
         
         try {
             console.log('Adding new staff member with data:', formData);
-            let response;
-            try {
-                response = await axios.post('http://localhost:8080/api/staff/create', formData, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            } catch (err) {
-                // If first attempt fails, try without /api prefix
-                response = await axios.post('http://localhost:8080/staff/create', formData, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            }
+            const response = await api.post('/api/staff/create', formData);
             
             if (response.status === 201 || response.status === 200) {
                 // Refresh the staff list
@@ -214,21 +164,7 @@ const StaffManagement = () => {
         
         try {
             console.log('Updating staff member with data:', formData);
-            let response;
-            try {
-                response = await axios.put(`http://localhost:8080/api/staff/${selectedStaff.staffId}`, formData, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            } catch (err) {
-                // If first attempt fails, try without /api prefix
-                response = await axios.put(`http://localhost:8080/staff/${selectedStaff.staffId}`, formData, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-            }
+            const response = await api.put(`/api/staff/${selectedStaff.staffId}`, formData);
             
             if (response.status === 200) {
                 setShowEditModal(false);
@@ -245,13 +181,7 @@ const StaffManagement = () => {
         if (window.confirm('Are you sure you want to delete this staff member?')) {
             try {
                 console.log(`Deleting staff member with ID: ${staffId}`);
-                let response;
-                try {
-                    response = await axios.delete(`http://localhost:8080/api/staff/${staffId}`);
-                } catch (err) {
-                    // If first attempt fails, try without /api prefix
-                    response = await axios.delete(`http://localhost:8080/staff/${staffId}`);
-                }
+                const response = await api.delete(`/api/staff/${staffId}`);
                 
                 if (response.status === 200 || response.status === 204) {
                     // Refresh the staff list

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const DoctorManagement = () => {
   const [doctors, setDoctors] = useState([]);
@@ -36,7 +36,7 @@ const DoctorManagement = () => {
   const fetchDoctors = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/doctors');
+      const response = await api.get('/api/doctors');
       setDoctors(response.data);
       setError('');
     } catch (err) {
@@ -49,7 +49,7 @@ const DoctorManagement = () => {
 
   const fetchDepartments = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/departments');
+      const response = await api.get('/api/departments');
       setDepartments(response.data);
     } catch (err) {
       console.error('Error fetching departments:', err);
@@ -95,7 +95,7 @@ const DoctorManagement = () => {
     }
     const payload = cleanDoctorFormData(formData);
     try {
-      await axios.post('http://localhost:8080/api/doctors', payload);
+      await api.post('/api/doctors', payload);
       setShowAddModal(false);
       fetchDoctors();
       setFormData({
@@ -127,7 +127,7 @@ const DoctorManagement = () => {
     }
     const payload = cleanDoctorFormData(formData);
     try {
-      await axios.put(`http://localhost:8080/api/doctors/${currentDoctor.doctorId}`, payload);
+      await api.put(`/api/doctors/${currentDoctor.doctorId}`, payload);
       setShowEditModal(false);
       fetchDoctors();
       setError('');
@@ -140,7 +140,7 @@ const DoctorManagement = () => {
   const handleDeleteDoctor = async (doctorId) => {
     if (window.confirm('Are you sure you want to delete this doctor?')) {
       try {
-        await axios.delete(`http://localhost:8080/api/doctors/${doctorId}`);
+        await api.delete(`/api/doctors/${doctorId}`);
         fetchDoctors();
       } catch (err) {
         console.error('Error deleting doctor:', err);

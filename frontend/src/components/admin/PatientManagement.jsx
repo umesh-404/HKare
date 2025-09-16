@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import './PatientManagement.css';
 
 const PatientManagement = () => {
@@ -39,13 +39,7 @@ const PatientManagement = () => {
         try {
             console.log('Fetching patients from API...');
             // Note that the endpoint already includes /api in the controller
-            const response = await axios.get('http://localhost:8080/api/patients', {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                timeout: 10000 // 10 second timeout
-            });
+            const response = await api.get('/api/patients');
             
             console.log('Patient data received:', response.data);
             setPatients(response.data || []);
@@ -138,7 +132,7 @@ const PatientManagement = () => {
                 ...formData
             };
             
-                const response = await axios.post('http://localhost:8080/api/patients', patientData);
+                const response = await api.post('/api/patients', patientData);
             if (response.status === 201 || response.status === 200) {
                 setShowAddModal(false);
                 fetchPatients();
@@ -159,7 +153,7 @@ const PatientManagement = () => {
                 ...formData
             };
             
-            const response = await axios.put(`http://localhost:8080/api/patients/${selectedPatient.patientId}`, patientData);
+            const response = await api.put(`/api/patients/${selectedPatient.patientId}`, patientData);
             if (response.status === 200) {
                 setShowEditModal(false);
                 fetchPatients();
@@ -174,7 +168,7 @@ const PatientManagement = () => {
     const handleDeletePatient = async (patientId) => {
         if (window.confirm('Are you sure you want to delete this patient?')) {
             try {
-                const response = await axios.delete(`http://localhost:8080/api/patients/${patientId}`);
+                const response = await api.delete(`/api/patients/${patientId}`);
                 if (response.status === 200 || response.status === 204) {
                     fetchPatients();
                     alert('Patient deleted successfully!');

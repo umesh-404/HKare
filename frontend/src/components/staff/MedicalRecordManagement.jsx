@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const MedicalRecordManagement = () => {
   const [medicalRecords, setMedicalRecords] = useState([]);
@@ -39,7 +39,7 @@ const MedicalRecordManagement = () => {
   const fetchMedicalRecords = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/medical-records');
+      const response = await api.get('/api/medical-records');
       setMedicalRecords(response.data);
       setError('');
     } catch (err) {
@@ -52,7 +52,7 @@ const MedicalRecordManagement = () => {
 
   const fetchPatients = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/patients');
+      const response = await api.get('/api/patients');
       setPatients(response.data);
     } catch (err) {
       console.error('Error fetching patients:', err);
@@ -61,7 +61,7 @@ const MedicalRecordManagement = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/doctors');
+      const response = await api.get('/api/doctors');
       setDoctors(response.data);
     } catch (err) {
       console.error('Error fetching doctors:', err);
@@ -79,7 +79,7 @@ const MedicalRecordManagement = () => {
   const handleAddRecord = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/medical-records', formData);
+      await api.post('/api/medical-records', formData);
       setShowAddModal(false);
       fetchMedicalRecords();
       setFormData({
@@ -123,7 +123,7 @@ const MedicalRecordManagement = () => {
     e.preventDefault();
     try {
       const payload = cleanMedicalRecordData(formData);
-      await axios.put(`http://localhost:8080/api/medical-records/${currentRecord.recordId}`, payload);
+      await api.put(`/api/medical-records/${currentRecord.recordId}`, payload);
       setShowEditModal(false);
       fetchMedicalRecords();
     } catch (err) {
@@ -135,7 +135,7 @@ const MedicalRecordManagement = () => {
   const handleDeleteRecord = async (recordId) => {
     if (window.confirm('Are you sure you want to delete this medical record?')) {
       try {
-        await axios.delete(`http://localhost:8080/api/medical-records/${recordId}`);
+        await api.delete(`/api/medical-records/${recordId}`);
         fetchMedicalRecords();
       } catch (err) {
         console.error('Error deleting medical record:', err);

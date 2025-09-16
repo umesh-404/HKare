@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const MedicalRecordManagement = ({ doctorId }) => {
   const [medicalRecords, setMedicalRecords] = useState([]);
@@ -45,7 +45,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
   const fetchMedicalRecords = async (doctorId) => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/medical-records/doctor/${doctorId}`);
+      const response = await api.get(`/api/medical-records/doctor/${doctorId}`);
       setMedicalRecords(response.data);
       setError('');
     } catch (err) {
@@ -58,7 +58,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
 
   const fetchPatients = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/patients');
+      const response = await api.get('/api/patients');
       setPatients(response.data);
     } catch (err) {
       console.error('Error fetching patients:', err);
@@ -90,7 +90,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
         nextAppointment: formatToLocalDateTime(formData.nextAppointment)
       };
       
-      const response = await axios.post('http://localhost:8080/api/medical-records', newRecord);
+      const response = await api.post('/api/medical-records', newRecord);
       setMedicalRecords([...medicalRecords, response.data]);
       setShowAddModal(false);
       alert('Medical record added successfully!');
@@ -117,7 +117,7 @@ const MedicalRecordManagement = ({ doctorId }) => {
         nextAppointment: formatToLocalDateTime(formData.nextAppointment)
       };
       
-      const response = await axios.put(`http://localhost:8080/api/medical-records/${selectedRecord.recordId}`, updatedRecord);
+      const response = await api.put(`/api/medical-records/${selectedRecord.recordId}`, updatedRecord);
       
       setMedicalRecords(medicalRecords.map(record => 
         record.recordId === selectedRecord.recordId ? response.data : record

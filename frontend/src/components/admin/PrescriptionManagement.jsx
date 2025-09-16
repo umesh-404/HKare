@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const PrescriptionManagement = () => {
     const [prescriptions, setPrescriptions] = useState([]);
@@ -59,13 +59,7 @@ const PrescriptionManagement = () => {
     const fetchPrescriptions = async () => {
         setLoading(true);
         try {
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/prescriptions');
-            } catch (err) {
-                // Try alternate endpoint if first one fails
-                response = await axios.get('http://localhost:8080/prescriptions');
-            }
+            const response = await api.get('/api/prescriptions');
             
             if (response.data) {
                 setPrescriptions(response.data);
@@ -81,12 +75,7 @@ const PrescriptionManagement = () => {
 
     const fetchPatients = async () => {
         try {
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/patients');
-            } catch (err) {
-                response = await axios.get('http://localhost:8080/patients');
-            }
+            const response = await api.get('/api/patients');
             
             if (response.data) {
                 setPatients(response.data);
@@ -98,12 +87,7 @@ const PrescriptionManagement = () => {
 
     const fetchDoctors = async () => {
         try {
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/doctors');
-            } catch (err) {
-                response = await axios.get('http://localhost:8080/doctors');
-            }
+            const response = await api.get('/api/doctors');
             
             if (response.data) {
                 setDoctors(response.data);
@@ -115,12 +99,7 @@ const PrescriptionManagement = () => {
 
     const fetchMedicalRecords = async () => {
         try {
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/medical-records');
-            } catch (err) {
-                response = await axios.get('http://localhost:8080/medical-records');
-            }
+            const response = await api.get('/api/medical-records');
             
             if (response.data) {
                 setMedicalRecords(response.data);
@@ -132,12 +111,7 @@ const PrescriptionManagement = () => {
 
     const fetchMedications = async () => {
         try {
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/medications');
-            } catch (err) {
-                response = await axios.get('http://localhost:8080/medications');
-            }
+            const response = await api.get('/api/medications');
             
             if (response.data) {
                 setMedications(response.data);
@@ -278,12 +252,7 @@ const PrescriptionManagement = () => {
                 payload.expiryDate = prescDate.toISOString().split('T')[0];
             }
             
-            let response;
-            try {
-                response = await axios.post('http://localhost:8080/api/prescriptions', payload);
-            } catch (err) {
-                response = await axios.post('http://localhost:8080/prescriptions', payload);
-            }
+            const response = await api.post('/api/prescriptions', payload);
             
             if (response.data) {
                 setPrescriptions([...prescriptions, response.data]);
@@ -301,12 +270,7 @@ const PrescriptionManagement = () => {
         if (!selectedPrescription) return;
         
         try {
-            let response;
-            try {
-                response = await axios.put(`http://localhost:8080/api/prescriptions/${selectedPrescription.prescriptionId}`, formData);
-            } catch (err) {
-                response = await axios.put(`http://localhost:8080/prescriptions/${selectedPrescription.prescriptionId}`, formData);
-            }
+            const response = await api.put(`/api/prescriptions/${selectedPrescription.prescriptionId}`, formData);
             
             if (response.data) {
                 const updatedPrescriptions = prescriptions.map(presc => 
@@ -324,12 +288,7 @@ const PrescriptionManagement = () => {
 
     const handleUpdateStatus = async (prescriptionId, newStatus) => {
         try {
-            let response;
-            try {
-                response = await axios.put(`http://localhost:8080/api/prescriptions/${prescriptionId}/status/${newStatus}`);
-            } catch (err) {
-                response = await axios.put(`http://localhost:8080/prescriptions/${prescriptionId}/status/${newStatus}`);
-            }
+            const response = await api.put(`/api/prescriptions/${prescriptionId}/status/${newStatus}`);
             
             if (response.data) {
                 const updatedPrescriptions = prescriptions.map(presc => 
@@ -347,12 +306,7 @@ const PrescriptionManagement = () => {
     const handleDeletePrescription = async (prescriptionId) => {
         if (window.confirm('Are you sure you want to delete this prescription?')) {
             try {
-                let response;
-                try {
-                    response = await axios.delete(`http://localhost:8080/api/prescriptions/${prescriptionId}`);
-                } catch (err) {
-                    response = await axios.delete(`http://localhost:8080/prescriptions/${prescriptionId}`);
-                }
+                const response = await api.delete(`/api/prescriptions/${prescriptionId}`);
                 
                 if (response.status === 204 || response.status === 200) {
                     const updatedPrescriptions = prescriptions.filter(presc => presc.prescriptionId !== prescriptionId);
@@ -368,12 +322,7 @@ const PrescriptionManagement = () => {
 
     const handleRefillPrescription = async (prescriptionId) => {
         try {
-            let response;
-            try {
-                response = await axios.post(`http://localhost:8080/api/prescriptions/${prescriptionId}/refill`);
-            } catch (err) {
-                response = await axios.post(`http://localhost:8080/prescriptions/${prescriptionId}/refill`);
-            }
+            const response = await api.post(`/api/prescriptions/${prescriptionId}/refill`);
             
             if (response.data) {
                 const updatedPrescriptions = prescriptions.map(presc => 

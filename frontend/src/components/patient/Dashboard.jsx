@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -83,7 +83,7 @@ const Dashboard = ({ patientId }) => {
     setLoading(true);
     try {
       // Fetch appointments
-      const appointmentsResponse = await axios.get(`http://localhost:8080/api/appointments/patient/${patientId}`);
+      const appointmentsResponse = await api.get(`/api/appointments/patient/${patientId}`);
       const appointments = appointmentsResponse.data;
       
       // Get upcoming appointments
@@ -95,7 +95,7 @@ const Dashboard = ({ patientId }) => {
       setUpcomingAppointments(upcoming);
       
       // Fetch prescriptions
-      const prescriptionsResponse = await axios.get(`http://localhost:8080/api/prescriptions/patient/${patientId}`);
+      const prescriptionsResponse = await api.get(`/api/prescriptions/patient/${patientId}`);
       const prescriptions = prescriptionsResponse.data;
       
       // Get active prescriptions
@@ -107,7 +107,7 @@ const Dashboard = ({ patientId }) => {
       setRecentPrescriptions(active);
       
       // Fetch medical records
-      const recordsResponse = await axios.get(`http://localhost:8080/api/medical-records/patient/${patientId}`);
+      const recordsResponse = await api.get(`/api/medical-records/patient/${patientId}`);
       const records = recordsResponse.data;
       
       // Get recent records

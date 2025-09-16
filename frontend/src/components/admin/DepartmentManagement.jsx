@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const DepartmentManagement = () => {
     const [departments, setDepartments] = useState([]);
@@ -24,7 +24,7 @@ const DepartmentManagement = () => {
     const fetchDepartments = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:8080/api/departments');
+            const response = await api.get('/api/departments');
             if (response.data) {
                 setDepartments(response.data);
             }
@@ -39,7 +39,7 @@ const DepartmentManagement = () => {
     // Fetch doctors for head doctor selection
     const fetchDoctors = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/doctors');
+            const response = await api.get('/api/doctors');
             if (response.data) {
                 setDoctors(response.data);
             }
@@ -79,7 +79,7 @@ const DepartmentManagement = () => {
     const handleAddDepartment = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:8080/api/departments', formData);
+            const response = await api.post('/api/departments', formData);
             
             if (response.status === 201 || response.status === 200) {
                 fetchDepartments();
@@ -96,8 +96,8 @@ const DepartmentManagement = () => {
     const handleUpdateDepartment = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put(
-                `http://localhost:8080/api/departments/${selectedDepartmentId}`,
+            const response = await api.put(
+                `/api/departments/${selectedDepartmentId}`,
                 formData
             );
             if (response.status === 200) {
@@ -115,7 +115,7 @@ const DepartmentManagement = () => {
     const handleDeleteDepartment = async (departmentId) => {
         if (window.confirm('Are you sure you want to delete this department?')) {
             try {
-                const response = await axios.delete(`http://localhost:8080/api/departments/${departmentId}`);
+                const response = await api.delete(`/api/departments/${departmentId}`);
                 
                 if (response.status === 200 || response.status === 204) {
                     fetchDepartments();

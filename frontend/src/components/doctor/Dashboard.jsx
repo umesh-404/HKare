@@ -11,7 +11,6 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import axios from 'axios';
 
 // Register ChartJS components
 ChartJS.register(

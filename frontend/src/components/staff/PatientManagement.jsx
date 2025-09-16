@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const PatientManagement = () => {
   const [patients, setPatients] = useState([]);
@@ -39,7 +39,7 @@ const PatientManagement = () => {
   const fetchPatients = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/patients');
+      const response = await api.get('/api/patients');
       setPatients(response.data);
       setError('');
     } catch (err) {
@@ -95,7 +95,7 @@ const PatientManagement = () => {
     }
     const payload = cleanPatientFormData(formData);
     try {
-      await axios.post('http://localhost:8080/api/patients', payload);
+      await api.post('/api/patients', payload);
       setShowAddModal(false);
       fetchPatients();
       setFormData({
@@ -148,7 +148,7 @@ const PatientManagement = () => {
     e.preventDefault();
     const payload = cleanPatientUpdateData(formData);
     try {
-      await axios.put(`http://localhost:8080/api/patients/${currentPatient.patientId}`, payload);
+      await api.put(`/api/patients/${currentPatient.patientId}`, payload);
       setShowEditModal(false);
       fetchPatients();
       setError('');
@@ -161,7 +161,7 @@ const PatientManagement = () => {
   const handleDeletePatient = async (patientId) => {
     if (window.confirm('Are you sure you want to delete this patient?')) {
       try {
-        await axios.delete(`http://localhost:8080/api/patients/${patientId}`);
+        await api.delete(`/api/patients/${patientId}`);
         fetchPatients();
       } catch (err) {
         console.error('Error deleting patient:', err);

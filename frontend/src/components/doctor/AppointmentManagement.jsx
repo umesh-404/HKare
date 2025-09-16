@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const AppointmentManagement = ({ doctorId }) => {
   const [appointments, setAppointments] = useState([]);
@@ -36,7 +36,7 @@ const AppointmentManagement = ({ doctorId }) => {
     setLoading(true);
     try {
       // Fetch only appointments for this doctor
-      const response = await axios.get(`http://localhost:8080/api/appointments/doctor/${doctorId}`);
+      const response = await api.get(`/api/appointments/doctor/${doctorId}`);
       setAppointments(response.data);
       setError('');
     } catch (err) {
@@ -49,7 +49,7 @@ const AppointmentManagement = ({ doctorId }) => {
 
   const fetchPatients = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/patients');
+      const response = await api.get('/api/patients');
       setPatients(response.data);
     } catch (err) {
       console.error('Error fetching patients:', err);
@@ -87,7 +87,7 @@ const AppointmentManagement = ({ doctorId }) => {
         notes: formData.notes
       };
       
-      await axios.put(`http://localhost:8080/api/appointments/${selectedAppointment.appointmentId}`, updatedAppointment);
+      await api.put(`/api/appointments/${selectedAppointment.appointmentId}`, updatedAppointment);
       
       setAppointments(appointments.map(app => 
         app.appointmentId === selectedAppointment.appointmentId ? updatedAppointment : app

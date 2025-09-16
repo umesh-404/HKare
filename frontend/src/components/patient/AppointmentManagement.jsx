@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const AppointmentManagement = ({ patientId }) => {
   const [appointments, setAppointments] = useState([]);
@@ -43,7 +43,7 @@ const AppointmentManagement = ({ patientId }) => {
   const fetchAppointments = async (patientId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/appointments/patient/${patientId}`);
+      const response = await api.get(`/api/appointments/patient/${patientId}`);
       setAppointments(response.data);
       setError('');
     } catch (err) {
@@ -56,7 +56,7 @@ const AppointmentManagement = ({ patientId }) => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/doctors');
+      const response = await api.get('/api/doctors');
       setDoctors(response.data);
     } catch (err) {
       console.error('Error fetching doctors:', err);
@@ -83,7 +83,7 @@ const AppointmentManagement = ({ patientId }) => {
         status: 'SCHEDULED'
       };
       
-      const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
+      const response = await api.post('/api/appointments', appointmentData);
       
       setAppointments(prev => [...prev, response.data]);
       setBookingSuccess(true);
@@ -115,7 +115,7 @@ const AppointmentManagement = ({ patientId }) => {
     
     setIsCancelling(true);
     try {
-      await axios.put(`http://localhost:8080/api/appointments/${selectedAppointment.appointmentId}/status`, {
+      await api.put(`/api/appointments/${selectedAppointment.appointmentId}/status`, {
         status: 'CANCELLED',
         cancellationReason: cancelReason
       });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const Profile = ({ userData }) => {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ const Profile = ({ userData }) => {
     // Fetch departments for dropdown
     const fetchDepartments = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/departments');
+        const response = await api.get('/api/departments');
         setDepartments(response.data);
       } catch (err) {
         console.error('Error fetching departments:', err);
@@ -43,7 +43,7 @@ const Profile = ({ userData }) => {
       // Fetch detailed doctor profile
       const fetchDoctorDetails = async () => {
         try {
-          const response = await axios.get(`http://localhost:8080/api/doctors/${userData.roleId}`);
+          const response = await api.get(`/api/doctors/${userData.roleId}`);
           const doctorData = response.data;
           
           // Format date of birth if exists
@@ -116,7 +116,7 @@ const Profile = ({ userData }) => {
       };
       
       // Send update request
-      await axios.put(`http://localhost:8080/api/doctors/${userData.roleId}`, updateData);
+      await api.put(`/api/doctors/${userData.roleId}`, updateData);
       
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);

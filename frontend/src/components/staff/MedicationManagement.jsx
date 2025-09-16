@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const MedicationManagement = () => {
   const [medications, setMedications] = useState([]);
@@ -38,7 +38,7 @@ const MedicationManagement = () => {
   const fetchMedications = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/medications');
+      const response = await api.get('/api/medications');
       setMedications(response.data);
       setError('');
     } catch (err) {
@@ -60,7 +60,7 @@ const MedicationManagement = () => {
   const handleAddMedication = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/medications', formData);
+      await api.post('/api/medications', formData);
       setShowAddModal(false);
       fetchMedications();
       setFormData({
@@ -89,7 +89,7 @@ const MedicationManagement = () => {
   const handleEditMedication = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:8080/api/medications/${currentMedication.medicationId}`, formData);
+      await api.put(`/api/medications/${currentMedication.medicationId}`, formData);
       setShowEditModal(false);
       fetchMedications();
     } catch (err) {
@@ -101,7 +101,7 @@ const MedicationManagement = () => {
   const handleDeleteMedication = async (medicationId) => {
     if (window.confirm('Are you sure you want to delete this medication?')) {
       try {
-        await axios.delete(`http://localhost:8080/api/medications/${medicationId}`);
+        await api.delete(`/api/medications/${medicationId}`);
         fetchMedications();
       } catch (err) {
         console.error('Error deleting medication:', err);

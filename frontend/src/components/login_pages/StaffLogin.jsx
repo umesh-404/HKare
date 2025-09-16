@@ -1,7 +1,7 @@
 import './StaffLogin.css';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import SimpleCaptcha from './SimpleCaptcha';
 
 const StaffLogin = () => {
@@ -80,7 +80,7 @@ const StaffLogin = () => {
 
   const recordLoginHistory = async ({ username, success, failureReason }) => {
     try {
-      await axios.post('http://localhost:8080/api/login-history', {
+      await api.post('/api/login-history', {
         username,
         ipAddress: '',
         userAgent: navigator.userAgent,
@@ -134,7 +134,7 @@ const StaffLogin = () => {
       
       // Regular staff login flow
       console.log('Sending login request:', formData);
-      const response = await axios.post('http://localhost:8080/api/auth/staff/login', formData);
+      const response = await api.post('/api/auth/staff/login', formData);
       console.log('Login response:', response.data);
       console.log('authenticated value:', response.data.authenticated);
       
@@ -210,7 +210,7 @@ const StaffLogin = () => {
       };
       
       // Send registration request
-      const response = await axios.post('http://localhost:8080/api/auth/staff/register', registrationData);
+      const response = await api.post('/api/auth/staff/register', registrationData);
       
       setShowLoginOverlay(false);
       

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const AppointmentManagement = () => {
     const [appointments, setAppointments] = useState([]);
@@ -46,13 +46,7 @@ const AppointmentManagement = () => {
     const fetchAppointments = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:8080/api/appointments', {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                timeout: 10000 // 10 second timeout
-            });
+            const response = await api.get('/api/appointments');
             if (response.data) {
                 setAppointments(response.data);
             }
@@ -66,12 +60,7 @@ const AppointmentManagement = () => {
 
     const fetchDoctors = async () => {
         try {
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/doctors');
-            } catch (err) {
-                response = await axios.get('http://localhost:8080/doctors');
-            }
+            const response = await api.get('/api/doctors');
             
             if (response.data) {
                 setDoctors(response.data);
@@ -83,26 +72,7 @@ const AppointmentManagement = () => {
 
     const fetchPatients = async () => {
         try {
-            let response;
-            try {
-                // First try with /api prefix
-                response = await axios.get('http://localhost:8080/api/patients', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 second timeout
-                });
-            } catch (err) {
-                // Fall back to without /api prefix if needed
-                response = await axios.get('http://localhost:8080/patients', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
-            }
+            const response = await api.get('/api/patients');
             
             if (response.data) {
                 setPatients(response.data);
@@ -198,7 +168,7 @@ const AppointmentManagement = () => {
                 startTime: formattedTime,
                 endTime: formattedTime // For simplicity, setting end time same as start time
             };
-            const response = await axios.post('http://localhost:8080/api/appointments', appointmentData);
+            const response = await api.post('/api/appointments', appointmentData);
             if (response.status === 201 || response.status === 200) {
                 setShowAddModal(false);
                 fetchAppointments();
@@ -231,7 +201,7 @@ const AppointmentManagement = () => {
                 startTime: formattedTime,
                 endTime: formattedTime // For simplicity, setting end time same as start time
             };
-            const response = await axios.put(`http://localhost:8080/api/appointments/${selectedAppointment.appointmentId}`, appointmentData);
+            const response = await api.put(`/api/appointments/${selectedAppointment.appointmentId}`, appointmentData);
             if (response.status === 200) {
                 setShowEditModal(false);
                 fetchAppointments();
@@ -246,12 +216,7 @@ const AppointmentManagement = () => {
     const handleDeleteAppointment = async (id) => {
         if (window.confirm('Are you sure you want to cancel this appointment?')) {
             try {
-                let response;
-                try {
-                    response = await axios.delete(`http://localhost:8080/api/appointments/${id}`);
-                } catch (err) {
-                    response = await axios.delete(`http://localhost:8080/appointments/${id}`);
-                }
+                const response = await api.delete(`/api/appointments/${id}`);
                 
                 if (response.status === 200 || response.status === 204) {
                     alert('Appointment cancelled successfully!');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const DoctorManagement = () => {
     const [doctors, setDoctors] = useState([]);
@@ -35,16 +35,16 @@ const DoctorManagement = () => {
         setIsLoading(true);
         setError('');
         try {
-            console.log("Fetching doctors from:", 'http://localhost:8080/api/doctors');
+            console.log("Fetching doctors from:", '/api/doctors');
             // First try with /api prefix
             try {
-                const response = await axios.get('http://localhost:8080/api/doctors');
+                const response = await api.get('/api/doctors');
                 console.log("Doctors response:", response.data);
                 setDoctors(response.data);
             } catch (apiError) {
                 console.log("Trying alternate URL without /api prefix");
                 // If that fails, try without /api prefix
-                const response = await axios.get('http://localhost:8080/doctors');
+                const response = await api.get('/doctors');
                 console.log("Doctors response (alternate URL):", response.data);
                 setDoctors(response.data);
             }
@@ -63,11 +63,11 @@ const DoctorManagement = () => {
         try {
             // First try with /api prefix
             try {
-                const response = await axios.get('http://localhost:8080/api/departments');
+                const response = await api.get('/api/departments');
                 setDepartments(response.data);
             } catch (apiError) {
                 // If that fails, try without /api prefix
-                const response = await axios.get('http://localhost:8080/departments');
+                const response = await api.get('/departments');
                 setDepartments(response.data);
             }
         } catch (err) {
@@ -155,14 +155,14 @@ const DoctorManagement = () => {
             
             console.log("Creating doctor with data:", doctorData);
             try {
-                const response = await axios.post('http://localhost:8080/api/doctors', doctorData);
+                const response = await api.post('/api/doctors', doctorData);
                 console.log("Doctor creation response:", response.data);
                 setShowAddModal(false);
                 fetchDoctors(); // Refresh the list
                 alert('Doctor added successfully!');
             } catch (apiError) {
                 console.log("Trying alternate URL without /api prefix");
-                const response = await axios.post('http://localhost:8080/doctors', doctorData);
+                const response = await api.post('/doctors', doctorData);
                 console.log("Doctor creation response (alternate URL):", response.data);
                 setShowAddModal(false);
                 fetchDoctors(); // Refresh the list
@@ -190,12 +190,12 @@ const DoctorManagement = () => {
             };
             
             try {
-                const response = await axios.put(`http://localhost:8080/api/doctors/${selectedDoctor.doctorId}`, doctorData);
+                const response = await api.put(`/api/doctors/${selectedDoctor.doctorId}`, doctorData);
                 setShowEditModal(false);
                 fetchDoctors(); // Refresh the list
                 alert('Doctor updated successfully!');
             } catch (apiError) {
-                const response = await axios.put(`http://localhost:8080/doctors/${selectedDoctor.doctorId}`, doctorData);
+                const response = await api.put(`/doctors/${selectedDoctor.doctorId}`, doctorData);
                 setShowEditModal(false);
                 fetchDoctors(); // Refresh the list
                 alert('Doctor updated successfully!');
@@ -210,7 +210,7 @@ const DoctorManagement = () => {
         if (window.confirm('Are you sure you want to delete this doctor?')) {
             try {
                 console.log(`Deleting doctor: ${doctorId}`);
-                const response = await axios.delete(`http://localhost:8080/api/doctors/${doctorId}`);
+                const response = await api.delete(`/api/doctors/${doctorId}`);
                 
                 if (response.status === 200 || response.status === 204) {
                     console.log(`Doctor ${doctorId} deleted successfully`);

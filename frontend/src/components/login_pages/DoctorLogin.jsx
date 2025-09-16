@@ -1,7 +1,7 @@
 import './DoctorLogin.css';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../api/client';
 import SimpleCaptcha from './SimpleCaptcha';
 
 const DoctorLogin = () => {
@@ -76,7 +76,7 @@ const DoctorLogin = () => {
 
     const recordLoginHistory = async ({ username, success, failureReason }) => {
         try {
-            await axios.post('http://localhost:8080/api/login-history', {
+            await api.post('/api/login-history', {
                 username,
                 ipAddress: '',
                 userAgent: navigator.userAgent,
@@ -104,7 +104,7 @@ const DoctorLogin = () => {
         
         try {
             console.log('Sending login request:', formData);
-            const response = await axios.post('http://localhost:8080/api/auth/doctor/login', formData);
+            const response = await api.post('/api/auth/doctor/login', formData);
             console.log('Login response:', response.data);
             console.log('authenticated value:', response.data.authenticated);
             
@@ -176,7 +176,7 @@ const DoctorLogin = () => {
             };
             
             // Send registration request
-            const response = await axios.post('http://localhost:8080/api/auth/doctor/register', registrationData);
+            const response = await api.post('/api/auth/doctor/register', registrationData);
             
             setShowLoginOverlay(false);
             

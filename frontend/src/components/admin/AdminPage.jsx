@@ -13,7 +13,6 @@ import {
     Legend
 } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 // Import all sidebar section components
 import StaffManagement from './StaffManagement';
 import DoctorManagement from './DoctorManagement';

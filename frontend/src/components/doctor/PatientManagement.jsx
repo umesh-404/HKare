@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const PatientManagement = ({ doctorId }) => {
   const [patients, setPatients] = useState([]);
@@ -19,7 +19,7 @@ const PatientManagement = ({ doctorId }) => {
     setIsLoading(true);
     try {
       // In a real app, this would fetch only patients assigned to this doctor
-      const response = await axios.get('http://localhost:8080/api/patients'); 
+      const response = await api.get('/api/patients'); 
       setPatients(response.data);
       setError('');
     } catch (err) {

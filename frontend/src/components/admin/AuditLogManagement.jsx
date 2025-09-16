@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { FaSearch, FaCalendar, FaExclamationTriangle, FaFilter } from 'react-icons/fa';
 import './AdminPage.css';
 
@@ -31,7 +31,7 @@ const AuditLogManagement = () => {
             } else if (filter === 'date-range' && dateRange.start && dateRange.end) {
                 url = `/api/audit-logs/date-range?start=${dateRange.start}&end=${dateRange.end}`;
             }
-            const response = await axios.get(url);
+            const response = await api.get(url);
             setAuditLogs(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             setError('Failed to fetch audit logs. Please try again later.');

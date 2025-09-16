@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { FaSearch, FaCalendar, FaExclamationTriangle } from 'react-icons/fa';
 import './AdminPage.css';
 
@@ -18,13 +18,13 @@ const LoginHistoryManagement = () => {
         setLoading(true);
         setError(null);
         try {
-            let url = 'http://localhost:8080/api/login-history';
+            let url = '/api/login-history';
             if (filter === 'user' && username) {
-                url = `http://localhost:8080/api/login-history/user/${username}`;
+                url = `/api/login-history/user/${username}`;
             } else if (filter === 'date-range' && dateRange.start && dateRange.end) {
-                url = `http://localhost:8080/api/login-history/date-range?start=${dateRange.start}&end=${dateRange.end}`;
+                url = `/api/login-history/date-range?start=${dateRange.start}&end=${dateRange.end}`;
             }
-            const response = await axios.get(url);
+            const response = await api.get(url);
             setLoginHistory(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             setError('Failed to fetch login history. Please try again later.');

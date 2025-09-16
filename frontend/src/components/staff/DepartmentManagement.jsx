@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const DepartmentManagement = () => {
   const [departments, setDepartments] = useState([]);
@@ -14,7 +14,7 @@ const DepartmentManagement = () => {
   const fetchDepartments = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/departments');
+      const response = await api.get('/api/departments');
       setDepartments(response.data);
       setError('');
     } catch (err) {

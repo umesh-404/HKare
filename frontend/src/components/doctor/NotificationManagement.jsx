@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { FaCheck, FaExclamationTriangle } from 'react-icons/fa';
 import './DoctorPage.css';
 
@@ -13,8 +13,8 @@ const NotificationManagement = ({ doctorId }) => {
         setError(null);
         try {
             // Fetch notifications for this doctor
-            const url = `http://localhost:8080/api/notifications/recipient/DOCTOR/${doctorId}`;
-            const response = await axios.get(url);
+            const url = `/api/notifications/recipient/DOCTOR/${doctorId}`;
+            const response = await api.get(url);
             setNotifications(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             console.error('Error fetching notifications:', err);
@@ -30,7 +30,7 @@ const NotificationManagement = ({ doctorId }) => {
 
     const handleMarkAsRead = async (notificationId) => {
         try {
-            await axios.put(`http://localhost:8080/api/notifications/${notificationId}/read`);
+            await api.put(`/api/notifications/${notificationId}/read`);
             fetchNotifications();
         } catch (err) {
             console.error('Error marking notification as read:', err);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const MedicalRecordManagement = () => {
     const [medicalRecords, setMedicalRecords] = useState([]);
@@ -50,22 +50,10 @@ const MedicalRecordManagement = () => {
         try {
             let response;
             try {
-                response = await axios.get('http://localhost:8080/api/medical-records', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 second timeout
-                });
+                response = await api.get('/api/medical-records');
             } catch (err) {
                 // Try without /api prefix if first attempt fails
-                response = await axios.get('http://localhost:8080/medical-records', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
+                response = await api.get('/medical-records');
             }
             
             console.log('Medical records data received:', response.data);
@@ -87,9 +75,9 @@ const MedicalRecordManagement = () => {
         try {
             let response;
             try {
-                response = await axios.get('http://localhost:8080/api/patients');
+                response = await api.get('/api/patients');
             } catch (err) {
-                response = await axios.get('http://localhost:8080/patients');
+                response = await api.get('/patients');
             }
             
             if (response.data) {
@@ -104,9 +92,9 @@ const MedicalRecordManagement = () => {
         try {
             let response;
             try {
-                response = await axios.get('http://localhost:8080/api/doctors');
+                response = await api.get('/api/doctors');
             } catch (err) {
-                response = await axios.get('http://localhost:8080/doctors');
+                response = await api.get('/doctors');
             }
             
             if (response.data) {
@@ -121,9 +109,9 @@ const MedicalRecordManagement = () => {
         try {
             let response;
             try {
-                response = await axios.get('http://localhost:8080/api/appointments');
+                response = await api.get('/api/appointments');
             } catch (err) {
-                response = await axios.get('http://localhost:8080/appointments');
+                response = await api.get('/appointments');
             }
             
             if (response.data) {
@@ -220,9 +208,9 @@ const MedicalRecordManagement = () => {
         try {
             let response;
             try {
-                response = await axios.post('http://localhost:8080/api/medical-records', formattedData);
+                response = await api.post('/api/medical-records', formattedData);
             } catch (err) {
-                response = await axios.post('http://localhost:8080/medical-records', formattedData);
+                response = await api.post('/medical-records', formattedData);
             }
             
             if (response.status === 201 || response.status === 200) {
@@ -255,9 +243,9 @@ const MedicalRecordManagement = () => {
             console.log(`Updating medical record with ID: ${selectedRecord.recordId}`);
             let response;
             try {
-                response = await axios.put(`http://localhost:8080/api/medical-records/${selectedRecord.recordId}`, formattedData);
+                response = await api.put(`/api/medical-records/${selectedRecord.recordId}`, formattedData);
             } catch (err) {
-                response = await axios.put(`http://localhost:8080/medical-records/${selectedRecord.recordId}`, formattedData);
+                response = await api.put(`/medical-records/${selectedRecord.recordId}`, formattedData);
             }
             
             if (response.status === 200) {
@@ -276,9 +264,9 @@ const MedicalRecordManagement = () => {
             try {
                 let response;
                 try {
-                    response = await axios.delete(`http://localhost:8080/api/medical-records/${recordId}`);
+                    response = await api.delete(`/api/medical-records/${recordId}`);
                 } catch (err) {
-                    response = await axios.delete(`http://localhost:8080/medical-records/${recordId}`);
+                    response = await api.delete(`/medical-records/${recordId}`);
                 }
                 
                 if (response.status === 204 || response.status === 200) {

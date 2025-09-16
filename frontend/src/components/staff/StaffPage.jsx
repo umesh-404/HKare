@@ -12,7 +12,6 @@ import {
     Legend
 } from 'chart.js';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 // Register ChartJS components
 ChartJS.register(

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const PaymentManagement = () => {
   const [payments, setPayments] = useState([]);
@@ -29,7 +29,7 @@ const PaymentManagement = () => {
   const fetchPayments = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/payments');
+      const response = await api.get('/api/payments');
       setPayments(response.data);
       setError('');
     } catch (err) {
@@ -42,7 +42,7 @@ const PaymentManagement = () => {
 
   const fetchPatients = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/patients');
+      const response = await api.get('/api/patients');
       setPatients(response.data);
     } catch (err) {
       console.error('Error fetching patients:', err);
@@ -60,7 +60,7 @@ const PaymentManagement = () => {
   const handleInitializePayment = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/payments', {
+      await api.post('/api/payments', {
         ...formData,
         status: 'PENDING'
       });

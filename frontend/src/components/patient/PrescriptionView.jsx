@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const PrescriptionView = ({ patientId }) => {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -28,7 +28,7 @@ const PrescriptionView = ({ patientId }) => {
   const fetchPrescriptions = async (patientId) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:8080/api/prescriptions/patient/${patientId}`);
+      const response = await api.get(`/api/prescriptions/patient/${patientId}`);
       setPrescriptions(response.data);
       setError('');
     } catch (err) {
@@ -44,7 +44,7 @@ const PrescriptionView = ({ patientId }) => {
     
     setIsRequesting(true);
     try {
-      await axios.post(`http://localhost:8080/api/prescriptions/${selectedPrescription.prescriptionId}/refill-request`, {
+      await api.post(`/api/prescriptions/${selectedPrescription.prescriptionId}/refill-request`, {
         reason: refillReason
       });
       

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const Profile = ({ userData }) => {
   const [formData, setFormData] = useState({
@@ -29,7 +29,7 @@ const Profile = ({ userData }) => {
       // Fetch detailed patient profile
       const fetchPatientDetails = async () => {
         try {
-          const response = await axios.get(`http://localhost:8080/api/patients/${userData.roleId}`);
+          const response = await api.get(`/api/patients/${userData.roleId}`);
           const patientData = response.data;
           
           // Format date of birth if exists
@@ -102,7 +102,7 @@ const Profile = ({ userData }) => {
       };
       
       // Send update request
-      await axios.put(`http://localhost:8080/api/patients/${userData.roleId}`, updateData);
+      await api.put(`/api/patients/${userData.roleId}`, updateData);
       
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);

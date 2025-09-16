@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const PaymentManagement = () => {
     const [payments, setPayments] = useState([]);
@@ -43,24 +43,12 @@ const PaymentManagement = () => {
             try {
                 // First try with /api prefix
                 console.log('Attempting to fetch payments from /api/payments');
-                response = await axios.get('http://localhost:8080/api/payments', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 second timeout
-                });
+                response = await api.get('/api/payments');
                 console.log('Successfully fetched payments from /api/payments:', response.data);
             } catch (err) {
                 console.log('Failed to fetch from /api/payments, trying without prefix');
                 // Fall back to without /api prefix if needed
-                response = await axios.get('http://localhost:8080/payments', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
+                response = await api.get('/payments');
                 console.log('Successfully fetched payments from /payments:', response.data);
             }
             
@@ -107,22 +95,10 @@ const PaymentManagement = () => {
             let response;
             try {
                 // First try with /api prefix
-                response = await axios.get('http://localhost:8080/api/patients', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 second timeout
-                });
+                response = await api.get('/api/patients');
             } catch (err) {
                 // Fall back to without /api prefix if needed
-                response = await axios.get('http://localhost:8080/patients', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
+                response = await api.get('/patients');
             }
             
             if (response.data) {
@@ -139,22 +115,10 @@ const PaymentManagement = () => {
             let response;
             try {
                 // First try with /api prefix
-                response = await axios.get('http://localhost:8080/api/appointments', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 second timeout
-                });
+                response = await api.get('/api/appointments');
             } catch (err) {
                 // Fall back to without /api prefix if needed
-                response = await axios.get('http://localhost:8080/appointments', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                });
+                response = await api.get('/appointments');
             }
             
             if (response.data) {
@@ -238,19 +202,9 @@ const PaymentManagement = () => {
             
             let response;
             try {
-                response = await axios.post('http://localhost:8080/api/payments', paymentData, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
+                response = await api.post('/api/payments', paymentData);
             } catch (err) {
-                response = await axios.post('http://localhost:8080/payments', paymentData, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
+                response = await api.post('/payments', paymentData);
             }
             
             if (response.status === 201 || response.status === 200) {
@@ -295,19 +249,9 @@ const PaymentManagement = () => {
             
             let response;
             try {
-                response = await axios.put(`http://localhost:8080/api/payments/${selectedPayment.paymentId}`, paymentData, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
+                response = await api.put(`/api/payments/${selectedPayment.paymentId}`, paymentData);
             } catch (err) {
-                response = await axios.put(`http://localhost:8080/payments/${selectedPayment.paymentId}`, paymentData, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
+                response = await api.put(`/payments/${selectedPayment.paymentId}`, paymentData);
             }
             
             if (response.status === 200) {
@@ -326,19 +270,9 @@ const PaymentManagement = () => {
             try {
                 let response;
                 try {
-                    response = await axios.delete(`http://localhost:8080/api/payments/${paymentId}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
+                    response = await api.delete(`/api/payments/${paymentId}`);
                 } catch (err) {
-                    response = await axios.delete(`http://localhost:8080/payments/${paymentId}`, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
+                    response = await api.delete(`/payments/${paymentId}`);
                 }
                 
                 if (response.status === 200 || response.status === 204) {

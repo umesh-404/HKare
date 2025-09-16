@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 const Profile = ({ userData }) => {
     const [isEditing, setIsEditing] = useState(false);

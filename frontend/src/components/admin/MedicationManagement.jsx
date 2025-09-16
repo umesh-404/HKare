@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const MedicationManagement = () => {
     const [medications, setMedications] = useState([]);
@@ -46,13 +46,7 @@ const MedicationManagement = () => {
     const fetchMedications = async () => {
         setLoading(true);
         try {
-            let response;
-            try {
-                response = await axios.get('http://localhost:8080/api/medications');
-            } catch (err) {
-                // Try alternate endpoint if the first one fails
-                response = await axios.get('http://localhost:8080/medications');
-            }
+            const response = await api.get('/api/medications');
             
             if (response.data) {
                 setMedications(response.data);
@@ -138,13 +132,7 @@ const MedicationManagement = () => {
     const handleAddMedication = async (e) => {
         e.preventDefault();
         try {
-            let response;
-            try {
-                response = await axios.post('http://localhost:8080/api/medications', formData);
-            } catch (err) {
-                // Try alternate endpoint if the first one fails
-                response = await axios.post('http://localhost:8080/medications', formData);
-            }
+            const response = await api.post('/api/medications', formData);
             
             if (response.data) {
                 setMedications([...medications, response.data]);
@@ -162,13 +150,7 @@ const MedicationManagement = () => {
         if (!selectedMedication) return;
         
         try {
-            let response;
-            try {
-                response = await axios.put(`http://localhost:8080/api/medications/${selectedMedication.medicationId}`, formData);
-            } catch (err) {
-                // Try alternate endpoint if the first one fails
-                response = await axios.put(`http://localhost:8080/medications/${selectedMedication.medicationId}`, formData);
-            }
+            const response = await api.put(`/api/medications/${selectedMedication.medicationId}`, formData);
             
             if (response.data) {
                 const updatedMedications = medications.map(med => 
@@ -189,20 +171,13 @@ const MedicationManagement = () => {
         if (!selectedMedication) return;
         
         try {
-            const endpoint = `http://localhost:8080/api/medications/${selectedMedication.medicationId}/stock`;
-            const altEndpoint = `http://localhost:8080/medications/${selectedMedication.medicationId}/stock`;
+            const endpoint = `/api/medications/${selectedMedication.medicationId}/stock`;
             const payload = {
                 quantity: parseInt(stockForm.quantity),
                 action: stockForm.updateType
             };
             
-            let response;
-            try {
-                response = await axios.patch(endpoint, payload);
-            } catch (err) {
-                // Try alternate endpoint if the first one fails
-                response = await axios.patch(altEndpoint, payload);
-            }
+            const response = await api.patch(endpoint, payload);
             
             if (response.data) {
                 const updatedMedications = medications.map(med => 
@@ -222,13 +197,7 @@ const MedicationManagement = () => {
     const handleDeleteMedication = async (medicationId) => {
         if (window.confirm('Are you sure you want to delete this medication?')) {
             try {
-                let response;
-                try {
-                    response = await axios.delete(`http://localhost:8080/api/medications/${medicationId}`);
-                } catch (err) {
-                    // Try alternate endpoint if the first one fails
-                    response = await axios.delete(`http://localhost:8080/medications/${medicationId}`);
-                }
+                const response = await api.delete(`/api/medications/${medicationId}`);
                 
                 setMedications(medications.filter(med => med.medicationId !== medicationId));
                 alert('Medication deleted successfully!');

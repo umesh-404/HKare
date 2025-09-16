@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 
 const AppointmentManagement = () => {
   const [appointments, setAppointments] = useState([]);
@@ -34,7 +34,7 @@ const AppointmentManagement = () => {
   const fetchAppointments = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/appointments');
+      const response = await api.get('/api/appointments');
       setAppointments(response.data);
       setError('');
     } catch (err) {
@@ -47,7 +47,7 @@ const AppointmentManagement = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/doctors');
+      const response = await api.get('/api/doctors');
       setDoctors(response.data);
     } catch (err) {
       console.error('Error fetching doctors:', err);
@@ -56,7 +56,7 @@ const AppointmentManagement = () => {
 
   const fetchPatients = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/patients');
+      const response = await api.get('/api/patients');
       setPatients(response.data);
     } catch (err) {
       console.error('Error fetching patients:', err);
@@ -74,7 +74,7 @@ const AppointmentManagement = () => {
   const handleAddAppointment = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8080/api/appointments', {
+      await api.post('/api/appointments', {
         ...formData,
         status: 'SCHEDULED'
       });
@@ -98,7 +98,7 @@ const AppointmentManagement = () => {
   const handleEditAppointment = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:8080/api/appointments/${currentAppointment.appointmentId}`, {
+      await api.put(`/api/appointments/${currentAppointment.appointmentId}`, {
         ...formData,
         status: currentAppointment.status
       });
@@ -113,7 +113,7 @@ const AppointmentManagement = () => {
   const handleDeleteAppointment = async (appointmentId) => {
     if (window.confirm('Are you sure you want to delete this appointment?')) {
       try {
-        await axios.delete(`http://localhost:8080/api/appointments/${appointmentId}`);
+        await api.delete(`/api/appointments/${appointmentId}`);
         fetchAppointments();
       } catch (err) {
         console.error('Error deleting appointment:', err);
@@ -124,7 +124,7 @@ const AppointmentManagement = () => {
 
   const handleStatusChange = async (appointmentId, newStatus) => {
     try {
-      await axios.patch(`http://localhost:8080/api/appointments/${appointmentId}/status`, {
+      await api.patch(`/api/appointments/${appointmentId}/status`, {
         status: newStatus
       });
       fetchAppointments();
