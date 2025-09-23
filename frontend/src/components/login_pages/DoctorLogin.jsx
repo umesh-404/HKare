@@ -167,7 +167,10 @@ const DoctorLogin = () => {
                 firstName: registerData.firstName,
                 lastName: registerData.lastName,
                 phoneNumber: registerData.phoneNumber || null,
-                dateOfBirth: registerData.dateOfBirth ? new Date(registerData.dateOfBirth).toISOString() : null,
+                // Backend expects ISO_LOCAL_DATE_TIME (no timezone)
+                dateOfBirth: registerData.dateOfBirth
+                    ? new Date(registerData.dateOfBirth).toISOString().slice(0, 19)
+                    : null,
                 gender: registerData.gender || null,
                 specialization: registerData.specialization,
                 qualification: registerData.qualification || null,

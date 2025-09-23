@@ -143,8 +143,10 @@ const DoctorManagement = () => {
     const handleAddDoctor = async (e) => {
         e.preventDefault();
         try {
-            // Convert date string to ISO format for backend
-            const dateOfBirth = formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null;
+            // Convert date string to backend expected ISO_LOCAL_DATE_TIME (no timezone)
+            const dateOfBirth = formData.dateOfBirth
+                ? new Date(formData.dateOfBirth).toISOString().slice(0, 19) // yyyy-MM-ddTHH:mm:ss
+                : null;
             
             const doctorData = {
                 ...formData,
@@ -179,8 +181,10 @@ const DoctorManagement = () => {
         if (!selectedDoctor) return;
         
         try {
-            // Convert date string to ISO format for backend
-            const dateOfBirth = formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString() : null;
+            // Convert date string to backend expected ISO_LOCAL_DATE_TIME (no timezone)
+            const dateOfBirth = formData.dateOfBirth
+                ? new Date(formData.dateOfBirth).toISOString().slice(0, 19)
+                : null;
             
             const doctorData = {
                 ...formData,
