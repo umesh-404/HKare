@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub-password')
-        DOCKER_HUB_USERNAME = 'your-dockerhub-username'  // Replace with your Docker Hub username
+        DOCKER_HUB_USERNAME = 'umesh404'  // Your Docker Hub username
         DOCKER_HUB_PASSWORD = credentials('dockerhub-password')
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         REGISTRY = 'docker.io'
