@@ -6,6 +6,10 @@ import com.hkare.hkare_backend.dto.PatientResponse;
 import jakarta.persistence.EntityNotFoundException;
 import com.hkare.hkare_backend.model.*;
 import com.hkare.hkare_backend.repository.DoctorRepository;
+import com.hkare.hkare_backend.repository.AppointmentRepository;
+import com.hkare.hkare_backend.repository.MedicalRecordRepository;
+import com.hkare.hkare_backend.repository.PrescriptionRepository;
+import com.hkare.hkare_backend.repository.PaymentRepository;
 import com.hkare.hkare_backend.repository.PatientRepository;
 import com.hkare.hkare_backend.repository.UserRepository;
 import com.hkare.hkare_backend.service.IDGeneratorService;
@@ -29,6 +33,10 @@ public class PatientServiceImpl implements PatientService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final DoctorRepository doctorRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final MedicalRecordRepository medicalRecordRepository;
+    private final PrescriptionRepository prescriptionRepository;
+    private final PaymentRepository paymentRepository;
     private final PasswordService passwordService;
     private final IDGeneratorService idGeneratorService;
     
@@ -237,11 +245,39 @@ public class PatientServiceImpl implements PatientService {
                     .orElseThrow(() -> new EntityNotFoundException("Patient not found with ID: " + patientId));
             
             Users user = patient.getUser();
-            
+
+            // 1) Delete dependent records referencing this patient to avoid FK violations
+            log.debug("Deleting dependent medical records for patient {}", patientId);
+            var medicalRecords = medicalRecordRepository.findByPatient(patient);
+            if (medicalRecords != null && !medicalRecords.isEmpty()) {
+                medicalRecordRepository.deleteAll(medicalRecords);
+            }
+
+            log.debug("Deleting dependent prescriptions for patient {}", patientId);
+            var prescriptions = prescriptionRepository.findByPatient(patient);
+            if (prescriptions != null && !prescriptions.isEmpty()) {
+                prescriptionRepository.deleteAll(prescriptions);
+            }
+
+            log.debug("Deleting dependent payments for patient {}", patientId);
+            var payments = paymentRepository.findByPatient(patient);
+            if (payments != null && !payments.isEmpty()) {
+                paymentRepository.deleteAll(payments);
+            }
+
+            log.debug("Deleting dependent appointments for patient {}", patientId);
+            var appointments = appointmentRepository.findByPatient(patient);
+            if (appointments != null && !appointments.isEmpty()) {
+                appointmentRepository.deleteAll(appointments);
+            }
+
+            // 2) Delete the patient and associated user
             log.debug("Deleting patient entity");
             patientRepository.delete(patient);
             log.debug("Deleting user entity");
-            userRepository.delete(user);
+            if (user != null) {
+                userRepository.delete(user);
+            }
             log.info("Deleted patient with ID: {}", patientId);
         } catch (EntityNotFoundException e) {
             log.warn("Patient not found with ID: {}", patientId);
