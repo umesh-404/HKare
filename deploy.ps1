@@ -40,7 +40,7 @@ if (Test-Path ".env") {
 }
 
 # Set default values if not provided
-$DOCKER_HUB_USERNAME = if ($env:DOCKER_HUB_USERNAME) { $env:DOCKER_HUB_USERNAME } else { "your-dockerhub-username" }
+$DOCKER_HUB_USERNAME = if ($env:DOCKER_HUB_USERNAME) { $env:DOCKER_HUB_USERNAME } else { "umesh404" }
 
 Write-Host "🐳 Docker Hub Username: $DOCKER_HUB_USERNAME" -ForegroundColor Cyan
 
