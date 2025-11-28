@@ -1,0 +1,72 @@
+---
+- name: Update system packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+  tags: system
+
+- name: Install required system packages
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - unzip
+      - python3
+      - python3-pip
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+    state: present
+  when: ansible_os_family == "Debian"
+  tags: system
+
+- name: Create application directory
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  tags: system
+
+- name: Create logs directory
+  file:
+    path: "{{ logs_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  tags: system
+
+- name: Create backup directory
+  file:
+    path: "{{ backup_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  tags: system
+
+- name: Check system memory
+  command: free -g
+  register: memory_check
+  changed_when: false
+  tags: system
+
+- name: Verify minimum memory requirement
+  assert:
+    that:
+      - memory_check.stdout | regex_search('Mem:\\s+(\\d+)') | int >= min_memory_gb
+    fail_msg: "System does not meet minimum memory requirement of {{ min_memory_gb }}GB"
+  tags: system
+
+- name: Check disk space
+  command: df -h /
+  register: disk_check
+  changed_when: false
+  tags: system
+

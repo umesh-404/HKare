@@ -1,0 +1,35 @@
+---
+- name: Deploy HKare Hospital Management System
+  hosts: all
+  become: yes
+  vars:
+    app_name: hkare
+    app_dir: /opt/hkare
+    
+  tasks:
+    - name: Include system setup tasks
+      include_tasks: tasks/system-setup.yml
+      tags: system
+
+    - name: Include Docker setup tasks
+      include_tasks: tasks/docker-setup.yml
+      tags: docker
+
+    - name: Include application deployment tasks
+      include_tasks: tasks/app-deployment.yml
+      tags: deploy
+
+    - name: Include health check tasks
+      include_tasks: tasks/health-check.yml
+      tags: healthcheck
+
+  handlers:
+    - name: restart docker
+      systemd:
+        name: docker
+        state: restarted
+
+    - name: restart application
+      shell: cd {{ docker_compose_dir }} && docker-compose restart
+      become: yes
+

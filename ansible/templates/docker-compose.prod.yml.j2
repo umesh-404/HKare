@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: {{ mysql_root_password }}
+      MYSQL_DATABASE: {{ mysql_database }}
+      MYSQL_USER: {{ mysql_user | default('hkare_user') }}
+      MYSQL_PASSWORD: {{ mysql_password }}
+    ports:
+      - "{{ mysql_port }}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - hkare-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Backend Service
+  backend:
+    image: {{ docker_hub_username }}/hkare-backend:{{ app_version }}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/{{ mysql_database }}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: {{ mysql_user | default('hkare_user') }}
+      SPRING_DATASOURCE_PASSWORD: {{ mysql_password }}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      SERVER_PORT: {{ backend_port }}
+      SPRING_PROFILES_ACTIVE: {{ spring_profiles_active | default('prod') }}
+      JWT_SECRET: {{ jwt_secret | default('default_jwt_secret') }}
+    ports:
+      - "{{ backend_port }}:{{ backend_port }}"
+    networks:
+      - hkare-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:{{ backend_port }}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Service
+  frontend:
+    image: {{ docker_hub_username }}/hkare-frontend:{{ app_version }}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "{{ frontend_port }}:80"
+    networks:
+      - hkare-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  hkare-network:
+    driver: bridge
+

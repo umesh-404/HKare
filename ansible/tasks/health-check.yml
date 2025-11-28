@@ -1,0 +1,47 @@
+---
+- name: Check MySQL health
+  uri:
+    url: "http://localhost:{{ mysql_port }}"
+    method: GET
+    status_code: [200, 403, 401]
+  register: mysql_health
+  ignore_errors: yes
+  tags: healthcheck
+
+- name: Check backend health
+  uri:
+    url: "http://localhost:{{ backend_port }}/api/health"
+    method: GET
+    status_code: 200
+  register: backend_health
+  tags: healthcheck
+
+- name: Check frontend health
+  uri:
+    url: "http://localhost:{{ frontend_port }}"
+    method: GET
+    status_code: 200
+  register: frontend_health
+  tags: healthcheck
+
+- name: Display health check results
+  debug:
+    msg:
+      - "MySQL: {{ 'Healthy' if mysql_health.status == 200 else 'Check manually' }}"
+      - "Backend: {{ 'Healthy' if backend_health.status == 200 else 'Unhealthy' }}"
+      - "Frontend: {{ 'Healthy' if frontend_health.status == 200 else 'Unhealthy' }}"
+  tags: healthcheck
+
+- name: Get container logs (last 20 lines)
+  command: docker-compose -f {{ docker_compose_dir }}/docker-compose.yml logs --tail=20
+  args:
+    chdir: "{{ docker_compose_dir }}"
+  register: container_logs
+  changed_when: false
+  tags: healthcheck
+
+- name: Display recent logs
+  debug:
+    var: container_logs.stdout_lines
+  tags: healthcheck
+

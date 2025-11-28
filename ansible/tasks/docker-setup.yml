@@ -1,0 +1,89 @@
+---
+- name: Check if Docker is installed
+  command: docker --version
+  register: docker_check
+  changed_when: false
+  failed_when: false
+  tags: docker
+
+- name: Install Docker if not present
+  block:
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+      notify: restart docker
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+  when: docker_check.rc != 0
+  tags: docker
+
+- name: Verify Docker installation
+  command: docker --version
+  register: docker_version
+  changed_when: false
+  tags: docker
+
+- name: Display Docker version
+  debug:
+    msg: "Docker version: {{ docker_version.stdout }}"
+  tags: docker
+
+- name: Check if Docker Compose is installed
+  command: docker compose version
+  register: docker_compose_check
+  changed_when: false
+  failed_when: false
+  tags: docker
+
+- name: Install Docker Compose if not present
+  block:
+    - name: Download Docker Compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v{{ docker_compose_version }}/docker-compose-linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+      when: docker_compose_check.rc != 0
+
+    - name: Create symlink for docker compose
+      file:
+        src: /usr/local/bin/docker-compose
+        dest: /usr/bin/docker-compose
+        state: link
+      when: docker_compose_check.rc != 0
+  tags: docker
+
+- name: Login to Docker Hub
+  command: echo "{{ docker_hub_password }}" | docker login -u "{{ docker_hub_username }}" --password-stdin
+  no_log: true
+  tags: docker
+

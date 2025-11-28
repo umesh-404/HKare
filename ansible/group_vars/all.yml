@@ -1,0 +1,30 @@
+---
+# Common variables for all hosts
+app_name: hkare
+app_version: latest
+
+# Docker Configuration
+docker_hub_username: umesh404
+docker_hub_password: "{{ vault_docker_hub_password }}"
+docker_compose_version: "2.24.0"
+
+# Application Ports
+backend_port: 8082
+frontend_port: 5173
+mysql_port: 3306
+
+# Directory Structure
+app_dir: /opt/hkare
+docker_compose_dir: "{{ app_dir }}/docker-compose"
+logs_dir: "{{ app_dir }}/logs"
+backup_dir: "{{ app_dir }}/backups"
+
+# System Requirements
+min_memory_gb: 4
+min_disk_gb: 20
+
+# Health Check Configuration
+health_check_interval: 30
+health_check_timeout: 10
+health_check_retries: 3
+

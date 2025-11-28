@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hkare
+  labels:
+    name: hkare
+    environment: production
+

@@ -1,0 +1,26 @@
+---
+# Production Environment Variables
+environment: production
+
+# Database Configuration
+mysql_root_password: "{{ vault_mysql_root_password }}"
+mysql_password: "{{ vault_mysql_password }}"
+mysql_database: hkare
+mysql_user: hkare_user
+
+# Application Configuration
+spring_profiles_active: prod
+log_level: INFO
+
+# Security
+jwt_secret: "{{ vault_jwt_secret }}"
+encryption_key: "{{ vault_encryption_key }}"
+
+# Backup Configuration
+backup_enabled: true
+backup_schedule: "0 2 * * *"  # Daily at 2 AM
+backup_retention_days: 30
+
+# Monitoring
+monitoring_enabled: true
+
